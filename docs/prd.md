@@ -14,8 +14,8 @@
 
 ### E1: Foundation and delivery
 - E1.1 Laravel + Livewire skeleton with quality gates (Pest, PHPStan, Pint, architecture tests)
-- E1.2 CI on GitHub Actions
-- E1.3 Server provisioned with Forge, deploy on push to `main`
+- E1.2 CI on GitHub Actions: `composer qa`, dependency audit, Conventional Commits check on pull request titles, Dependabot (ADR-0004, ADR-0005)
+- E1.3 Server provisioned with Forge, deploy on GitHub release created by release-please (ADR-0004)
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 
 ### E2: Ingestion
@@ -47,3 +47,5 @@
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
+- AI pull request review bot (CodeRabbit, Greptile): evaluate after a few stories, non-blocking
+- `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
