@@ -31,6 +31,8 @@
 | Real-time | Laravel Reverb | Agreed |
 | Hosting | OVH VPS-1 (Ubuntu 24.04) provisioned by Laravel Forge | Agreed, ADR to write |
 | Edge | Cloudflare (free plan) | Agreed |
+| Quality gates | Pint (`laravel` preset), Larastan (level max), Pest with `arch`, behind `composer qa` | Decided, [ADR-0005](adr/0005-quality-tooling.md) |
+| Delivery | Protected `main`, squash merge, release-please, Forge deploy on release | Decided, [ADR-0004](adr/0004-delivery-workflow.md) |
 
 ## Open questions
 
