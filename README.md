@@ -2,7 +2,15 @@
 
 Live map of public transport vehicles, fed by open GTFS-Realtime data. First network: TBM (Bordeaux).
 
-> Status: design phase. No application code yet.
+> Status: skeleton (E1.1). No map yet.
+
+## Run it
+
+```sh
+docker compose up -d
+```
+
+Then open http://localhost:8000. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
 
 ## Documentation
 
