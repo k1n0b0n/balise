@@ -24,9 +24,9 @@
 | Layer | Choice | Status |
 |---|---|---|
 | Framework | Laravel (latest stable), Livewire, Alpine; Inertia + Vue as the planned exit | Decided, [ADR-0010](adr/0010-ui-stack.md) |
-| Map | MapLibre GL JS | Agreed |
+| Map | MapLibre GL JS, loaded on the map page only | Decided, [ADR-0011](adr/0011-map-library.md) |
 | CSS | Tailwind CSS v4, installed with E3.1; system fonts | Decided, [ADR-0008](adr/0008-css-approach.md) |
-| Basemap tiles | OpenFreeMap (no key) | To confirm |
+| Basemap tiles | OpenFreeMap (no key); self-hosted Protomaps PMTiles as fallback | Decided, ADR-0011 |
 | Database | PostgreSQL; PostGIS later, with the first spatial story | Decided, [ADR-0002](adr/0002-database.md) |
 | Cache / queue | Redis | To confirm |
 | Real-time | Laravel Reverb | Agreed |
