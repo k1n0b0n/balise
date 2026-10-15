@@ -20,8 +20,13 @@
 | Livewire 4.4 (Alpine included) | ~86 KB |
 | Vue 3.5 runtime | ~42 KB |
 | Inertia 3.9 (core + Vue adapter) | ~38 KB |
+| React 19.3 + React DOM | ~69 KB |
+| Svelte 5.57 runtime (before compiled components) | ~15 KB |
+| htmx 2.0 | ~17 KB |
 
-MapLibre dominates every option; the framework is 15 to 20 % of the map page's JavaScript.
+MapLibre dominates every option; the framework is 4 to 20 % of the map page's JavaScript.
+
+Alpine is not a separate choice: it ships inside the Livewire bundle and only handles small interactions (toggles, the pause button, mounting the map). The real alternatives to Livewire are another server-driven approach (htmx) or Inertia with a component framework (Vue, React, Svelte).
 
 ## Options compared
 
@@ -44,16 +49,19 @@ MapLibre dominates every option; the framework is 15 to 20 % of the map page's J
 1. Pages are Livewire components rendered on the server; Alpine handles small client-side interactions. Static pages (E1.5 statements) are plain Blade.
 2. The map, the live positions store and the Reverb subscription live in `resources/js/map/`, written in TypeScript, with no import from Livewire or Alpine. Livewire and Alpine only mount the module (`wire:ignore`) and talk to it through events.
 3. TypeScript is type-checked in CI (`tsc --noEmit`), added with E3.1.
-4. **Exit rule.** Once E3.5 is done, this decision is reviewed. A new ADR replaces it with B (Inertia + Vue 3 + TypeScript) if either holds:
+4. **Exit rule.** Once E3.5 is done, this decision is reviewed. A new ADR replaces it if either holds:
    - the live text view needs a server round trip per client on every update, and the load test (E5.3) is penalised;
    - live logic spills into Alpine expressions that cannot be typed and tested.
-   Thanks to point 2, the switch rewrites the templates, not the map nor the store.
+   The new ADR then chooses between two exits: htmx with HTML fragments pushed once to every client (stays server-driven), or Inertia with a component framework (client-side rendering; Vue by default, for the maintainer's skills). Thanks to point 2, either switch rewrites the templates, not the map nor the store.
 
 ## Alternatives considered
 
 | Option | Why not |
 |---|---|
-| B. Inertia + Vue 3 + TypeScript | Fits client state pushed in real time best, but adds `vue-tsc`, ESLint and Vitest before the need is proven. Kept as the planned exit (Decision, point 4); moving from server state to client state is the easier direction |
+| B. Inertia + Vue 3 + TypeScript | Fits client state pushed in real time best, but adds `vue-tsc`, ESLint and Vitest before the need is proven. Kept as a possible exit (Decision, point 4); moving from server state to client state is the easier direction |
+| Inertia + React | First-party starter kit and the most widespread, but a heavier runtime than Vue for the same role, and less familiar to the maintainer |
+| Inertia + Svelte | Compiled, lightest component runtime (good for RGESN), but less common in the Laravel ecosystem and new to the maintainer |
+| htmx + Blade fragments | Lightest (~17 KB), progressive enhancement, and can push one rendered fragment to every client instead of a round trip per client. But not first-party: our own conventions for fragment routes and state, no Boost guidelines, less familiar to Laravel reviewers. Kept as a possible exit |
 | C. Nuxt + Laravel API | Two apps, two deploys and a Node server for one interactive page; Laravel becomes an API, which hides the fullstack Laravel work the project is meant to show. Nuxt practice fits a separate side project better |
 | D. Blade pages + a bare Vue island (no Inertia) | Lightest (~42 KB), but initial data needs a JSON endpoint or data attributes, and it mixes two reactive models in one page |
 
