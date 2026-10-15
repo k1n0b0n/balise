@@ -1,6 +1,6 @@
 # ADR-0010: UI stack
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-15
 
 ## Context
@@ -39,25 +39,27 @@ MapLibre dominates every option; the framework is 15 to 20 % of the map page's J
 
 ## Decision
 
-To be taken by the maintainer. Recommendation: **B, Inertia + Vue 3 + TypeScript.**
+**A. Livewire + Alpine, with the map and the live state in a framework-agnostic TypeScript module.**
 
-1. The map page is a Vue app served through Inertia: map, popup, selection, text view and pause share one typed store fed by Reverb (Laravel Echo).
-2. Static pages (E1.5 statements) stay plain Blade, without JavaScript.
-3. No SSR for the MVP. The map page needs JavaScript anyway; the text view is reachable by keyboard and screen reader once loaded. SSR gets its own ADR if an audit shows the need.
-4. Quality gates grow: `vue-tsc --noEmit`, ESLint, Vitest for composables, all behind one npm script run by CI next to `composer qa`.
+1. Pages are Livewire components rendered on the server; Alpine handles small client-side interactions. Static pages (E1.5 statements) are plain Blade.
+2. The map, the live positions store and the Reverb subscription live in `resources/js/map/`, written in TypeScript, with no import from Livewire or Alpine. Livewire and Alpine only mount the module (`wire:ignore`) and talk to it through events.
+3. TypeScript is type-checked in CI (`tsc --noEmit`), added with E3.1.
+4. **Exit rule.** Once E3.5 is done, this decision is reviewed. A new ADR replaces it with B (Inertia + Vue 3 + TypeScript) if either holds:
+   - the live text view needs a server round trip per client on every update, and the load test (E5.3) is penalised;
+   - live logic spills into Alpine expressions that cannot be typed and tested.
+   Thanks to point 2, the switch rewrites the templates, not the map nor the store.
 
 ## Alternatives considered
 
 | Option | Why not |
 |---|---|
-| A. Livewire + Alpine | Best first render and no new gates, but the page is mostly client state pushed in real time: either every push costs a server round trip per client, or the live logic moves to Alpine strings that are hard to type and test |
+| B. Inertia + Vue 3 + TypeScript | Fits client state pushed in real time best, but adds `vue-tsc`, ESLint and Vitest before the need is proven. Kept as the planned exit (Decision, point 4); moving from server state to client state is the easier direction |
 | C. Nuxt + Laravel API | Two apps, two deploys and a Node server for one interactive page; Laravel becomes an API, which hides the fullstack Laravel work the project is meant to show. Nuxt practice fits a separate side project better |
-| D. Blade pages + a bare Vue island (no Inertia) | Lightest (~42 KB), but initial data needs a JSON endpoint or data attributes; Inertia gives typed controller props and the conventional Laravel + Vue layout for ~38 KB |
+| D. Blade pages + a bare Vue island (no Inertia) | Lightest (~42 KB), but initial data needs a JSON endpoint or data attributes, and it mixes two reactive models in one page |
 
 ## Consequences
 
-- Livewire is removed; the E1.1 home component becomes an Inertia page, and `AGENTS.md`, `architecture.md` and the Boost guidelines are updated.
-- E3.1 in the PRD becomes "MapLibre map in a Vue page served by Inertia".
-- One more toolchain (TypeScript, ESLint, Vitest) to keep up to date; Dependabot covers it.
-- Without SSR, the text view needs JavaScript; this is acceptable for RGAA but is stated in the accessibility statement (E1.5).
-- The live text view renders without extra requests, which helps the RGESN budget and the load test (E5.3).
+- The E1.1 Livewire home component stays; no change to the quality gates until E3.1 adds `tsc`.
+- First render is server HTML: the text view (E3.5) is readable before JavaScript loads, which serves RGAA and RGESN.
+- The map module's API (mount, update positions, select, pause) is designed up front in E3.1; it is the seam for a later switch.
+- Learning curve on Livewire 4 for the maintainer; the Boost guidelines and the `livewire-development` skill cover the current API.
