@@ -8,6 +8,8 @@ x-php: &php
   image: balise-php:dev
   volumes:
     - .:/var/www/balise
+  environment:
+    LOG_CHANNEL: stderr
   depends_on:
     setup:
       condition: service_completed_successfully

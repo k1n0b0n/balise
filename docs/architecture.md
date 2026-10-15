@@ -25,6 +25,7 @@
 |---|---|---|
 | Framework | Laravel (latest stable), Livewire, Alpine | Agreed |
 | Map | MapLibre GL JS | Agreed |
+| CSS | Tailwind CSS v4, installed with E3.1; system fonts | Decided, [ADR-0008](adr/0008-css-approach.md) |
 | Basemap tiles | OpenFreeMap (no key) | To confirm |
 | Database | PostgreSQL; PostGIS later, with the first spatial story | Decided, [ADR-0002](adr/0002-database.md) |
 | Cache / queue | Redis | To confirm |

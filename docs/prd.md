@@ -41,7 +41,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E2.3 Filter stale positions and keep the latest state per vehicle
 
 ### E3: Live map
-- E3.1 MapLibre map inside Livewire, open basemap without API key
+- E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
 - E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast (ADR-0006)
 - E3.3 Vehicle popup: line, vehicle id, age of last position
 - E3.4 Select a line or a vehicle and let the map follow it
@@ -67,5 +67,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
 - Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates, behind the anticipated trip updates port (ADR-0001). Out of the MVP scope (brief: no timetables)
+- Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
+- `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - AI pull request review bot (CodeRabbit, Greptile): evaluate after a few stories, non-blocking
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

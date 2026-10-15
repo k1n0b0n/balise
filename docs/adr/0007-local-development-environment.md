@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-15
+- **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner
 
 ## Context
 
@@ -21,6 +22,8 @@
    - worker commands are identical to the Forge daemons.
 5. **Host concerns are not reproduced:** SSL, firewall, SSH, users, unattended upgrades, systemd.
 6. **This environment is for development only.** No production image is built from it.
+7. **Logs go to stderr in Docker** (`LOG_CHANNEL=stderr` in `compose.yaml`), so `docker compose logs` shows the application logs of every PHP process. Forge keeps Laravel's file logs.
+8. **No process runner** (`concurrently`, `@laravel/multiplex`, `composer dev`): compose already runs one process per service.
 
 ## Alternatives considered
 
@@ -32,6 +35,8 @@
 | Native Homebrew | Not reproducible for a reviewer |
 | DDEV | One more tool to install, uncommon in the Laravel ecosystem, hides the Docker setup |
 | One container mimicking the whole server (systemd, supervisor, cron) | Defeats the purpose of containers; separate services give the same fidelity |
+| `concurrently` or `@laravel/multiplex` behind `composer dev` | Duplicates compose; a second way to start the app for contributors without Docker would rot unnoticed |
+| `laravel/pail` to read logs | stderr + `docker compose logs` covers the need for now; reconsidered when ingestion produces logs worth filtering (PRD *Later*) |
 
 ## Consequences
 
