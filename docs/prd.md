@@ -21,13 +21,13 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 ### E1: Foundation and delivery
 - E1.1 Laravel + Livewire skeleton with quality gates (Pest, Larastan, Pint, architecture tests)
-  - [ ] Fresh Laravel (latest stable) with Livewire, PHP 8.5, PostgreSQL as the only database (ADR-0002)
-  - [ ] `docker compose up` starts every service of ADR-0007; the home page answers 200 and renders a Livewire component
-  - [ ] `composer qa` runs `pint --test`, Larastan and Pest, and exits non-zero if any of them fails (ADR-0005)
-  - [ ] Larastan passes at level max on `app/` with no baseline file
-  - [ ] Architecture tests: strict types everywhere, no `dd`/`dump`/`var_dump`/`ray`, and no class outside `App\Ingestion` referencing a GTFS, GTFS-RT, protobuf or SIRI type (ADR-0001)
-  - [ ] Tests run against PostgreSQL, not SQLite
-  - [ ] README and AGENTS.md list the commands: start, `composer qa`, run a single test
+  - [x] Fresh Laravel (latest stable) with Livewire, PHP 8.5, PostgreSQL as the only database (ADR-0002)
+  - [x] `docker compose up` starts every service of ADR-0007; the home page answers 200 and renders a Livewire component
+  - [x] `composer qa` runs `pint --test`, Larastan and Pest, and exits non-zero if any of them fails (ADR-0005)
+  - [x] Larastan passes at level max on `app/` with no baseline file
+  - [x] Architecture tests: strict types everywhere, no `dd`/`dump`/`var_dump`/`ray`, and no class outside `App\Ingestion` referencing a GTFS, GTFS-RT, protobuf or SIRI type (ADR-0001); the boundary rule only bites once E2.2 installs the feed packages
+  - [x] Tests run against PostgreSQL, not SQLite
+  - [x] README and AGENTS.md list the commands: start, `composer qa`, run a single test
 - E1.2 CI on GitHub Actions: `composer qa`, dependency audit, Conventional Commits check on pull request titles, Dependabot (ADR-0004, ADR-0005)
 - E1.3 Server provisioned with Forge, deploy on GitHub release created by release-please (ADR-0004)
   - [ ] The server's nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands match the repository configuration; gaps are fixed on one side or the other (ADR-0007)
