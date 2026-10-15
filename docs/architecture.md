@@ -11,7 +11,7 @@
 
 | Component | Role | Decided in |
 |---|---|---|
-| `VehicleFeed` port | Live positions of a network, whatever the standard | [ADR-0001](adr/0001-feed-ingestion-ports.md) (proposed) |
+| `VehicleFeed` port | Live positions of a network, whatever the standard | [ADR-0001](adr/0001-feed-ingestion-ports.md) |
 | `NetworkCatalog` port | Lines, stops and shapes of a network | ADR-0001 |
 | Drivers (MVP) | `gtfs-rt`, `gtfs`, `replay`; `siri-vm`, `netex` only when a network needs them | ADR-0001 |
 | Network configuration | One entry per network: drivers, URLs, timezone, id prefix | ADR-0001 |

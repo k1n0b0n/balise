@@ -29,9 +29,8 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 Update this section at the end of every working session.
 
 - **Phase:** 1 to 3 (planning) in progress. No application code yet.
-- **Done:** brief (draft), PRD epics and stories (no acceptance criteria yet), ADR-0002 to ADR-0005 accepted (database, MIT license, delivery workflow, quality tooling), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
+- **Done:** brief (draft), PRD epics and stories (no acceptance criteria yet), ADR-0001 to ADR-0005 accepted (feed ingestion ports, database, MIT license, delivery workflow, quality tooling), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
-  1. Accept or amend ADR-0001 (status: Proposed).
-  2. Write acceptance criteria for the M1 stories (E1, E2, E3).
-  3. Define the normalised position model (open question in `architecture.md`).
-  4. Write the hosting ADR (VPS + Forge + Cloudflare); provision only once something runs locally.
+  1. Write acceptance criteria for the M1 stories (E1, E2, E3).
+  2. Define the normalised position model (open question in `architecture.md`).
+  3. Write the hosting ADR (VPS + Forge + Cloudflare); provision only once something runs locally.

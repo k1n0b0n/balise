@@ -1,7 +1,7 @@
 # ADR-0001: Feed ingestion behind standard-agnostic ports
 
-- **Status:** Proposed
-- **Date:** 2026-10-14
+- **Status:** Accepted
+- **Date:** 2026-10-15
 
 ## Context
 
