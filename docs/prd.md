@@ -29,6 +29,13 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Tests run against PostgreSQL, not SQLite
   - [x] README and AGENTS.md list the commands: start, `composer qa`, run a single test
 - E1.2 CI on GitHub Actions: `composer qa`, dependency audit, Conventional Commits check on pull request titles, Dependabot (ADR-0004, ADR-0005)
+  - [ ] A workflow runs on every pull request and on every push to `main`; its job `ci` runs `composer qa` against PostgreSQL 17, with the PHP version and extensions of `docker/php/packages.txt` installed by `setup-php` (faster than building the image; server parity is checked in E1.3)
+  - [ ] The same job builds the front end (`npm ci`, `npm run build`)
+  - [ ] `composer audit` and `npm audit --audit-level=high` fail the job on a known vulnerability
+  - [ ] Pull request titles are checked against Conventional Commits, with the types release-please understands
+  - [ ] Dependabot opens weekly, grouped updates for Composer, npm, GitHub Actions and Docker images, with Conventional Commits titles
+  - [ ] Workflows use least-privilege `permissions` and actions pinned to a commit SHA
+  - [ ] The ruleset requires both checks; a pull request with a failing test cannot be merged, shown once on a throwaway pull request
 - E1.3 Server provisioned with Forge, deploy on GitHub release created by release-please (ADR-0004)
   - [ ] The server's nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands match the repository configuration; gaps are fixed on one side or the other (ADR-0007)
   - [ ] Other criteria to be written
