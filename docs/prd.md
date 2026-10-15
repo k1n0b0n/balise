@@ -47,5 +47,6 @@
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
+- Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates, behind the anticipated trip updates port (ADR-0001). Out of the MVP scope (brief: no timetables)
 - AI pull request review bot (CodeRabbit, Greptile): evaluate after a few stories, non-blocking
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

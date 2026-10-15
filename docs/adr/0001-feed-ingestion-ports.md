@@ -1,7 +1,7 @@
 # ADR-0001: Feed ingestion behind standard-agnostic ports
 
-- **Status:** Proposed
-- **Date:** 2026-10-14
+- **Status:** Accepted
+- **Date:** 2026-10-15
 
 ## Context
 
@@ -19,6 +19,7 @@
 1. **Two ports, owned by the application, shaped by our needs rather than by a standard:**
    - `VehicleFeed`: returns the current vehicle positions of a network.
    - `NetworkCatalog`: returns the network's lines, stops and shapes.
+   - Anticipated, **not built until next departures enter the PRD**: a third port for real-time trip updates (predicted times, cancellations, skipped stops), and a `NetworkCatalog` that also exposes trips, their stop times and service calendars.
 2. **One adapter per standard, not per network.** Each network declares in configuration which driver it uses and with which settings (URLs, timezone, id prefix).
    - MVP drivers: `gtfs-rt` (VehicleFeed), `gtfs` (NetworkCatalog), `replay` (VehicleFeed, recorded snapshots).
    - Anticipated drivers, **not built until a network needs them**: `siri-vm`, `netex`, custom JSON.
@@ -42,4 +43,4 @@
 - A network on a new standard costs one adapter, with no change to the domain, the map or broadcasting.
 - Replay mode, deterministic tests and load tests use the same code path as production.
 - Network-specific quirks go into per-network configuration first, and into a decorator around the adapter only if configuration is not enough.
-- The normalised model has to be designed carefully up front: a field that GTFS has and SIRI lacks must be optional.
+- The normalised model has to be designed carefully up front: a field that GTFS has and SIRI lacks must be optional, and positions must be linkable to a trip so that next departures can be added without reshaping it.
