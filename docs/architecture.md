@@ -16,14 +16,14 @@
 | Drivers (MVP) | `gtfs-rt`, `gtfs`, `replay`; `siri-vm`, `netex` only when a network needs them | ADR-0001 |
 | Network configuration | One entry per network: drivers, URLs, timezone, id prefix | ADR-0001 |
 | Scheduler + queue | Poll feeds, process positions; every write emits `PositionsUpdated` | ADR-0002 |
-| Livewire + MapLibre | Map UI; the map is a JS island isolated from Livewire re-renders | — |
+| Livewire + MapLibre | Map UI; the map and the live store are a framework-agnostic TypeScript module, mounted by Livewire | [ADR-0010](adr/0010-ui-stack.md) |
 | Reverb | Push position updates to browsers | — |
 
 ## Stack
 
 | Layer | Choice | Status |
 |---|---|---|
-| Framework | Laravel (latest stable), Livewire, Alpine | Agreed |
+| Framework | Laravel (latest stable), Livewire, Alpine; Inertia + Vue as the planned exit | Decided, [ADR-0010](adr/0010-ui-stack.md) |
 | Map | MapLibre GL JS | Agreed |
 | CSS | Tailwind CSS v4, installed with E3.1; system fonts | Decided, [ADR-0008](adr/0008-css-approach.md) |
 | Basemap tiles | OpenFreeMap (no key) | To confirm |
