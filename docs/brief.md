@@ -44,3 +44,4 @@ Several networks and cities, each added through configuration rather than code.
 - A reviewer opens the public URL and sees vehicles moving.
 - A reviewer opens the repo and understands the architecture from the README and the ADRs.
 - Adding a second network does not touch the domain code.
+- The service is usable with a screen reader or a keyboard only (RGAA), and sober in data and energy (RGESN).
