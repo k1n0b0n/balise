@@ -1,7 +1,7 @@
 # Story 001: Laravel + Livewire skeleton with quality gates
 
 - **PRD:** E1.1
-- **Status:** Review
+- **Status:** Done (merged in #4; deployment comes with E1.3)
 
 ## Acceptance criteria
 
