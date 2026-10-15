@@ -4,7 +4,26 @@
 
 Live map of public transport vehicles fed by open GTFS-Realtime data. First network: TBM (Bordeaux). Audience: technical reviewers reading the repo in about ten minutes, so readability beats cleverness.
 
-Status: design phase, no application code yet. There are no build, lint or test commands. Story E1.1 creates them (Laravel + Livewire, PHP 8.5, Pest, Larastan, Pint, architecture tests); add them to this file when it lands.
+Stack: Laravel 13, Livewire 4, PHP 8.5, PostgreSQL 17. Tests: Pest (feature tests in `tests/Feature`, architecture tests in `tests/Unit/ArchitectureTest.php`), run against the `testing` PostgreSQL database.
+
+## Commands
+
+Everything runs in Docker (ADR-0007); no PHP is needed on the host.
+
+| Task | Command |
+|---|---|
+| Start the stack (first run installs dependencies, creates `.env`, migrates) | `docker compose up -d` |
+| Open the app | http://localhost:8000 (`APP_PORT` to change) |
+| All quality gates: Pint, Larastan, Pest | `docker compose exec php composer qa` |
+| Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose exec -e CLAUDECODE -e AI_AGENT php composer qa` |
+| Fix code style | `docker compose exec php vendor/bin/pint` |
+| One test file / one test | `docker compose exec php vendor/bin/pest tests/Feature/HomeTest.php` / `--filter "renders the home page"` |
+| Artisan | `docker compose exec php php artisan <command>` |
+| Stop / reset the database | `docker compose down` / `docker compose down -v` |
+
+Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
+
+Pest architecture rules ignore classes that cannot be autoloaded: the feed-format boundary rule only bites once the protobuf/GTFS-RT packages are installed.
 
 ## Rules
 

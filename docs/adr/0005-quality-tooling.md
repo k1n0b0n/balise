@@ -13,7 +13,7 @@
 
 1. **Pint, `laravel` preset**, for formatting; CI runs `pint --test`. A deliberate choice over PSR-12 / PER so that hand-written code matches the framework and `artisan make` stubs.
 2. **Larastan at PHPStan level max** from the first commit, while raising the level is still free.
-3. **Pest** for tests, with the `arch` plugin enforcing the ADR-0001 boundary, and browser testing (Pest 4) for the map stories. Test closures are typed; `tests/` may run at a lower PHPStan level.
+3. **Pest** for tests, with the `arch` plugin enforcing the ADR-0001 boundary, and its browser testing plugin for the map stories. Test closures are typed; `tests/` may run at a lower PHPStan level.
 4. **One entry point, `composer qa`**, running Pint, Larastan and Pest, used both locally and in CI.
 5. **No pre-commit hooks:** CI is the source of truth.
 

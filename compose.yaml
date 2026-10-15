@@ -1,0 +1,83 @@
+# Local development only (ADR-0007). Production runs on Forge without Docker.
+name: balise
+
+x-php: &php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: balise-php:dev
+  volumes:
+    - .:/var/www/balise
+  environment:
+    LOG_CHANNEL: stderr
+  depends_on:
+    setup:
+      condition: service_completed_successfully
+
+services:
+  setup:
+    image: balise-php:dev
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - .:/var/www/balise
+    command: ["docker/php/setup.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  php:
+    <<: *php
+
+  queue:
+    <<: *php
+    command: ["php", "artisan", "queue:work", "--tries=3"]
+
+  scheduler:
+    <<: *php
+    command: ["php", "artisan", "schedule:work"]
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    image: balise-nginx:dev
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - ./public:/var/www/balise/public:ro
+    depends_on:
+      php:
+        condition: service_started
+        restart: true
+
+  vite:
+    image: node:24-alpine
+    user: node
+    working_dir: /var/www/balise
+    volumes:
+      - .:/var/www/balise
+    ports:
+      - "5173:5173"
+    command: ["sh", "-c", "npm install && npm run dev"]
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: balise
+      POSTGRES_USER: balise
+      POSTGRES_PASSWORD: balise
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "balise"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  postgres:
