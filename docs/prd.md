@@ -2,6 +2,13 @@
 
 > Status: draft. Acceptance criteria to be written together before any story starts.
 
+## Non-functional requirements
+
+Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
+
+- **Accessibility:** RGAA 4.1.2, level AA. No axe violation on any page (from E3.1); the relevant RGAA criteria are checked during review.
+- **Ecodesign:** the applicable RGESN 2024 criteria are checked during review; the map page stays within its published weight and EcoIndex budget.
+
 ## Milestones
 
 | Milestone | Epics | Meaning |
@@ -13,10 +20,20 @@
 ## Epics and stories
 
 ### E1: Foundation and delivery
-- E1.1 Laravel + Livewire skeleton with quality gates (Pest, PHPStan, Pint, architecture tests)
+- E1.1 Laravel + Livewire skeleton with quality gates (Pest, Larastan, Pint, architecture tests)
+  - [ ] Fresh Laravel (latest stable) with Livewire, PHP 8.5, PostgreSQL as the only database (ADR-0002)
+  - [ ] `docker compose up` starts every service of ADR-0007; the home page answers 200 and renders a Livewire component
+  - [ ] `composer qa` runs `pint --test`, Larastan and Pest, and exits non-zero if any of them fails (ADR-0005)
+  - [ ] Larastan passes at level max on `app/` with no baseline file
+  - [ ] Architecture tests: strict types everywhere, no `dd`/`dump`/`var_dump`/`ray`, and no class outside `App\Ingestion` referencing a GTFS, GTFS-RT, protobuf or SIRI type (ADR-0001)
+  - [ ] Tests run against PostgreSQL, not SQLite
+  - [ ] README and AGENTS.md list the commands: start, `composer qa`, run a single test
 - E1.2 CI on GitHub Actions: `composer qa`, dependency audit, Conventional Commits check on pull request titles, Dependabot (ADR-0004, ADR-0005)
 - E1.3 Server provisioned with Forge, deploy on GitHub release created by release-please (ADR-0004)
+  - [ ] The server's nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands match the repository configuration; gaps are fixed on one side or the other (ADR-0007)
+  - [ ] Other criteria to be written
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
+- E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
 
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
@@ -25,9 +42,11 @@
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key
-- E3.2 Vehicles as points coloured by line, with clustering
+- E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast (ADR-0006)
 - E3.3 Vehicle popup: line, vehicle id, age of last position
 - E3.4 Select a line or a vehicle and let the map follow it
+- E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
+- E3.6 Pause and resume live updates (ADR-0006)
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
