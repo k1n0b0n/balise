@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Advisory AI review (ADR-0014). Never a required check; the maintainer's review of the diff decides.
+language: en-US
+tone_instructions: "Be brief and concrete. Report bugs, security issues and broken project rules first. Skip style nits that Pint or Larastan already enforce."
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  in_progress_fortune: false
+  sequence_diagrams: false
+  suggested_labels: false
+  suggested_reviewers: false
+  path_filters:
+    - "!composer.lock"
+    - "!package-lock.json"
+    - "!public/build/**"
+  path_instructions:
+    - path: "app/**/*.php"
+      instructions: >-
+        Plain Laravel outside app/Ingestion: no hexagonal or DDD layers (ADR-0001). Strict types, final and readonly
+        where possible, no mixed. Every write of a vehicle position goes through the single write path that emits
+        PositionsUpdated (ADR-0002, ADR-0013).
+    - path: "app/Ingestion/**"
+      instructions: >-
+        The only place allowed to know GTFS, GTFS-RT, SIRI or protobuf (ADR-0001). Positions follow ADR-0013:
+        vehicle id, coordinates and recordedAt are required with documented fallbacks; line and trip are optional.
+        Large feeds are streamed, never loaded whole into memory.
+    - path: "resources/**"
+      instructions: >-
+        RGAA 4.1.2 AA and RGESN 2024 apply (ADR-0006): no information by colour alone, visible focus, text alternatives,
+        keyboard access, small payloads. The map module in resources/js/map never imports Livewire or Alpine (ADR-0010).
+    - path: "tests/**"
+      instructions: "Pest. Feature tests run against PostgreSQL. Prefer behaviour over implementation details."
+    - path: "docs/**"
+      instructions: >-
+        Check consistency with the other ADRs and the PRD. Scope lives in docs/prd.md: flag anything implemented that
+        the PRD does not list.
+  auto_review:
+    enabled: true
+    drafts: false
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    title:
+      mode: "off"
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+  tools:
+    # Already enforced by `composer qa` with the project's own configuration (ADR-0005).
+    phpstan:
+      enabled: false
+    phpcs:
+      enabled: false
+    phpmd:
+      enabled: false
+    languagetool:
+      enabled: false
+
+chat:
+  auto_reply: true

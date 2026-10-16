@@ -98,7 +98,6 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates, behind the anticipated trip updates port (ADR-0001). Out of the MVP scope (brief: no timetables)
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
-- AI pull request review bot (CodeRabbit, Greptile): evaluate after a few stories, non-blocking
 - Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
