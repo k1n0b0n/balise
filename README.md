@@ -10,7 +10,16 @@ Live map of public transport vehicles, fed by open GTFS-Realtime data. First net
 docker compose up -d
 ```
 
-Then open http://localhost:8000. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
+Then open http://localhost:8000 for the map. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
+
+## Weight of the map page
+
+| Measure | Value | Budget |
+|---|---|---|
+| JavaScript, compressed (MapLibre, its worker, Livewire), checked in CI | 495.8 KB | 600 KB |
+| [EcoIndex](https://www.ecoindex.fr/) (44 DOM nodes, 21 requests, 1,219 KB of which 713 KB of basemap tiles) | **A**, 86/100 | — |
+
+Measured on 2026-10-16 (story 006); the EcoIndex is measured locally and will change as vehicles and the text view arrive.
 
 ## Documentation
 

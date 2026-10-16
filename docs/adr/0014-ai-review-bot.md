@@ -15,7 +15,7 @@
 1. **CodeRabbit**, GitHub App installed on this repository only, free for public repositories.
 2. **Advisory, never blocking:** not a required status check; no "request changes". The maintainer's review of the diff stays the gate.
 3. **Configured in `.coderabbit.yaml`:** quiet profile, English, project rules per path (ingestion boundary, position model, RGAA and RGESN), `AGENTS.md` read as guidelines. Linters already run by `composer qa` with the project's configuration (PHPStan, plus PHP_CodeSniffer and PHPMD that would contradict Pint) are disabled in the bot.
-4. **After the human review, on code only:** pull requests open as drafts, which the bot skips; the maintainer reviews first, marks the pull request *Ready for review*, and one bot review is requested with `@coderabbitai review`. Documentation-only pull requests, grouped per working session, are reviewed by the maintainer alone.
+4. **After the human review, on code only:** pull requests open as drafts, which the bot skips; the maintainer reviews first, marks the pull request *Ready for review*, and one bot review is requested with `@coderabbitai review`. Documentation-only pull requests, grouped per working session, are opened ready for review and reviewed by the maintainer alone.
 5. **One bot at a time.** After four pull requests reviewed, its findings are compared with what the maintainer caught; Greptile is tried only if CodeRabbit misses real issues.
 
 ## Alternatives considered

@@ -14,6 +14,7 @@ use Transit_realtime\VehiclePosition as GtfsVehiclePosition;
 
 pest()->extend(TestCase::class)->in('Feature');
 pest()->use(RefreshDatabase::class)->in('Feature');
+pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Browser');
 
 /**
  * Zip the fixture GTFS in tests/fixtures/gtfs/{name}, with some files replaced or removed (null).

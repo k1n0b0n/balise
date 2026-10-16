@@ -12,6 +12,16 @@ RUN apt-get update \
     && mkdir -p /run/php \
     && chown ubuntu:ubuntu /run/php
 
+# Browser tests only (ADR-0005, ADR-0006): Node and a Chromium matching the exact Playwright
+# version of package.json. Rebuild the image (`docker compose build`) when that version changes.
+COPY package.json /tmp/package.json
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps chromium \
+    && chmod -R a+rX /opt/playwright \
+    && rm -rf /var/lib/apt/lists/* /tmp/package.json /root/.npm
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY docker/php/php.ini /etc/php/8.5/fpm/conf.d/99-balise.ini
 COPY docker/php/php.ini /etc/php/8.5/cli/conf.d/99-balise.ini

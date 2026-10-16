@@ -17,6 +17,8 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | All quality gates: Pint, Larastan, Pest | `docker compose exec php composer qa` |
 | Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose exec -e CLAUDECODE -e AI_AGENT php composer qa` |
 | Fix code style | `docker compose exec php vendor/bin/pint` |
+| Browser tests (axe) need built assets first | `docker compose exec vite npm run build` |
+| Type-check the front end / check the map page JavaScript budget | `docker compose exec vite npm run typecheck` / `docker compose exec vite npm run budget` |
 | One test file / one test | `docker compose exec php vendor/bin/pest tests/Feature/HomeTest.php` / `--filter "renders the home page"` |
 | Artisan | `docker compose exec php php artisan <command>` |
 | Import a network's lines and stops (static GTFS) | `docker compose exec php php artisan network:import tbm` |
@@ -37,7 +39,7 @@ The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Googl
 - Never implement anything that is not in `docs/prd.md`. Propose it for the *Later* section instead.
 - A decision that is costly to reverse (new dependency, boundary, data store, hosting) needs an ADR in `docs/adr/` before code.
 - All code, docs, comments and commit messages in English. Conventional Commits.
-- Open pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once with `@coderabbitai review`, for code pull requests only (ADR-0014). Group a session's documentation changes into one pull request.
+- Open code pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once with `@coderabbitai review` (ADR-0014). Group a session's documentation changes into one `docs:` pull request, opened ready for review, without the bot.
 - A story is done only when tests, static analysis and architecture tests pass, the non-functional requirements of the PRD (RGAA, RGESN) are met, and the diff has been reviewed by a human.
 
 ## Architecture (from `docs/architecture.md` and the ADRs)

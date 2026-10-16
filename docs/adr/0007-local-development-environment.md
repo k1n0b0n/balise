@@ -5,6 +5,7 @@
 - **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner, `laravel/pao` for agents
 - **Amended:** 2026-10-16: Ubuntu 26.04, Forge's default for new servers since 2026-08-31; PHP from the Ubuntu archive
 - **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
+- **Amended:** 2026-10-16, during E3.1: the PHP image also carries Node and a Chromium pinned to the Playwright version of `package.json`, for browser tests only (about 2.3 GB)
 
 ## Context
 

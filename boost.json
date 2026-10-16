@@ -7,6 +7,7 @@
     "skills": [
         "laravel-best-practices",
         "testing-best-practices",
-        "livewire-development"
+        "livewire-development",
+        "tailwindcss-development"
     ]
 }
