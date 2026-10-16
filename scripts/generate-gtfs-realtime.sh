@@ -26,7 +26,9 @@ if [ "${1:-}" = "--if-stale" ] && [ "$(cat generated/.inputs 2>/dev/null)" = "$i
 fi
 
 work=$(mktemp -d)
-trap 'rm -rf "$work"' EXIT
+# Staged next to generated/, on the same filesystem, so that publishing it is an atomic rename, not a copy.
+out=$(mktemp -d generated.tmp.XXXXXX)
+trap 'rm -rf "$work" "$out"' EXIT
 
 curl -fsSL -o "$work/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${arch}.zip"
 echo "${sha256}  $work/protoc.zip" | sha256sum -c --quiet
@@ -45,10 +47,10 @@ sed -E \
     -e 's/^([[:space:]]*)enum SeverityLevel \{/&\n\1  SEVERITY_LEVEL_UNSPECIFIED = 0;/' \
     proto/gtfs-realtime.proto > "$work/proto/gtfs-realtime.proto"
 
-mkdir "$work/out"
-"$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out="$work/out" "$work/proto/gtfs-realtime.proto"
-echo "$inputs" > "$work/out/.inputs"
+chmod 755 "$out"
+"$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out="$out" "$work/proto/gtfs-realtime.proto"
+echo "$inputs" > "$out/.inputs"
 rm -rf generated
-mv "$work/out" generated
+mv "$out" generated
 
 echo "Generated $(find generated -name '*.php' | wc -l | tr -d ' ') files from proto/gtfs-realtime.proto (google/transit@${PROTO_COMMIT}) with protoc ${PROTOC_VERSION}."
