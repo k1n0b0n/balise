@@ -21,7 +21,7 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Artisan | `docker compose exec php php artisan <command>` |
 | Import a network's lines and stops (static GTFS) | `docker compose exec php php artisan network:import tbm` |
 | Read a network's live vehicle positions once (the scheduler does it every 20 s) | `docker compose exec php php artisan network:poll tbm` |
-| Regenerate the GTFS-Realtime classes in `generated/` (never edit them by hand) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
+| Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.

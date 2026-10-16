@@ -1,21 +1,27 @@
 #!/bin/sh
-# Regenerate the GTFS-Realtime PHP classes (ADR-0015). Run: docker compose exec php sh scripts/generate-gtfs-realtime.sh
+# Generate the GTFS-Realtime PHP classes into generated/ (ADR-0015), from the committed proto.
+#   docker compose exec php sh scripts/generate-gtfs-realtime.sh                 # generate
+#   docker compose exec php sh scripts/generate-gtfs-realtime.sh --update-proto  # first refresh proto/ from PROTO_COMMIT
 set -eu
 
 PROTO_COMMIT=474750a163088673df718838d4a1bb093391f9af
 PROTOC_VERSION=36.2
 
 case "$(uname -m)" in
-    x86_64) arch=x86_64 ;;
-    aarch64 | arm64) arch=aarch_64 ;;
+    x86_64) arch=x86_64; sha256=121f6c7afe1d4d0e3ea6aab9432038599250134cbf4474cb1167d2c7decd4278 ;;
+    aarch64 | arm64) arch=aarch_64; sha256=8b8f18bd2b30346efbc698dd5a73dd7c805f3ef8380f6dfc95c768f3f1852f6a ;;
     *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
 esac
+
+if [ "${1:-}" = "--update-proto" ]; then
+    curl -fsSL -o proto/gtfs-realtime.proto "https://raw.githubusercontent.com/google/transit/${PROTO_COMMIT}/gtfs-realtime/proto/gtfs-realtime.proto"
+fi
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-curl -fsSL -o proto/gtfs-realtime.proto "https://raw.githubusercontent.com/google/transit/${PROTO_COMMIT}/gtfs-realtime/proto/gtfs-realtime.proto"
 curl -fsSL -o "$work/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${arch}.zip"
+echo "${sha256}  $work/protoc.zip" | sha256sum -c --quiet
 unzip -q "$work/protoc.zip" -d "$work/protoc"
 
 # protoc cannot generate PHP from proto2 required fields, so the pristine upstream file is
@@ -35,4 +41,4 @@ rm -rf generated
 mkdir generated
 "$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out=generated "$work/proto/gtfs-realtime.proto"
 
-echo "Generated $(find generated -name '*.php' | wc -l) files from google/transit@${PROTO_COMMIT} with protoc ${PROTOC_VERSION}."
+echo "Generated $(find generated -name '*.php' | wc -l | tr -d ' ') files from proto/gtfs-realtime.proto (google/transit@${PROTO_COMMIT}) with protoc ${PROTOC_VERSION}."

@@ -29,3 +29,4 @@ Thumbs.db
 
 # Versioned on purpose: the agent rules are part of the project (overrides a global ignore)
 !CLAUDE.md
+/generated
