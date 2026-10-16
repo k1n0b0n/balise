@@ -33,6 +33,7 @@
 | Hosting | Oracle Cloud Always Free A1 (arm64, Ubuntu 26.04), provisioned with OpenTofu and Ansible, one server | Decided, [ADR-0012](adr/0012-hosting.md) |
 | Edge | Cloudflare (free plan): DNS, proxy, TLS, cache rules | Decided, ADR-0012 |
 | Quality gates | Pint (`laravel` preset), Larastan (level max), Pest with `arch`, behind `composer qa` | Decided, [ADR-0005](adr/0005-quality-tooling.md) |
+| AI review | CodeRabbit, advisory only, configured in `.coderabbit.yaml` | Decided, [ADR-0014](adr/0014-ai-review-bot.md) |
 | Local environment | `compose.yaml`, PHP and nginx on Ubuntu 26.04 like the server, versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md) |
 | Responsible design | RGAA 4.1.2 AA, RGESN 2024 self-assessment | Decided, [ADR-0006](adr/0006-responsible-design.md) |
 | Delivery | Protected `main`, squash merge, release-please, Ansible deploy on release | Decided, [ADR-0004](adr/0004-delivery-workflow.md) |
