@@ -29,7 +29,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Tests run against PostgreSQL, not SQLite
   - [x] README and AGENTS.md list the commands: start, `composer qa`, run a single test
 - E1.2 CI on GitHub Actions: `composer qa`, dependency audit, Conventional Commits check on pull request titles, Dependabot (ADR-0004, ADR-0005)
-  - [x] A workflow runs on every pull request and on every push to `main`; its job `ci` runs `composer qa` against PostgreSQL 17, with the PHP version and extensions of `docker/php/packages.txt` installed by `setup-php` (faster than building the image; server parity is checked in E1.3)
+  - [x] A workflow runs on every pull request and on every push to `main`; its job `ci` runs `composer qa` against PostgreSQL 18, with the PHP version and extensions of `docker/php/packages.txt` installed by `setup-php` (faster than building the image; server parity is checked in E1.3)
   - [x] The same job builds the front end (`npm ci`, `npm run build`)
   - [x] `composer audit` and `npm audit --audit-level=high` fail the job on a known vulnerability
   - [x] Pull request titles are checked against Conventional Commits, with the types release-please understands

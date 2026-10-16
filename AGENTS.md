@@ -4,7 +4,7 @@
 
 Live map of public transport vehicles fed by open GTFS-Realtime data. First network: TBM (Bordeaux). Audience: technical reviewers reading the repo in about ten minutes, so readability beats cleverness.
 
-Stack: Laravel 13, Livewire 4, PHP 8.5, PostgreSQL 17. Tests: Pest (feature tests in `tests/Feature`, architecture tests in `tests/Unit/ArchitectureTest.php`), run against the `testing` PostgreSQL database.
+Stack: Laravel 13, Livewire 4, PHP 8.5, PostgreSQL 18. Tests: Pest (feature tests in `tests/Feature`, architecture tests in `tests/Unit/ArchitectureTest.php`), run against the `testing` PostgreSQL database.
 
 ## Commands
 
