@@ -1,13 +1,14 @@
-# ADR-0007: Local development environment close to Forge
+# ADR-0007: Local development environment close to production
 
 - **Status:** Accepted
 - **Date:** 2026-10-15
 - **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner, `laravel/pao` for agents
 - **Amended:** 2026-10-16: Ubuntu 26.04, Forge's default for new servers since 2026-08-31; PHP from the Ubuntu archive
+- **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
 
 ## Context
 
-- Production runs on Ubuntu 26.04 provisioned by Laravel Forge (its default for new servers): nginx + php-fpm, supervisor daemons for workers, a cron entry for the scheduler. No Docker in production.
+- Production runs on Ubuntu 26.04, configured by Ansible (ADR-0012): nginx + php-fpm, systemd or supervisor daemons for workers, the scheduler. No Docker in production.
 - The application needs PHP 8.5, PostgreSQL (PostGIS later, ADR-0002), Redis, a queue worker, the scheduler, Reverb and Vite.
 - A reviewer must be able to start the project with one command, on macOS or Linux.
 - Laravel Sail is also Ubuntu 24.04 with the same PPA, but serves the app with `php artisan serve`, ships a large toolset, and leaves workers to be started by hand.
@@ -15,15 +16,15 @@
 ## Decision
 
 1. **A hand-written `compose.yaml`, one process per service:** nginx, php-fpm, queue worker, scheduler (`schedule:work`), Reverb, Vite, PostgreSQL, Redis. `docker compose up` starts everything.
-2. **PHP and nginx images are built from `ubuntu:26.04`**, with PHP 8.5 from the Ubuntu archive: same distribution and packages as the server. `ppa:ondrej/php` has no 26.04 build; which source Forge uses on 26.04 is checked when provisioning (E1.3). This is the specific constraint that overrides the usual preference for Alpine.
-3. **PostgreSQL and Redis use the official Alpine images**, pinned to the major versions installed by Forge. Only the major version matters for them.
+2. **PHP and nginx images are built from `ubuntu:26.04`**, with PHP 8.5 from the Ubuntu archive: same distribution and packages as the server, which installs them the same way. `ppa:ondrej/php` has no 26.04 build. This is the specific constraint that overrides the usual preference for Alpine.
+3. **PostgreSQL and Redis use the official Alpine images**, pinned to the major versions installed on the server. Only the major version matters for them.
 4. **The repository is the source of truth for application-facing configuration:**
    - `docker/nginx/site.conf`, `docker/php/php.ini`, `docker/php/fpm-pool.conf` and the list of `php8.5-*` packages;
-   - the same files are applied to the Forge site (nginx and PHP editors, or the Forge API if it allows it);
-   - worker commands are identical to the Forge daemons.
+   - Ansible installs the same files on the server;
+   - worker commands are identical to the server's daemons.
 5. **Host concerns are not reproduced:** SSL, firewall, SSH, users, unattended upgrades, systemd.
 6. **This environment is for development only.** No production image is built from it.
-7. **Logs go to stderr in Docker** (`LOG_CHANNEL=stderr` in `compose.yaml`), so `docker compose logs` shows the application logs of every PHP process. Forge keeps Laravel's file logs.
+7. **Logs go to stderr in Docker** (`LOG_CHANNEL=stderr` in `compose.yaml`), so `docker compose logs` shows the application logs of every PHP process. The server keeps Laravel's file logs.
 8. **No process runner** (`concurrently`, `@laravel/multiplex`, `composer dev`): compose already runs one process per service.
 9. **`laravel/pao` gives AI agents compact JSON output** from Pint, Larastan and Pest. Agents forward their detection variables per command (`docker compose exec -e CLAUDECODE -e AI_AGENT …`); they are never set in `compose.yaml`, where they would be frozen at container creation and switch the output for humans too.
 
@@ -45,4 +46,4 @@
 - Timeouts, upload limits and the WebSocket proxy for Reverb behave locally as in production.
 - The image and its configuration are maintained by the project: PHP updates and security fixes are our job.
 - CI runs natively on `ubuntu-latest`, a third check of the same platform.
-- Once the server exists (E1.3), its actual configuration files are compared with the repository and any gap is fixed. The comparison is repeated after Forge actions that rewrite configuration, such as enabling SSL.
+- The server is configured from these files by Ansible, so parity holds by construction; a weekly check-mode run reports drift (E1.3).

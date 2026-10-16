@@ -1,4 +1,4 @@
-# Local development only (ADR-0007). Production runs on Forge without Docker.
+# Local development only (ADR-0007). Production runs without Docker, configured by Ansible (ADR-0012).
 name: balise
 
 x-php: &php

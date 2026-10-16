@@ -15,7 +15,7 @@
 1. **`laravel/boost` as a dev dependency**, configured by `boost.json` and `config/boost.php`.
 2. **Guidelines go into `AGENTS.md`**, between Boost's own tags, below our rules; Claude Code is pointed there too instead of `CLAUDE.md`. Our rules and the ADRs win over a generated guideline.
 3. **Skills are generated, not versioned:** `.claude/skills/` is ignored, the setup service and `composer update` regenerate them with `boost:update`.
-4. **Excluded:** Laravel Cloud guidelines and skill (deployment is Forge, ADR-0004), Boost project rules and the `infer-conventions` skill (decisions live in ADRs, conventions in `AGENTS.md`).
+4. **Excluded:** Laravel Cloud guidelines and skill (deployment is our own server, ADR-0004 and ADR-0012), Boost project rules and the `infer-conventions` skill (decisions live in ADRs, conventions in `AGENTS.md`).
 5. **The MCP server runs inside the PHP container:** `.mcp.json` calls `docker compose exec -T php php artisan boost:mcp`.
 
 ## Alternatives considered
