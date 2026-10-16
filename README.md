@@ -10,7 +10,7 @@ Live map of public transport vehicles, fed by open GTFS-Realtime data. First net
 docker compose up -d
 ```
 
-Then open http://localhost:8000 for the map. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
+Then open http://localhost:8000 for the map. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates, browser tests included: `docker compose run --rm test`. More commands in [AGENTS.md](AGENTS.md#commands).
 
 ## Weight of the map page
 

@@ -14,8 +14,9 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 |---|---|
 | Start the stack (first run installs dependencies, creates `.env`, migrates) | `docker compose up -d` |
 | Open the app | http://localhost:8000 (`APP_PORT` to change) |
-| All quality gates: Pint, Larastan, Pest | `docker compose exec php composer qa` |
-| Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose exec -e CLAUDECODE -e AI_AGENT php composer qa` |
+| All quality gates: Pint, Larastan, Pest with browser tests (built assets needed, see below) | `docker compose run --rm test` |
+| Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose run --rm -e CLAUDECODE -e AI_AGENT test` |
+| Fast tests without a browser | `docker compose exec php vendor/bin/pest --testsuite=Unit,Feature` |
 | Fix code style | `docker compose exec php vendor/bin/pint` |
 | Browser tests (axe) need built assets first | `docker compose exec vite npm run build` |
 | Type-check the front end / check the map page JavaScript budget | `docker compose exec vite npm run typecheck` / `docker compose exec vite npm run budget` |
@@ -26,7 +27,7 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
 
-Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
+Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` or `docker compose run` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
 
 Laravel Boost (ADR-0009) appends generated guidelines at the end of this file; never edit between its tags, run `docker compose exec php php artisan boost:update` instead. Its commands assume PHP on the host: run them through `docker compose exec php`. Where they conflict with this file or an ADR, this file wins. The Boost MCP server (`.mcp.json`) runs in the PHP container; its log tools see nothing, use `docker compose logs php`.
 
@@ -51,7 +52,7 @@ The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Googl
 - **Storage (ADR-0002, Accepted).** PostgreSQL; coordinates as plain `latitude`/`longitude` until the first spatial story brings PostGIS (own ADR, migration to `geography(Point, 4326)`). M1 keeps only the latest position per vehicle; latest positions are hot data for Redis/memory, the DB is the system of record. Local dev uses a PostgreSQL Alpine image.
 - **Replay** records raw feed payloads and plays them back through the real driver; it does not depend on position history.
 - **UI (ADR-0010).** Livewire + Alpine + MapLibre GL JS. The map, the live store and the Reverb subscription are a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine; Livewire mounts it with `wire:ignore` and talks to it through events. RGAA AA and RGESN apply (ADR-0006): the map has an equivalent text view and a pause control, and only changed positions are pushed.
-- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images on Ubuntu 26.04 like the server. Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and applied to the server by Ansible.
+- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images on Ubuntu 26.04 like the server. The PHP Dockerfile has three targets: `runtime` (queue, scheduler; the base of any future production image), `dev` (php, setup: adds Composer and tools) and `test` (adds Node and Chromium, used only by the on-demand `test` service). Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and applied to the server by Ansible.
 - **Hosting (ADR-0012).** One Oracle Cloud Always Free A1 instance (arm64), created by OpenTofu and configured by Ansible from the repository; deploys run from GitHub Actions on release (ADR-0004). No Forge.
 
 ## Data facts
@@ -127,16 +128,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Use TitleCase for Enum keys: `FavoritePerson`, `BestLake`, `Monthly`.
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
-
-=== tests rules ===
-
-# Test Enforcement
-
-- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
-- Pure copy, styling, and layout-only changes do not require new or updated tests.
-- When test coverage applies, run the affected tests and ensure they pass.
-- Test the changed behavior and its important failure modes, but do not add tests beyond them.
-- Read the `testing-best-practices` skill before writing tests.
 
 === laravel/core rules ===
 

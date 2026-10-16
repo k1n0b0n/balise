@@ -118,4 +118,5 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
+- Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
