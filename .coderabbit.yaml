@@ -51,7 +51,8 @@ reviews:
     unit_tests:
       enabled: false
   tools:
-    # Already enforced by `composer qa` with the project's own configuration (ADR-0005).
+    # PHPStan already runs in `composer qa` with the project's configuration (ADR-0005);
+    # PHPCS and PHPMD would contradict Pint; LanguageTool flags technical English.
     phpstan:
       enabled: false
     phpcs:
