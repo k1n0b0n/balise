@@ -6,6 +6,7 @@ use App\Ingestion\VehicleFeeds;
 use App\Ingestion\VehiclePosition;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Transit_realtime\FeedEntity;
@@ -103,6 +104,16 @@ it('applies the ADR-0013 fallbacks', function (): void {
         ->tripId->toBeNull();
 });
 
+it('drops positions with impossible coordinates', function (): void {
+    $positions = fetchPositions(feedPayload([
+        feedEntity('e1', ['lat' => 0.0, 'lon' => 0.0, 'id' => 'null-island']),
+        feedEntity('e2', ['lat' => 91.0, 'lon' => -0.5, 'id' => 'too-north']),
+        feedEntity('e3', ['lat' => NAN, 'lon' => -0.5, 'id' => 'not-a-number']),
+    ]));
+
+    expect(array_map(fn (VehiclePosition $position): string => $position->vehicleId, $positions))->toBe(['tbm:null-island']);
+});
+
 it('drops positions that cannot be dated', function (): void {
     expect(fetchPositions(feedPayload([feedEntity('e1', ['lat' => 44.8, 'lon' => -0.5, 'id' => 'bus-1'])], headerTimestamp: 0)))
         ->toBe([]);
@@ -128,12 +139,15 @@ it('logs a failed or invalid fetch and lets the next run retry', function (): vo
 
     Http::fakeSequence('rt.test/*')
         ->push('Service unavailable', 503)
-        ->push('not a protobuf payload', 200);
+        ->push('not a protobuf payload', 200)
+        ->push('', 200, ['ETag' => '"empty"']);
 
     $this->artisan('network:poll', ['network' => 'tbm'])->assertFailed();
     $this->artisan('network:poll', ['network' => 'tbm'])->assertFailed();
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertFailed();
 
-    Log::shouldHaveReceived('warning')->twice();
+    Log::shouldHaveReceived('warning')->times(3);
+    expect(Cache::get('vehicle-feed:tbm:etag'))->toBeNull();
 });
 
 it('polls every network at its configured interval without overlapping', function (): void {
@@ -142,5 +156,6 @@ it('polls every network at its configured interval without overlapping', functio
 
     expect($event)->not->toBeNull()
         ->and($event->repeatSeconds)->toBe(20)
-        ->and($event->withoutOverlapping)->toBeTrue();
+        ->and($event->withoutOverlapping)->toBeTrue()
+        ->and($event->expiresAt)->toBe(1);
 });

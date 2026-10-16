@@ -11,6 +11,7 @@ use DateTimeImmutable;
 use Illuminate\Http\Client\Factory as Http;
 use Transit_realtime\FeedEntity;
 use Transit_realtime\FeedMessage;
+use UnexpectedValueException;
 
 final readonly class GtfsRealtimeFeed implements VehicleFeed
 {
@@ -45,6 +46,11 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
         $feed = new FeedMessage;
         $feed->mergeFromString($response->body());
 
+        // An empty or non-protobuf body can decode to an empty message: refuse it rather than report no vehicles.
+        if (! $feed->hasHeader()) {
+            throw new UnexpectedValueException('The GTFS-RT payload has no header.');
+        }
+
         $positions = [];
 
         foreach ($feed->getEntity() as $entity) {
@@ -67,6 +73,13 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
             return null;
         }
 
+        $latitude = $coordinates->getLatitude();
+        $longitude = $coordinates->getLongitude();
+
+        if (! is_finite($latitude) || ! is_finite($longitude) || abs($latitude) > 90 || abs($longitude) > 180) {
+            return null;
+        }
+
         $vehicleId = $this->vehicleId($entity);
         $timestamp = (int) $vehicle->getTimestamp() ?: $headerTimestamp;
 
@@ -79,8 +92,8 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
 
         return new VehiclePosition(
             vehicleId: $this->id($vehicleId),
-            latitude: $coordinates->getLatitude(),
-            longitude: $coordinates->getLongitude(),
+            latitude: $latitude,
+            longitude: $longitude,
             recordedAt: new DateTimeImmutable("@{$timestamp}"),
             lineId: $this->optionalId($trip?->getRouteId()),
             tripId: $this->optionalId($trip?->getTripId()),

@@ -10,9 +10,10 @@ foreach (array_keys(Config::array('networks')) as $network) {
     Schedule::command('network:import', [$network])
         ->dailyAt('05:30')
         ->timezone(Config::string("networks.{$network}.timezone"))
-        ->withoutOverlapping();
+        ->withoutOverlapping(expiresAt: 60);
 
-    $poll = Schedule::command('network:poll', [$network])->withoutOverlapping();
+    // A short lock: a crashed run must not stop polling for the default 24 hours.
+    $poll = Schedule::command('network:poll', [$network])->withoutOverlapping(expiresAt: 1);
 
     match (Config::integer("networks.{$network}.vehicles.poll_every_seconds")) {
         10 => $poll->everyTenSeconds(),

@@ -2,6 +2,7 @@
 # Generate the GTFS-Realtime PHP classes into generated/ (ADR-0015), from the committed proto.
 #   docker compose exec php sh scripts/generate-gtfs-realtime.sh                 # generate
 #   docker compose exec php sh scripts/generate-gtfs-realtime.sh --update-proto  # first refresh proto/ from PROTO_COMMIT
+#   sh scripts/generate-gtfs-realtime.sh --if-stale                              # skip when inputs are unchanged (setup)
 set -eu
 
 PROTO_COMMIT=474750a163088673df718838d4a1bb093391f9af
@@ -15,6 +16,13 @@ esac
 
 if [ "${1:-}" = "--update-proto" ]; then
     curl -fsSL -o proto/gtfs-realtime.proto "https://raw.githubusercontent.com/google/transit/${PROTO_COMMIT}/gtfs-realtime/proto/gtfs-realtime.proto"
+fi
+
+# The stamp is written last, so an interrupted run or a changed script or proto regenerates.
+inputs=$(cat "$0" proto/gtfs-realtime.proto | sha256sum | cut -d' ' -f1)
+
+if [ "${1:-}" = "--if-stale" ] && [ "$(cat generated/.inputs 2>/dev/null)" = "$inputs" ]; then
+    exit 0
 fi
 
 work=$(mktemp -d)
@@ -37,8 +45,10 @@ sed -E \
     -e 's/^([[:space:]]*)enum SeverityLevel \{/&\n\1  SEVERITY_LEVEL_UNSPECIFIED = 0;/' \
     proto/gtfs-realtime.proto > "$work/proto/gtfs-realtime.proto"
 
+mkdir "$work/out"
+"$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out="$work/out" "$work/proto/gtfs-realtime.proto"
+echo "$inputs" > "$work/out/.inputs"
 rm -rf generated
-mkdir generated
-"$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out=generated "$work/proto/gtfs-realtime.proto"
+mv "$work/out" generated
 
 echo "Generated $(find generated -name '*.php' | wc -l | tr -d ' ') files from proto/gtfs-realtime.proto (google/transit@${PROTO_COMMIT}) with protoc ${PROTOC_VERSION}."

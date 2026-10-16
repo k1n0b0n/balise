@@ -24,3 +24,4 @@ See E2.2 in [prd.md](../prd.md).
 - Positions are read but not stored yet: the write path, the freshness filter and `PositionsUpdated` are E2.3.
 - The pure-PHP runtime is fast enough; the C extension is not needed (ADR-0015).
 - `composer require` ran `boost:update`, which added Boost's "tests rules" to `AGENTS.md`.
+- CodeRabbit (#26) found four issues, all fixed with tests: an empty or headerless payload is now an error instead of "0 positions", impossible coordinates are dropped, the poll lock expires after one minute instead of 24 hours after a crash, and generation reruns when the script or the proto changes or a run was interrupted (stamp written last, output moved into place atomically).
