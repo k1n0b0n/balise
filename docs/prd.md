@@ -33,11 +33,15 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The same job builds the front end (`npm ci`, `npm run build`)
   - [x] `composer audit` and `npm audit --audit-level=high` fail the job on a known vulnerability
   - [x] Pull request titles are checked against Conventional Commits, with the types release-please understands
-  - [x] Dependabot opens weekly, grouped updates for Composer, npm, GitHub Actions and Docker images, with Conventional Commits titles
+  - [x] Dependabot opens weekly, grouped updates for Composer, npm and GitHub Actions, with Conventional Commits titles; Docker images follow the server instead (E1.3)
   - [x] Workflows use least-privilege `permissions` and actions pinned to a commit SHA
   - [x] The ruleset requires both checks; a pull request with a failing test cannot be merged, shown once on a throwaway pull request
 - E1.3 Server provisioned with Forge, deploy on GitHub release created by release-please (ADR-0004)
   - [ ] The server's nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands match the repository configuration; gaps are fixed on one side or the other (ADR-0007)
+  - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml`, the CI workflow or `.nvmrc` disagree with it
+  - [ ] The Forge deploy script selects Node from `.nvmrc`
+  - [ ] A weekly workflow reads the versions Forge offers (OpenAPI spec; Node LTS schedule) and opens a pull request raising one version by one step, with the server-side steps as a checklist
+  - [ ] The same workflow compares the live server (Forge API) with the versions file and opens or updates a drift issue; it never blocks pull requests
   - [ ] Other criteria to be written
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
