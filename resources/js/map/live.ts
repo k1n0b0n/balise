@@ -5,6 +5,7 @@ export interface Vehicle {
     latitude: number;
     longitude: number;
     line: string | null;
+    mode: string | null;
     colour: string;
 }
 

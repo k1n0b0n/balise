@@ -78,7 +78,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
 - E3.2 Vehicles as points coloured and labelled by line; colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
   - [x] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 5 s and stops while the tab is hidden (ADR-0006)
-  - [x] Each vehicle is a small point in its line's colour, with an outline reaching 3:1 against the basemap; the line's short name is written beside the point, reaching 4.5:1 against the basemap
+  - [x] Each vehicle is a small marker in its line's colour, shaped by mode (bus circle, tram square, ferry diamond, other or unknown triangle) so that colour is not the only cue, with an outline reaching 3:1 against the basemap; the line's short name is written beside the point, reaching 4.5:1 against the basemap
   - [x] Lines without a colour use a neutral colour; vehicles without a line read "Ligne inconnue"
 - E3.3 Vehicle popup: line, vehicle id, age of last position
   - [ ] Clicking a vehicle, or pressing Enter on it from the keyboard, opens a popup with the line (short and long name), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current

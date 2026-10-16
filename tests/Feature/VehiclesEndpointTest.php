@@ -16,8 +16,8 @@ beforeEach(function (): void {
     $this->now = CarbonImmutable::parse('2026-10-16 12:00:00');
     $this->travelTo($this->now);
 
-    foreach (['tbm:A' => ['A', 'FFD200'], 'tbm:B' => ['B', '00387b'], 'tbm:12' => ['12', null]] as $id => [$name, $colour]) {
-        Line::query()->create(['id' => $id, 'network' => 'tbm', 'short_name' => $name, 'mode' => TransportMode::Bus, 'color' => $colour, 'sync_id' => Str::uuid()]);
+    foreach (['tbm:A' => ['A', TransportMode::Tram, 'FFD200'], 'tbm:B' => ['B', TransportMode::Bus, '00387b'], 'tbm:12' => ['12', TransportMode::Bus, null]] as $id => [$name, $mode, $colour]) {
+        Line::query()->create(['id' => $id, 'network' => 'tbm', 'short_name' => $name, 'mode' => $mode, 'color' => $colour, 'sync_id' => Str::uuid()]);
     }
 });
 
@@ -46,17 +46,17 @@ function vehicles(?int $since = null): TestResponse
     return test()->getJson(route('vehicles', ['network' => 'tbm', 'since' => $since]));
 }
 
-it('returns every vehicle with its line colour', function (): void {
+it('returns every vehicle with its line, mode and colour', function (): void {
     poll(['yellow' => 'tbm:A', 'blue' => 'tbm:B', 'plain' => 'tbm:12', 'lineless' => null, 'unknown' => 'tbm:gone']);
 
     $response = vehicles()->assertOk()->assertJsonPath('full', true)->assertJsonPath('removed', []);
 
-    expect(collect($response->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['line'], $vehicle['colour']])->all())->toEqual([
-        'tbm:yellow' => ['A', '#FFD200'],
-        'tbm:blue' => ['B', '#00387B'],
-        'tbm:plain' => ['12', Line::NEUTRAL_COLOUR],
-        'tbm:lineless' => [null, Line::NEUTRAL_COLOUR],
-        'tbm:unknown' => [null, Line::NEUTRAL_COLOUR],
+    expect(collect($response->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['line'], $vehicle['mode'], $vehicle['colour']])->all())->toEqual([
+        'tbm:yellow' => ['A', 'tram', '#FFD200'],
+        'tbm:blue' => ['B', 'bus', '#00387B'],
+        'tbm:plain' => ['12', 'bus', Line::NEUTRAL_COLOUR],
+        'tbm:lineless' => [null, null, Line::NEUTRAL_COLOUR],
+        'tbm:unknown' => [null, null, Line::NEUTRAL_COLOUR],
     ]);
 });
 
