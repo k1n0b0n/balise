@@ -2,7 +2,7 @@
 
 Live map of public transport vehicles, fed by open GTFS-Realtime data. First network: TBM (Bordeaux).
 
-> Status: CI and static GTFS import (E1.2, E2.1). No map yet.
+> Status: CI, static GTFS import and live polling (E1.2, E2.1, E2.2). No map yet.
 
 ## Run it
 

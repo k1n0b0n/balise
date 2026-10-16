@@ -57,12 +57,12 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The scheduler runs the import daily, after the provider's nightly update
   - [x] Tests run against a small GTFS archive in `tests/fixtures`
 - E2.2 Poll the GTFS-RT VehiclePositions feed on a schedule
-  - [ ] The protobuf / GTFS-RT library is chosen in an ADR before the driver is written
-  - [ ] The scheduler polls each network at its configured interval, 20 s for TBM (the feed changes every 20 s, measured 2026-10-16), without overlapping runs
-  - [ ] Each request sends `If-None-Match`; a `304` ends the run without parsing (RGESN)
-  - [ ] The `gtfs-rt` driver maps the feed to ADR-0013 positions, with each fallback covered by a test on a recorded payload
-  - [ ] A failed or invalid fetch is logged and leaves the current state untouched; the next run retries
-  - [ ] The architecture test fails on a deliberate GTFS-RT reference outside `App\Ingestion`, shown once and reverted (story 001 known limit)
+  - [x] The protobuf / GTFS-RT library is chosen in an ADR before the driver is written
+  - [x] The scheduler polls each network at its configured interval, 20 s for TBM (the feed changes every 20 s, measured 2026-10-16), without overlapping runs
+  - [x] Each request sends `If-None-Match`; a `304` ends the run without parsing (RGESN)
+  - [x] The `gtfs-rt` driver maps the feed to ADR-0013 positions, with each fallback covered by a test on a recorded payload
+  - [x] A failed or invalid fetch is logged and leaves the current state untouched; the next run retries
+  - [x] The architecture test fails on a deliberate GTFS-RT reference outside `App\Ingestion`, shown once and reverted (story 001 known limit)
 - E2.3 Filter stale positions and keep the latest state per vehicle (ADR-0013)
   - [ ] Positions more than 5 min older than their reception, or more than 2 min ahead of it, are dropped; both limits are per-network settings, and the number dropped is logged per run
   - [ ] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing

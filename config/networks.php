@@ -24,6 +24,13 @@ return [
             // Public open data key, published on transport.data.gouv.fr.
             'url' => env('TBM_GTFS_URL', 'https://bdx.mecatran.com/utw/ws/gtfsfeed/static/bordeaux?apiKey=opendata-bordeaux-metropole-flux-gtfs-rt'),
         ],
+
+        'vehicles' => [
+            'driver' => 'gtfs-rt',
+            'url' => env('TBM_GTFS_RT_URL', 'https://bdx.mecatran.com/utw/ws/gtfsfeed/vehicles/bordeaux?apiKey=opendata-bordeaux-metropole-flux-gtfs-rt'),
+            // The feed changes every 20 s (measured 2026-10-16); must divide 60.
+            'poll_every_seconds' => 20,
+        ],
     ],
 
 ];

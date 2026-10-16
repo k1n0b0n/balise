@@ -1,0 +1,38 @@
+#!/bin/sh
+# Regenerate the GTFS-Realtime PHP classes (ADR-0015). Run: docker compose exec php sh scripts/generate-gtfs-realtime.sh
+set -eu
+
+PROTO_COMMIT=474750a163088673df718838d4a1bb093391f9af
+PROTOC_VERSION=36.2
+
+case "$(uname -m)" in
+    x86_64) arch=x86_64 ;;
+    aarch64 | arm64) arch=aarch_64 ;;
+    *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+esac
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+curl -fsSL -o proto/gtfs-realtime.proto "https://raw.githubusercontent.com/google/transit/${PROTO_COMMIT}/gtfs-realtime/proto/gtfs-realtime.proto"
+curl -fsSL -o "$work/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${arch}.zip"
+unzip -q "$work/protoc.zip" -d "$work/protoc"
+
+# protoc cannot generate PHP from proto2 required fields, so the pristine upstream file is
+# converted to proto3: same wire format, explicit presence kept with `optional`.
+mkdir "$work/proto"
+sed -E \
+    -e 's/^syntax = "proto2";/syntax = "proto3";/' \
+    -e 's/^([[:space:]]*)required /\1optional /' \
+    -e 's/[[:space:]]*\[default = [^]]*\]//' \
+    -e '/^[[:space:]]*extensions [0-9]+ to [0-9]+;/d' \
+    -e 's/^([[:space:]]*)enum Cause \{/&\n\1  CAUSE_UNSPECIFIED = 0;/' \
+    -e 's/^([[:space:]]*)enum Effect \{/&\n\1  EFFECT_UNSPECIFIED = 0;/' \
+    -e 's/^([[:space:]]*)enum SeverityLevel \{/&\n\1  SEVERITY_LEVEL_UNSPECIFIED = 0;/' \
+    proto/gtfs-realtime.proto > "$work/proto/gtfs-realtime.proto"
+
+rm -rf generated
+mkdir generated
+"$work/protoc/bin/protoc" --proto_path="$work/proto" --php_out=generated "$work/proto/gtfs-realtime.proto"
+
+echo "Generated $(find generated -name '*.php' | wc -l) files from google/transit@${PROTO_COMMIT} with protoc ${PROTOC_VERSION}."

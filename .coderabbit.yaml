@@ -18,6 +18,8 @@ reviews:
     - "!composer.lock"
     - "!package-lock.json"
     - "!public/build/**"
+    - "!generated/**"
+    - "!proto/**"
   path_instructions:
     - path: "app/**/*.php"
       instructions: >-
