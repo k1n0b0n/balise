@@ -33,3 +33,4 @@ Update this section at the end of every working session.
 - **Next:**
   1. Write acceptance criteria for the other M1 stories (E1.3 to E1.5, E2, E3).
   2. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
+  3. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).

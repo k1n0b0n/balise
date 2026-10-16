@@ -50,8 +50,24 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
+  - [ ] `php artisan network:import {network}` imports lines (namespaced id, short name, long name, mode, colour, text colour) and stops (namespaced id, name, coordinates) through the `gtfs` driver of `NetworkCatalog`; colours are optional (73 of 202 TBM lines have none)
+  - [ ] Only the files needed are read from the archive, streamed: memory stays flat whatever the size of `stop_times.txt` (21 MB archive for TBM)
+  - [ ] The import runs in one transaction and is idempotent: running it twice leaves the same data, a line or stop removed from the feed is removed
+  - [ ] The download sends `If-None-Match` with the last ETag and skips the import on `304` (RGESN)
+  - [ ] The scheduler runs the import daily, after the provider's nightly update
+  - [ ] Tests run against a small GTFS archive in `tests/fixtures`
 - E2.2 Poll the GTFS-RT VehiclePositions feed on a schedule
+  - [ ] The protobuf / GTFS-RT library is chosen in an ADR before the driver is written
+  - [ ] The scheduler polls each network at its configured interval, 20 s for TBM (the feed changes every 20 s, measured 2026-10-16), without overlapping runs
+  - [ ] Each request sends `If-None-Match`; a `304` ends the run without parsing (RGESN)
+  - [ ] The `gtfs-rt` driver maps the feed to ADR-0013 positions, with each fallback covered by a test on a recorded payload
+  - [ ] A failed or invalid fetch is logged and leaves the current state untouched; the next run retries
+  - [ ] The architecture test fails on a deliberate GTFS-RT reference outside `App\Ingestion`, shown once and reverted (story 001 known limit)
 - E2.3 Filter stale positions and keep the latest state per vehicle (ADR-0013)
+  - [ ] Positions more than 5 min older than their reception, or more than 2 min ahead of it, are dropped; both limits are per-network settings, and the number dropped is logged per run
+  - [ ] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing
+  - [ ] A vehicle whose last position is older than the limit leaves the current state
+  - [ ] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
