@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-15
+- **Amended:** 2026-10-16, during E3.2: no clustering; vehicles are small markers shaped by mode with the line's short name beside them, all MapLibre style expressions and canvas-drawn images (story 007). Where this ADR mentions clustering, it no longer applies
 
 ## Context
 
