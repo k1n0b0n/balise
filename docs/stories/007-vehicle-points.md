@@ -1,7 +1,7 @@
 # Story 007: Vehicles as markers coloured by line and shaped by mode
 
 - **PRD:** E3.2
-- **Status:** Review
+- **Status:** Done (merged in #32; deployment comes with E1.3)
 
 ## Acceptance criteria
 

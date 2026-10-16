@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-16
+- **Amended:** 2026-10-16, during E3.2: a vehicle without a line is labelled "?" on the map, where a marker has no room for more; "Ligne inconnue" is written in the popup (E3.3) and the text view (E3.5)
 
 ## Context
 
