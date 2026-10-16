@@ -39,4 +39,4 @@
 
 ## Open questions
 
-1. Feed polling interval versus the provider's tolerance.
+1. Provider tolerance for polling every 20 s: the TBM feed changes every 20 s and answers `304` to conditional requests, but publishes no rate limit (E2.2).
