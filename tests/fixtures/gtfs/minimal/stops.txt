@@ -1,0 +1,5 @@
+stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station
+QUIN,Quinconces,44.844780,-0.573610,1,
+QUIN_A,Quinconces,44.844712,-0.573480,0,QUIN
+GARE,Gare Saint-Jean,44.825810,-0.556390,,
+E1,Entrée Gare,44.825900,-0.556500,2,GARE

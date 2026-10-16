@@ -2,7 +2,7 @@
 
 Live map of public transport vehicles, fed by open GTFS-Realtime data. First network: TBM (Bordeaux).
 
-> Status: skeleton (E1.1). No map yet.
+> Status: CI and static GTFS import (E1.2, E2.1). No map yet.
 
 ## Run it
 
@@ -10,7 +10,7 @@ Live map of public transport vehicles, fed by open GTFS-Realtime data. First net
 docker compose up -d
 ```
 
-Then open http://localhost:8000. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
+Then open http://localhost:8000. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates: `docker compose exec php composer qa`. More commands in [AGENTS.md](AGENTS.md#commands).
 
 ## Documentation
 
@@ -29,4 +29,4 @@ Code under the [MIT license](LICENSE) ([ADR-0003](docs/adr/0003-license.md)). Da
 
 ## Data
 
-Bordeaux Métropole, *Réseau urbain et scolaire TBM*, published on [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/offres-de-services-bus-et-tramway-gtfs) under the Licence Ouverte.
+Bordeaux Métropole, *Réseau urbain et scolaire TBM*, published on [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/offres-de-services-bus-tram-et-scolaire-au-format-gtfs-netex-gtfs-rt-siri-lite) under the Licence Ouverte.

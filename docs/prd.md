@@ -50,12 +50,12 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
-  - [ ] `php artisan network:import {network}` imports lines (namespaced id, short name, long name, mode, colour, text colour) and stops (namespaced id, name, coordinates) through the `gtfs` driver of `NetworkCatalog`; colours are optional (73 of 202 TBM lines have none)
-  - [ ] Only the files needed are read from the archive, streamed: memory stays flat whatever the size of `stop_times.txt` (21 MB archive for TBM)
-  - [ ] The import runs in one transaction and is idempotent: running it twice leaves the same data, a line or stop removed from the feed is removed
-  - [ ] The download sends `If-None-Match` with the last ETag and skips the import on `304` (RGESN)
-  - [ ] The scheduler runs the import daily, after the provider's nightly update
-  - [ ] Tests run against a small GTFS archive in `tests/fixtures`
+  - [x] `php artisan network:import {network}` imports lines (namespaced id, short name, long name, mode, colour, text colour) and stops (namespaced id, name, coordinates) through the `gtfs` driver of `NetworkCatalog`; colours are optional (73 of 202 TBM lines have none)
+  - [x] Only the files needed are read from the archive, streamed: memory stays flat whatever the size of `stop_times.txt` (21 MB archive for TBM)
+  - [x] The import runs in one transaction and is idempotent: running it twice leaves the same data, a line or stop removed from the feed is removed
+  - [x] The download sends `If-None-Match` with the last ETag and skips the import on `304` (RGESN)
+  - [x] The scheduler runs the import daily, after the provider's nightly update
+  - [x] Tests run against a small GTFS archive in `tests/fixtures`
 - E2.2 Poll the GTFS-RT VehiclePositions feed on a schedule
   - [ ] The protobuf / GTFS-RT library is chosen in an ADR before the driver is written
   - [ ] The scheduler polls each network at its configured interval, 20 s for TBM (the feed changes every 20 s, measured 2026-10-16), without overlapping runs
