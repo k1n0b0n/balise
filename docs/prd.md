@@ -51,11 +51,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
 - E2.2 Poll the GTFS-RT VehiclePositions feed on a schedule
-- E2.3 Filter stale positions and keep the latest state per vehicle
+- E2.3 Filter stale positions and keep the latest state per vehicle (ADR-0013)
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
-- E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast (ADR-0006)
+- E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
 - E3.3 Vehicle popup: line, vehicle id, age of last position
 - E3.4 Select a line or a vehicle and let the map follow it
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
@@ -83,4 +83,6 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - AI pull request review bot (CodeRabbit, Greptile): evaluate after a few stories, non-blocking
+- Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
+- Bearing arrows and destination labels on vehicles (ADR-0013)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

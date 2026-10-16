@@ -40,4 +40,3 @@
 ## Open questions
 
 1. Feed polling interval versus the provider's tolerance.
-2. Normalised model: exact fields of a position (ADR-0001 consequence).
