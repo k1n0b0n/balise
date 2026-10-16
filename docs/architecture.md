@@ -30,8 +30,8 @@
 | Database | PostgreSQL; PostGIS later, with the first spatial story | Decided, [ADR-0002](adr/0002-database.md) |
 | Cache / queue | Redis | To confirm |
 | Real-time | Laravel Reverb | Agreed |
-| Hosting | OVH VPS-1 (Ubuntu 26.04) provisioned by Laravel Forge | Agreed, ADR to write |
-| Edge | Cloudflare (free plan) | Agreed |
+| Hosting | OVHcloud VPS-1 (Ubuntu 26.04) managed by Laravel Forge (Hobby), one server | Decided, [ADR-0012](adr/0012-hosting.md) |
+| Edge | Cloudflare (free plan): DNS, proxy, TLS, cache rules | Decided, ADR-0012 |
 | Quality gates | Pint (`laravel` preset), Larastan (level max), Pest with `arch`, behind `composer qa` | Decided, [ADR-0005](adr/0005-quality-tooling.md) |
 | Local environment | `compose.yaml`, PHP and nginx on Ubuntu 26.04 like Forge, versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md) |
 | Responsible design | RGAA 4.1.2 AA, RGESN 2024 self-assessment | Decided, [ADR-0006](adr/0006-responsible-design.md) |
