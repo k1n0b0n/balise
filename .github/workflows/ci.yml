@@ -74,6 +74,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Type-check the front end
+        run: npm run typecheck
+
       - name: Dependency audit
         run: |
           composer audit
@@ -81,6 +84,22 @@ jobs:
 
       - name: Build front end
         run: npm run build
+
+      - name: Map page JavaScript budget
+        run: npm run budget
+
+      # Browser tests (axe) need Chromium at the exact Playwright version of package.json.
+      - id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - name: Prepare environment
         run: |

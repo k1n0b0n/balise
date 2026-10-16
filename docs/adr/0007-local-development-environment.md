@@ -5,6 +5,7 @@
 - **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner, `laravel/pao` for agents
 - **Amended:** 2026-10-16: Ubuntu 26.04, Forge's default for new servers since 2026-08-31; PHP from the Ubuntu archive
 - **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
+- **Amended:** 2026-10-16, during E3.1: the PHP Dockerfile has three targets, `runtime` (353 MB, queue and scheduler), `dev` (461 MB, adds Composer and tools) and `test` (2.3 GB, adds Node and a Chromium pinned to the Playwright version of `package.json`, built only for the on-demand `test` service)
 
 ## Context
 
@@ -23,7 +24,7 @@
    - Ansible installs the same files on the server;
    - worker commands are identical to the server's daemons.
 5. **Host concerns are not reproduced:** SSL, firewall, SSH, users, unattended upgrades, systemd.
-6. **This environment is for development only.** No production image is built from it.
+6. **This environment is for development only.** No production image is built from it; if Docker deployment is ever decided (own ADR), a `production` target would start from `runtime`.
 7. **Logs go to stderr in Docker** (`LOG_CHANNEL=stderr` in `compose.yaml`), so `docker compose logs` shows the application logs of every PHP process. The server keeps Laravel's file logs.
 8. **No process runner** (`concurrently`, `@laravel/multiplex`, `composer dev`): compose already runs one process per service.
 9. **`laravel/pao` gives AI agents compact JSON output** from Pint, Larastan and Pest. Agents forward their detection variables per command (`docker compose exec -e CLAUDECODE -e AI_AGENT …`); they are never set in `compose.yaml`, where they would be frozen at container creation and switch the output for humans too.

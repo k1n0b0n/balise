@@ -14,6 +14,10 @@ use Transit_realtime\VehiclePosition as GtfsVehiclePosition;
 
 pest()->extend(TestCase::class)->in('Feature');
 pest()->use(RefreshDatabase::class)->in('Feature');
+pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Browser');
+
+// The basemap comes from OpenFreeMap over the network: allow it more than the default 5 s.
+pest()->browser()->timeout(20_000);
 
 /**
  * Zip the fixture GTFS in tests/fixtures/gtfs/{name}, with some files replaced or removed (null).

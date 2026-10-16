@@ -1,10 +1,12 @@
 # Local development only (ADR-0007). Production runs without Docker, configured by Ansible (ADR-0012).
 name: balise
 
+# PHP image targets (docker/php/Dockerfile): runtime for the workers, dev for the app and tools, test for the browser tests.
 x-php: &php
   build:
     context: .
     dockerfile: docker/php/Dockerfile
+    target: dev
   image: balise-php:dev
   volumes:
     - .:/var/www/balise
@@ -20,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      target: dev
     volumes:
       - .:/var/www/balise
     command: ["docker/php/setup.sh"]
@@ -32,11 +35,35 @@ services:
 
   queue:
     <<: *php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: runtime
+    image: balise-php:runtime
     command: ["php", "artisan", "queue:work", "--tries=3"]
 
   scheduler:
     <<: *php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: runtime
+    image: balise-php:runtime
     command: ["php", "artisan", "schedule:work"]
+
+  # Quality gates with browser tests, on demand: `docker compose run --rm test`.
+  test:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: test
+    image: balise-php:test
+    profiles: ["test"]
+    volumes:
+      - .:/var/www/balise
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   nginx:
     build:

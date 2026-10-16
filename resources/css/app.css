@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* System fonts only (ADR-0008). Focus is always visible, whatever the component (RGAA 10.7). */
+@layer base {
+    :focus-visible {
+        outline: 3px solid var(--color-blue-800);
+        outline-offset: 2px;
+    }
+}

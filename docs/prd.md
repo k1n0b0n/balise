@@ -71,11 +71,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
-  - [ ] The home page shows a MapLibre map with OpenFreeMap's Positron style, fitted to the network's stops; no API key, no account
-  - [ ] The map is a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine (ADR-0010); `tsc --noEmit` runs in CI
-  - [ ] Tailwind CSS v4 through its Vite plugin, with explicit `focus-visible` styles; the interface is in French (`lang="fr"`)
-  - [ ] The map bundle loads on the map page only; the JavaScript of the map page stays under 600 KB compressed, measured in CI and published in the README with the page's EcoIndex (ADR-0006, ADR-0011)
-  - [ ] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
+  - [x] The home page shows a MapLibre map with OpenFreeMap's Positron style, fitted to the network's stops; no API key, no account
+  - [x] The map is a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine (ADR-0010); `tsc --noEmit` runs in CI
+  - [x] Tailwind CSS v4 through its Vite plugin, with explicit `focus-visible` styles; the interface is in French (`lang="fr"`)
+  - [x] The map bundle loads on the map page only; the JavaScript of the map page stays under 600 KB compressed, measured in CI and published in the README with the page's EcoIndex, measured locally (ADR-0006, ADR-0011)
+  - [x] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
 - E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
   - [ ] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 20 s and stops while the tab is hidden (ADR-0006)
   - [ ] Each vehicle is a point in its line's colour, labelled with the line's short name; label text is black or white, whichever reaches 4.5:1, and the point has an outline reaching 3:1 against the basemap (56 of 129 TBM colour pairs fail as published)
@@ -118,4 +118,5 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
+- Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
