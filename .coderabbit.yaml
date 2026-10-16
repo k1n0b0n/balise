@@ -40,6 +40,8 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+    # The free plan allows few reviews per hour: review a pull request once, then on request (`@coderabbitai review`).
+    auto_incremental_review: false
   pre_merge_checks:
     docstrings:
       mode: "off"

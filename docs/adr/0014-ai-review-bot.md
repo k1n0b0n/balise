@@ -31,3 +31,4 @@
 - Each pull request gets a summary and inline comments within minutes; some will be wrong, and replying in the thread tunes the bot (its learnings).
 - A third-party service has read access to the repository; removing the app undoes the decision.
 - The bot's settings are reviewed like code, in `.coderabbit.yaml`.
+- The free plan allows only a few reviews per hour: each pull request is reviewed once when opened, later commits only on request (`@coderabbitai review`).
