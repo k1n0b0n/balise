@@ -3,10 +3,11 @@
 - **Status:** Accepted
 - **Date:** 2026-10-15
 - **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner, `laravel/pao` for agents
+- **Amended:** 2026-10-16: Ubuntu 26.04, Forge's default for new servers since 2026-08-31; PHP from the Ubuntu archive
 
 ## Context
 
-- Production runs on Ubuntu 24.04 provisioned by Laravel Forge: PHP from `ppa:ondrej/php`, nginx + php-fpm, supervisor daemons for workers, a cron entry for the scheduler. No Docker in production.
+- Production runs on Ubuntu 26.04 provisioned by Laravel Forge (its default for new servers): nginx + php-fpm, supervisor daemons for workers, a cron entry for the scheduler. No Docker in production.
 - The application needs PHP 8.5, PostgreSQL (PostGIS later, ADR-0002), Redis, a queue worker, the scheduler, Reverb and Vite.
 - A reviewer must be able to start the project with one command, on macOS or Linux.
 - Laravel Sail is also Ubuntu 24.04 with the same PPA, but serves the app with `php artisan serve`, ships a large toolset, and leaves workers to be started by hand.
@@ -14,7 +15,7 @@
 ## Decision
 
 1. **A hand-written `compose.yaml`, one process per service:** nginx, php-fpm, queue worker, scheduler (`schedule:work`), Reverb, Vite, PostgreSQL, Redis. `docker compose up` starts everything.
-2. **PHP and nginx images are built from `ubuntu:24.04`**, with PHP 8.5 from `ppa:ondrej/php`: same distribution, packages and versions as Forge. This is the specific constraint that overrides the usual preference for Alpine.
+2. **PHP and nginx images are built from `ubuntu:26.04`**, with PHP 8.5 from the Ubuntu archive: same distribution and packages as the server. `ppa:ondrej/php` has no 26.04 build; which source Forge uses on 26.04 is checked when provisioning (E1.3). This is the specific constraint that overrides the usual preference for Alpine.
 3. **PostgreSQL and Redis use the official Alpine images**, pinned to the major versions installed by Forge. Only the major version matters for them.
 4. **The repository is the source of truth for application-facing configuration:**
    - `docker/nginx/site.conf`, `docker/php/php.ini`, `docker/php/fpm-pool.conf` and the list of `php8.5-*` packages;
