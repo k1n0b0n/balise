@@ -30,6 +30,9 @@ return [
             'url' => env('TBM_GTFS_RT_URL', 'https://bdx.mecatran.com/utw/ws/gtfsfeed/vehicles/bordeaux?apiKey=opendata-bordeaux-metropole-flux-gtfs-rt'),
             // The feed changes every 20 s (measured 2026-10-16); must divide 60.
             'poll_every_seconds' => 20,
+            // Freshness limits relative to reception (ADR-0013).
+            'max_age_seconds' => 300,
+            'max_ahead_seconds' => 120,
         ],
     ],
 

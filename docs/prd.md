@@ -64,10 +64,10 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] A failed or invalid fetch is logged and leaves the current state untouched; the next run retries
   - [x] The architecture test fails on a deliberate GTFS-RT reference outside `App\Ingestion`, shown once and reverted (story 001 known limit)
 - E2.3 Filter stale positions and keep the latest state per vehicle (ADR-0013)
-  - [ ] Positions more than 5 min older than their reception, or more than 2 min ahead of it, are dropped; both limits are per-network settings, and the number dropped is logged per run
-  - [ ] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing
-  - [ ] A vehicle whose last position is older than the limit leaves the current state
-  - [ ] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured
+  - [x] Positions more than 5 min older than their reception, or more than 2 min ahead of it, are dropped; both limits are per-network settings, and the number dropped is logged per run
+  - [x] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing
+  - [x] A vehicle whose last position is older than the limit leaves the current state
+  - [ ] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured (locally: 0.35 s for a whole scheduled run, to re-measure on the server in E1.3)
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)

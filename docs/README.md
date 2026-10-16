@@ -28,7 +28,7 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 
 Update this section at the end of every working session.
 
-- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI) and 003 (E2.1, static GTFS import) done, story 004 (E2.2, live polling) in review; next: E2.3. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
+- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import) and 004 (E2.2, live polling) done, story 005 (E2.3, latest positions) in review. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0015 accepted (feed ingestion ports, database, MIT license, delivery workflow, quality tooling, RGAA and RGESN, local environment, CSS approach, Laravel Boost, UI stack, map library, hosting, position model, AI review bot, GTFS-Realtime library), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
   1. Write acceptance criteria for the other M1 stories (rest of E1.3, E1.4, E1.5, E3).
