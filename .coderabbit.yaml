@@ -6,8 +6,6 @@ tone_instructions: "Be brief and concrete. Report bugs, security issues and brok
 reviews:
   profile: chill
   request_changes_workflow: false
-  # Trial: a rate-limited or failed review shows red, but CodeRabbit is not a required check (ADR-0014).
-  fail_commit_status: true
   high_level_summary: true
   poem: false
   in_progress_fortune: false

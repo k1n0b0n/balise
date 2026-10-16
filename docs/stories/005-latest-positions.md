@@ -1,7 +1,7 @@
 # Story 005: Filter stale positions and keep the latest state per vehicle
 
 - **PRD:** E2.3
-- **Status:** Review
+- **Status:** Done (merged in #27; deployment comes with E1.3)
 
 ## Acceptance criteria
 
