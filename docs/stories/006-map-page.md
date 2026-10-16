@@ -1,7 +1,7 @@
 # Story 006: MapLibre map page
 
 - **PRD:** E3.1
-- **Status:** Review
+- **Status:** Done (merged in #30; deployment comes with E1.3)
 
 ## Acceptance criteria
 
