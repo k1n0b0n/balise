@@ -2,7 +2,7 @@
 
 Live map of public transport vehicles, fed by open GTFS-Realtime data. First network: TBM (Bordeaux).
 
-> Status: ingestion done (E2): static GTFS import, live polling every 20 s, latest position per vehicle in PostgreSQL. No map yet.
+> Status: ingestion done (E2): static GTFS import, live polling every 20 s, latest position per vehicle in PostgreSQL. Map page with the basemap (E3.1); vehicles on the map come with E3.2.
 
 ## Run it
 

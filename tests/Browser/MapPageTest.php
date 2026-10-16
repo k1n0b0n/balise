@@ -20,8 +20,11 @@ it('shows the map without accessibility issues', function (): void {
         ->assertNoAccessibilityIssues(level: 3);
 });
 
-it('offers a skip link to the text view', function (): void {
+it('lets keyboard users skip the map to the text view', function (): void {
     visit('/')
-        ->assertPresent('a[href="#vue-texte"]')
+        ->keys('html > body', 'Tab')
+        ->assertScript("document.activeElement.getAttribute('href')", '#vue-texte')
+        ->keys('a[href="#vue-texte"]', 'Enter')
+        ->assertScript('document.activeElement.id', 'vue-texte')
         ->assertPresent('#vue-texte h2');
 });

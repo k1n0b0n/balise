@@ -27,3 +27,4 @@ See E3.1 in [prd.md](../prd.md).
 - pao reports one empty "warning" for the browser suite; the plain Pest output shows none.
 - Logs go to the `null` channel in tests (`phpunit.xml`), since compose sets `LOG_CHANNEL=stderr`.
 - The browser timeout is raised to 20 s (`tests/Pest.php`): the basemap comes from OpenFreeMap over the network, and one run failed at the default 5 s.
+- CodeRabbit (#30): the README still said "No map yet" (fixed), and the skip link was only checked for presence; the browser test now tabs to it, presses Enter and checks that focus lands on `#vue-texte` (it fails if the target loses `tabindex="-1"`).
