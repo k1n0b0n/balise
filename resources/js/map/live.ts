@@ -6,7 +6,6 @@ export interface Vehicle {
     longitude: number;
     line: string | null;
     colour: string;
-    textColour: string;
 }
 
 interface Changes {

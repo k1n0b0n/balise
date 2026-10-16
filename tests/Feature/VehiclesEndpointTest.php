@@ -6,7 +6,6 @@ use App\Actions\RecordPositions;
 use App\Enums\TransportMode;
 use App\Ingestion\VehiclePosition;
 use App\Models\Line;
-use App\Support\Contrast;
 use App\Support\PositionChangeLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -47,23 +46,19 @@ function vehicles(?int $since = null): TestResponse
     return test()->getJson(route('vehicles', ['network' => 'tbm', 'since' => $since]));
 }
 
-it('returns every vehicle with its line colour and a readable label colour', function (): void {
+it('returns every vehicle with its line colour', function (): void {
     poll(['yellow' => 'tbm:A', 'blue' => 'tbm:B', 'plain' => 'tbm:12', 'lineless' => null, 'unknown' => 'tbm:gone']);
 
     $response = vehicles()->assertOk()->assertJsonPath('full', true)->assertJsonPath('removed', []);
 
-    expect(collect($response->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['line'], $vehicle['colour'], $vehicle['textColour']])->all())->toEqual([
-        'tbm:yellow' => ['A', '#FFD200', Contrast::BLACK],
-        'tbm:blue' => ['B', '#00387B', Contrast::WHITE],
-        'tbm:plain' => ['12', Line::NEUTRAL_COLOUR, Contrast::WHITE],
-        'tbm:lineless' => [null, Line::NEUTRAL_COLOUR, Contrast::WHITE],
-        'tbm:unknown' => [null, Line::NEUTRAL_COLOUR, Contrast::WHITE],
+    expect(collect($response->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['line'], $vehicle['colour']])->all())->toEqual([
+        'tbm:yellow' => ['A', '#FFD200'],
+        'tbm:blue' => ['B', '#00387B'],
+        'tbm:plain' => ['12', Line::NEUTRAL_COLOUR],
+        'tbm:lineless' => [null, Line::NEUTRAL_COLOUR],
+        'tbm:unknown' => [null, Line::NEUTRAL_COLOUR],
     ]);
 });
-
-it('picks the label colour that reaches 4.5:1 on any background', function (string $background): void {
-    expect(Contrast::ratio(Contrast::readableTextOn($background), $background))->toBeGreaterThanOrEqual(4.5);
-})->with(['#FFFFFF', '#000000', '#FFD200', '#00387B', '#E2001A', '#777777', Line::NEUTRAL_COLOUR]);
 
 it('sends only what changed since the browser’s version', function (): void {
     poll(['still' => 'tbm:A', 'moving' => 'tbm:A', 'leaving' => 'tbm:B']);
