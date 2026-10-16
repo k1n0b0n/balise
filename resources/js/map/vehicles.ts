@@ -19,9 +19,9 @@ export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
         type: 'circle',
         source: SOURCE,
         paint: {
-            'circle-radius': 5,
+            'circle-radius': 3.5,
             'circle-color': ['get', 'colour'],
-            'circle-stroke-width': 1.5,
+            'circle-stroke-width': 1,
             'circle-stroke-color': DARK,
         },
     });
@@ -36,7 +36,7 @@ export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
             'text-font': ['Noto Sans Bold'],
             'text-size': 11,
             'text-anchor': 'left',
-            'text-offset': [0.7, 0],
+            'text-offset': [0.5, 0],
         },
         paint: {
             'text-color': DARK,

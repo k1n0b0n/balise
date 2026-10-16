@@ -18,7 +18,7 @@ See E3.2 in [prd.md](../prd.md).
 ## Notes
 
 - The API routes run without the `web` middleware: no session row and no cookie per poll, so the answers can be cached later (E5.3).
-- First version: points sized to hold their label (black or white text by WCAG ratio) and clusters as HTML buttons. Changed during review, at the maintainer's request: no clustering, small points (radius 5), the short name written beside the point. The clustering criterion was dropped from the PRD and the contrast criterion now targets the basemap.
+- First version: points sized to hold their label (black or white text by WCAG ratio) and clusters as HTML buttons. Changed during review, at the maintainer's request: no clustering, small points (radius 3.5, 1 px outline), the short name written beside the point. The clustering criterion was dropped from the PRD and the contrast criterion now targets the basemap.
 - Points and labels use one dark grey, `#1F2937`: 13.9:1 against Positron's background (`#F2F3F0`), so outlines pass 3:1 and labels 4.5:1 whatever the line colour; a white halo keeps labels readable over roads. The published text colours of the lines are not used.
 - MapLibre hides labels that would overlap, never the points: at low zoom many labels are missing, they appear as you zoom in.
 - A vehicle without a known line is labelled "?" on the map; "Ligne inconnue" comes with the popup (E3.3) and the text view (E3.5).
