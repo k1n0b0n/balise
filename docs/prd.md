@@ -71,11 +71,29 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
+  - [ ] The home page shows a MapLibre map with OpenFreeMap's Positron style, fitted to the network's stops; no API key, no account
+  - [ ] The map is a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine (ADR-0010); `tsc --noEmit` runs in CI
+  - [ ] Tailwind CSS v4 through its Vite plugin, with explicit `focus-visible` styles; the interface is in French (`lang="fr"`)
+  - [ ] The map bundle loads on the map page only; the JavaScript of the map page stays under 600 KB compressed, measured in CI and published in the README with the page's EcoIndex (ADR-0006, ADR-0011)
+  - [ ] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
 - E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
+  - [ ] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 20 s and stops while the tab is hidden (ADR-0006)
+  - [ ] Each vehicle is a point in its line's colour, labelled with the line's short name; label text is black or white, whichever reaches 4.5:1, and the point has an outline reaching 3:1 against the basemap (56 of 129 TBM colour pairs fail as published)
+  - [ ] Lines without a colour use a neutral colour; vehicles without a line read "Ligne inconnue"
+  - [ ] Points cluster at low zoom, with the vehicle count as an accessible label
 - E3.3 Vehicle popup: line, vehicle id, age of last position
+  - [ ] Clicking a vehicle, or pressing Enter on it from the keyboard, opens a popup with the line (short and long name), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
+  - [ ] Escape closes the popup and returns focus to where it was
 - E3.4 Select a line or a vehicle and let the map follow it
+  - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
+  - [ ] Moving the map by hand stops following; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
+  - [ ] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
+  - [ ] Live updates never move the focus and do not announce every change; a single polite status line gives the time of the last update
+  - [ ] Checked with the keyboard only and with VoiceOver; no axe violation; findings recorded in the story file
 - E3.6 Pause and resume live updates (ADR-0006)
+  - [ ] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
+  - [ ] Resuming catches up with one request, then the normal interval resumes
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
