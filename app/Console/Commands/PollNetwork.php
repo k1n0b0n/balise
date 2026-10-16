@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\RecordPositions;
 use App\Ingestion\VehicleFeeds;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -17,7 +19,7 @@ use Throwable;
 #[Description('Fetch the live vehicle positions of a network')]
 final class PollNetwork extends Command
 {
-    public function handle(VehicleFeeds $feeds): int
+    public function handle(VehicleFeeds $feeds, RecordPositions $record): int
     {
         $network = $this->argument('network');
 
@@ -28,6 +30,7 @@ final class PollNetwork extends Command
         }
 
         $etagKey = "vehicle-feed:{$network}:etag";
+        $receivedAt = CarbonImmutable::now();
         $etag = Cache::get($etagKey);
 
         try {
@@ -41,14 +44,19 @@ final class PollNetwork extends Command
         }
 
         if ($snapshot === null) {
-            $this->components->info("{$network}: feed unchanged.");
+            // Nothing new, but vehicles that stopped reporting still age out.
+            $counts = $record->handle($network, [], $receivedAt);
+            $this->components->info("{$network}: feed unchanged, {$counts['removed']} removed.");
 
             return self::SUCCESS;
         }
 
+        $counts = $record->handle($network, $snapshot->positions, $receivedAt);
         Cache::put($etagKey, $snapshot->etag, now()->addHour());
 
-        $this->components->info("{$network}: ".count($snapshot->positions).' positions read.');
+        $read = count($snapshot->positions);
+        Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts]);
+        $this->components->info("{$network}: {$read} read, {$counts['dropped']} dropped as stale, {$counts['changed']} changed, {$counts['removed']} removed.");
 
         return self::SUCCESS;
     }

@@ -1,7 +1,7 @@
 # Story 004: Poll the GTFS-RT VehiclePositions feed
 
 - **PRD:** E2.2
-- **Status:** Review
+- **Status:** Done (merged in #26; deployment comes with E1.3)
 
 ## Acceptance criteria
 

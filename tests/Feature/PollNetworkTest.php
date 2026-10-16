@@ -10,50 +10,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Transit_realtime\FeedEntity;
-use Transit_realtime\FeedHeader;
-use Transit_realtime\FeedMessage;
-use Transit_realtime\Position;
-use Transit_realtime\TripDescriptor;
-use Transit_realtime\VehicleDescriptor;
-use Transit_realtime\VehiclePosition as GtfsVehiclePosition;
 
 beforeEach(function (): void {
     config(['networks.tbm.vehicles.url' => 'https://rt.test/tbm']);
 });
-
-/**
- * @param  array<string, mixed>  $vehicle
- */
-function feedEntity(string $id, array $vehicle): FeedEntity
-{
-    $position = new GtfsVehiclePosition;
-
-    if (isset($vehicle['lat'])) {
-        $position->setPosition((new Position)->setLatitude($vehicle['lat'])->setLongitude($vehicle['lon']));
-    }
-    if (isset($vehicle['id']) || isset($vehicle['label'])) {
-        $position->setVehicle((new VehicleDescriptor)->setId($vehicle['id'] ?? '')->setLabel($vehicle['label'] ?? ''));
-    }
-    if (isset($vehicle['route']) || isset($vehicle['trip'])) {
-        $position->setTrip((new TripDescriptor)->setRouteId($vehicle['route'] ?? '')->setTripId($vehicle['trip'] ?? ''));
-    }
-    if (isset($vehicle['timestamp'])) {
-        $position->setTimestamp($vehicle['timestamp']);
-    }
-
-    return (new FeedEntity)->setId($id)->setVehicle($position);
-}
-
-/**
- * @param  list<FeedEntity>  $entities
- */
-function feedPayload(array $entities, int $headerTimestamp = 1792145353): string
-{
-    return (new FeedMessage)
-        ->setHeader((new FeedHeader)->setGtfsRealtimeVersion('2.0')->setTimestamp($headerTimestamp))
-        ->setEntity($entities)
-        ->serializeToString();
-}
 
 /**
  * @return list<VehiclePosition>
@@ -125,10 +85,10 @@ it('sends the last ETag and stops on 304', function (): void {
         ->push('', 304);
 
     $this->artisan('network:poll', ['network' => 'tbm'])
-        ->expectsOutputToContain('tbm: 1 positions read.')
+        ->expectsOutputToContain('tbm: 1 read, 1 dropped as stale, 0 changed, 0 removed.')
         ->assertSuccessful();
     $this->artisan('network:poll', ['network' => 'tbm'])
-        ->expectsOutputToContain('tbm: feed unchanged.')
+        ->expectsOutputToContain('tbm: feed unchanged, 0 removed.')
         ->assertSuccessful();
 
     Http::assertSent(fn (Request $request): bool => $request->header('If-None-Match') === ['"rt1"']);
