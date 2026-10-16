@@ -20,13 +20,15 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | One test file / one test | `docker compose exec php vendor/bin/pest tests/Feature/HomeTest.php` / `--filter "renders the home page"` |
 | Artisan | `docker compose exec php php artisan <command>` |
 | Import a network's lines and stops (static GTFS) | `docker compose exec php php artisan network:import tbm` |
+| Read a network's live vehicle positions once (the scheduler does it every 20 s) | `docker compose exec php php artisan network:poll tbm` |
+| Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
 
 Laravel Boost (ADR-0009) appends generated guidelines at the end of this file; never edit between its tags, run `docker compose exec php php artisan boost:update` instead. Its commands assume PHP on the host: run them through `docker compose exec php`. Where they conflict with this file or an ADR, this file wins. The Boost MCP server (`.mcp.json`) runs in the PHP container; its log tools see nothing, use `docker compose logs php`.
 
-Pest architecture rules ignore classes that cannot be autoloaded: the feed-format boundary rule only bites once the protobuf/GTFS-RT packages are installed.
+The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Google\Protobuf` and the generated `Transit_realtime` classes outside `App\Ingestion`; it was proven with a deliberate violation in E2.2.
 
 ## Rules
 
@@ -123,6 +125,16 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Use TitleCase for Enum keys: `FavoritePerson`, `BestLake`, `Monthly`.
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
+
+=== tests rules ===
+
+# Test Enforcement
+
+- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
+- Pure copy, styling, and layout-only changes do not require new or updated tests.
+- When test coverage applies, run the affected tests and ensure they pass.
+- Test the changed behavior and its important failure modes, but do not add tests beyond them.
+- Read the `testing-best-practices` skill before writing tests.
 
 === laravel/core rules ===
 
