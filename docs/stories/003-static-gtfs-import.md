@@ -1,7 +1,7 @@
 # Story 003: Import the static GTFS
 
 - **PRD:** E2.1
-- **Status:** Review
+- **Status:** Done (merged in #22; deployment comes with E1.3)
 
 ## Acceptance criteria
 

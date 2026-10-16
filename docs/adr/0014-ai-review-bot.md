@@ -33,3 +33,4 @@
 - A third-party service has read access to the repository; removing the app undoes the decision.
 - The bot's settings are reviewed like code, in `.coderabbit.yaml`.
 - The open-source plan allows 1 to 10 reviews per hour depending on the repository's stars (likely 1 for now), 100 to 300 files per review, and, under 10 stars, reviews start only on request. Hence one review per code pull request, never on each commit.
+- A green CodeRabbit status only means the bot did not block, not that it reviewed: a rate-limited review reports success. `fail_commit_status` is on trial to show such runs red without blocking; documentation pull requests (`docs:` titles) are ignored so they never turn red.
