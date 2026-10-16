@@ -15,6 +15,8 @@
             data-style="{{ $styleUrl }}"
             data-bounds="{{ json_encode($bounds) }}"
             data-label="Carte des véhicules {{ $networkName }} en circulation"
+            data-vehicles-url="{{ route('vehicles', $network) }}"
+            data-refresh="{{ $refreshSeconds }}"
             class="h-[70vh] w-full"
         ></div>
 

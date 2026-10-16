@@ -18,11 +18,22 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Line extends Model
 {
+    /** For lines published without a colour, and for vehicles without a known line. */
+    public const string NEUTRAL_COLOUR = '#4B5563';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
 
     protected $guarded = [];
+
+    /**
+     * The published colour as `#RRGGBB`, or the neutral colour.
+     */
+    public function colour(): string
+    {
+        return $this->color === null ? self::NEUTRAL_COLOUR : '#'.strtoupper($this->color);
+    }
 
     protected function casts(): array
     {

@@ -1,6 +1,8 @@
 import { Map, NavigationControl, setWorkerUrl, type LngLatBoundsLike } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+import { followVehicles } from './live';
+import { showVehicles } from './vehicles';
 
 // The map module never imports Livewire or Alpine (ADR-0010): pages mount it and talk to it through events.
 
@@ -10,6 +12,8 @@ export interface MapOptions {
     styleUrl: string;
     bounds: Bounds | null;
     label: string;
+    vehiclesUrl: string;
+    refreshSeconds: number;
 }
 
 const FRANCE: LngLatBoundsLike = [
@@ -43,6 +47,7 @@ export function mountMap(container: HTMLElement, options: MapOptions): Map {
     // Lets pages and browser tests know the basemap actually rendered.
     map.once('load', () => {
         container.dataset.state = 'loaded';
+        followVehicles(options.vehiclesUrl, options.refreshSeconds, showVehicles(map));
     });
 
     return map;

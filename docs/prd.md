@@ -76,13 +76,12 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Tailwind CSS v4 through its Vite plugin, with explicit `focus-visible` styles; the interface is in French (`lang="fr"`)
   - [x] The map bundle loads on the map page only; the JavaScript of the map page stays under 600 KB compressed, measured in CI and published in the README with the page's EcoIndex, measured locally (ADR-0006, ADR-0011)
   - [x] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
-- E3.2 Vehicles as points coloured and labelled by line, with clustering; line colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
-  - [ ] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 20 s and stops while the tab is hidden (ADR-0006)
-  - [ ] Each vehicle is a point in its line's colour, labelled with the line's short name; label text is black or white, whichever reaches 4.5:1, and the point has an outline reaching 3:1 against the basemap (56 of 129 TBM colour pairs fail as published)
-  - [ ] Lines without a colour use a neutral colour; vehicles without a line read "Ligne inconnue"
-  - [ ] Points cluster at low zoom, with the vehicle count as an accessible label
+- E3.2 Vehicles as points coloured and labelled by line; colours checked for contrast; vehicles without a line shown as "Unknown line" (ADR-0006, ADR-0013)
+  - [x] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 5 s and stops while the tab is hidden (ADR-0006)
+  - [x] Each vehicle is a small marker in its line's colour, shaped by mode (bus circle, tram square, ferry diamond, other or unknown triangle) so that colour is not the only cue, with an outline reaching 3:1 against the basemap; the line's short name is written beside the point, reaching 4.5:1 against the basemap
+  - [x] Lines without a colour use a neutral colour; vehicles without a line are shown, labelled "?" on the map
 - E3.3 Vehicle popup: line, vehicle id, age of last position
-  - [ ] Clicking a vehicle, or pressing Enter on it from the keyboard, opens a popup with the line (short and long name), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
+  - [ ] Clicking a vehicle, or pressing Enter on it from the keyboard, opens a popup with the line (short and long name, or "Ligne inconnue"), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
   - [ ] Escape closes the popup and returns focus to where it was
 - E3.4 Select a line or a vehicle and let the map follow it
   - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
