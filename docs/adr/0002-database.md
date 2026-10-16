@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-14
+- **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012): where this ADR says "Forge" or "Forge recipe", read "the Ansible playbook"
 
 ## Context
 
@@ -82,5 +83,5 @@ This only stays additive if **every position write goes through one place that e
 ## Consequences
 
 - Coordinates are stored as plain `latitude` / `longitude` columns until PostGIS arrives, then migrated to `geography(Point, 4326)`.
-- The Forge server is created with PostgreSQL selected (not the MySQL default).
+- The server's Ansible playbook installs PostgreSQL (originally: the Forge server is created with PostgreSQL selected, not the MySQL default).
 - The `PositionsUpdated` event is part of the ingestion contract from the first story.

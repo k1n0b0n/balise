@@ -38,7 +38,7 @@ Alpine is not a separate choice: it ships inside the Livewire bundle and only ha
 | State shared by map, popup, selection, text view | Split between the server component and the JS island, synchronised by events | One reactive store, typed | Same as B |
 | RGAA | Server HTML; focus after updates handled by hand | Focus and live regions handled by hand | `NuxtRouteAnnouncer` helps on navigation, the rest by hand |
 | Quality gates to add | None | `vue-tsc`, ESLint, Vitest | Same as B, plus API contract tests |
-| Repository and hosting | One Laravel app, as today | One Laravel app, Vite builds the Vue pages | Two apps (`api/`, `web/`), two deploys, a Node daemon on Forge |
+| Repository and hosting | One Laravel app, as today | One Laravel app, Vite builds the Vue pages | Two apps (`api/`, `web/`), two deploys, a Node daemon on the server |
 | Readability for a Laravel reviewer | First-party starter kit | First-party starter kit | Laravel reduced to an API |
 | Maintainer's skills | New to Livewire 4 | Strong in Vue 3 + TS; Inertia to learn | Nuxt to relearn |
 

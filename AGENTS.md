@@ -45,7 +45,8 @@ Pest architecture rules ignore classes that cannot be autoloaded: the feed-forma
 - **Storage (ADR-0002, Accepted).** PostgreSQL; coordinates as plain `latitude`/`longitude` until the first spatial story brings PostGIS (own ADR, migration to `geography(Point, 4326)`). M1 keeps only the latest position per vehicle; latest positions are hot data for Redis/memory, the DB is the system of record. Local dev uses a PostgreSQL Alpine image.
 - **Replay** records raw feed payloads and plays them back through the real driver; it does not depend on position history.
 - **UI (ADR-0010).** Livewire + Alpine + MapLibre GL JS. The map, the live store and the Reverb subscription are a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine; Livewire mounts it with `wire:ignore` and talks to it through events. RGAA AA and RGESN apply (ADR-0006): the map has an equivalent text view and a pause control, and only changed positions are pushed.
-- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images on Ubuntu 26.04 like Forge. Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and applied to Forge too.
+- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images on Ubuntu 26.04 like the server. Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and applied to the server by Ansible.
+- **Hosting (ADR-0012).** One Oracle Cloud Always Free A1 instance (arm64), created by OpenTofu and configured by Ansible from the repository; deploys run from GitHub Actions on release (ADR-0004). No Forge.
 
 ## Data facts
 
