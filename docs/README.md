@@ -15,7 +15,7 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 
 1. **Draft**: copy `stories/_template.md`, link the PRD story, list the tasks.
 2. **Dev**: implement on a branch, tests first where it pays.
-3. **Review**: the pull request opens as a draft; quality gates green (tests, static analysis, architecture rules), then the maintainer reviews the diff. Marking it *Ready for review* triggers the AI review once (ADR-0014); valid findings are fixed before merging.
+3. **Review**: the pull request opens as a draft; quality gates green (tests, static analysis, architecture rules), then the maintainer reviews the diff. Once it is marked *Ready for review*, the AI review is requested once with `@coderabbitai review` (ADR-0014); valid findings are fixed before merging. Documentation changes of a working session go into one pull request, reviewed by the maintainer only.
 4. **Done**: merged, deployed, story file updated with what was learned.
 
 ## Rules

@@ -15,7 +15,7 @@
 1. **CodeRabbit**, GitHub App installed on this repository only, free for public repositories.
 2. **Advisory, never blocking:** not a required status check; no "request changes". The maintainer's review of the diff stays the gate.
 3. **Configured in `.coderabbit.yaml`:** quiet profile, English, project rules per path (ingestion boundary, position model, RGAA and RGESN), `AGENTS.md` read as guidelines. Linters already run by `composer qa` with the project's configuration (PHPStan, plus PHP_CodeSniffer and PHPMD that would contradict Pint) are disabled in the bot.
-4. **After the human review:** pull requests open as drafts, which the bot skips; the maintainer reviews first, and marking the pull request *Ready for review* triggers one bot review of an already corrected diff.
+4. **After the human review, on code only:** pull requests open as drafts, which the bot skips; the maintainer reviews first, marks the pull request *Ready for review*, and one bot review is requested with `@coderabbitai review`. Documentation-only pull requests, grouped per working session, are reviewed by the maintainer alone.
 5. **One bot at a time.** After four pull requests reviewed, its findings are compared with what the maintainer caught; Greptile is tried only if CodeRabbit misses real issues.
 
 ## Alternatives considered
@@ -32,4 +32,4 @@
 - Each pull request gets a summary and inline comments within minutes; some will be wrong, and replying in the thread tunes the bot (its learnings).
 - A third-party service has read access to the repository; removing the app undoes the decision.
 - The bot's settings are reviewed like code, in `.coderabbit.yaml`.
-- The free plan allows only a few reviews per hour: each pull request is reviewed once when opened, later commits only on request (`@coderabbitai review`).
+- The open-source plan allows 1 to 10 reviews per hour depending on the repository's stars (likely 1 for now), 100 to 300 files per review, and, under 10 stars, reviews start only on request. Hence one review per code pull request, never on each commit.

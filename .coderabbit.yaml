@@ -40,7 +40,7 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
-    # The free plan allows few reviews per hour: review a pull request once, then on request (`@coderabbitai review`).
+    # The open-source plan allows about one review per hour: one review per pull request, on request (ADR-0014).
     auto_incremental_review: false
   pre_merge_checks:
     docstrings:
