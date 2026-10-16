@@ -1,16 +1,13 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY docker/php/packages.txt /tmp/packages.txt
 
+# PHP 8.5 comes from the Ubuntu 26.04 archive; ppa:ondrej/php has no 26.04 build.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl gnupg software-properties-common unzip git \
-    && add-apt-repository -y ppa:ondrej/php \
-    && apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl unzip git \
     && xargs -a /tmp/packages.txt apt-get install -y --no-install-recommends \
-    && apt-get purge -y software-properties-common gnupg \
-    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/packages.txt \
     && mkdir -p /run/php \
     && chown ubuntu:ubuntu /run/php
