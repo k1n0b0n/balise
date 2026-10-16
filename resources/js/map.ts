@@ -8,5 +8,7 @@ if (container !== null) {
         styleUrl: container.dataset.style ?? '',
         bounds: JSON.parse(container.dataset.bounds ?? 'null') as Bounds | null,
         label: container.dataset.label ?? 'Carte',
+        vehiclesUrl: container.dataset.vehiclesUrl ?? '',
+        refreshSeconds: Number(container.dataset.refresh ?? 20),
     });
 }

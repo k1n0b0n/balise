@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -18,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property ?string $trip_id
  * @property Carbon $recorded_at
  * @property Carbon $received_at
+ * @property-read ?Line $line
  */
 final class VehiclePosition extends Model
 {
@@ -30,6 +32,16 @@ final class VehiclePosition extends Model
     protected $keyType = 'string';
 
     protected $guarded = [];
+
+    /**
+     * The line from the static catalogue; null when the feed gave none or the catalogue does not know it.
+     *
+     * @return BelongsTo<Line, $this>
+     */
+    public function line(): BelongsTo
+    {
+        return $this->belongsTo(Line::class);
+    }
 
     protected function casts(): array
     {
