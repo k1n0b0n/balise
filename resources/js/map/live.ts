@@ -27,6 +27,8 @@ export function followVehicles(url: string, everySeconds: number, onChange: (veh
             headers: version === null ? { Accept: 'application/json' } : { Accept: 'application/json', 'If-None-Match': `"${version}"` },
             // The answer depends on what this page already has: never take it from the HTTP cache.
             cache: 'no-store',
+            // A request that never ends would stop the polling: give up and let the next tick try again.
+            signal: AbortSignal.timeout(10_000),
         });
 
         if (!response.ok) {

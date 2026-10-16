@@ -28,3 +28,4 @@ See E3.2 in [prd.md](../prd.md).
 - The page asks every 5 s, not every 20 s like the feed poll: a change shows after 2.5 s on average instead of 10 s, and about three answers in four are a `304` that only reads the cache. Four times more requests, to be weighed in the load test (E5.3); E4 replaces this polling with push.
 - JavaScript budget: 496.9 KB compressed (+1.1 KB).
 - Not covered by an automated test: the pause while the tab is hidden (`visibilitychange`); checked by reading the code.
+- CodeRabbit (#32), three findings, all fixed: a request that never answered stopped the polling for good (`fetch` now gives up after 10 s); the PRD criterion promised "Ligne inconnue" on the map while it shows "?" (wording moved to the popup, E3.3); the *Current state* of the README did not mention this story.
