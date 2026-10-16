@@ -26,3 +26,4 @@ See E3.1 in [prd.md](../prd.md).
 - The PHP image grows to about 2.3 GB with Node and Chromium (ADR-0007 amended). Playwright is pinned to an exact version: a Dependabot bump needs `docker compose build`.
 - pao reports one empty "warning" for the browser suite; the plain Pest output shows none.
 - Logs go to the `null` channel in tests (`phpunit.xml`), since compose sets `LOG_CHANNEL=stderr`.
+- The browser timeout is raised to 20 s (`tests/Pest.php`): the basemap comes from OpenFreeMap over the network, and one run failed at the default 5 s.
