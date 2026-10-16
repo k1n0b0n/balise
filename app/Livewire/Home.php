@@ -18,7 +18,7 @@ final class Home extends Component
         return view('livewire.home', [
             'network' => $network,
             'networkName' => Config::string("networks.{$network}.name"),
-            'refreshSeconds' => Config::integer("networks.{$network}.vehicles.poll_every_seconds"),
+            'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
         ]);
