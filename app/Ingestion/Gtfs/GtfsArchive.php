@@ -94,7 +94,7 @@ final class GtfsArchive implements CatalogSnapshot
             $header = fgetcsv($stream, escape: '');
 
             if ($header === false) {
-                return;
+                throw new RuntimeException("The GTFS archive has an empty {$file}.");
             }
 
             $header = array_map(fn (?string $name): string => trim((string) $name, "\u{FEFF} "), $header);
@@ -104,7 +104,10 @@ final class GtfsArchive implements CatalogSnapshot
                     continue;
                 }
 
-                yield array_combine($header, array_pad(array_map(strval(...), $row), count($header), ''));
+                // Rows may be shorter or longer than the header, e.g. with a trailing comma.
+                $row = array_slice(array_pad(array_map(strval(...), $row), count($header), ''), 0, count($header));
+
+                yield array_combine($header, $row);
             }
         } finally {
             fclose($stream);

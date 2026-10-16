@@ -23,3 +23,4 @@ See E2.1 in [prd.md](../prd.md).
 - A line without `route_short_name` takes its long name (TBM's BatCub ferry).
 - 73 of 202 TBM lines have no colour, and 56 of the 129 colour pairs are below 4.5:1: colours are stored as published, contrast is handled when displaying them (E3.2).
 - New folders: `app/Actions` (one class per business operation) and `app/Enums`.
+- CodeRabbit's first review (#22) found three real issues, all fixed with a test: an empty `routes.txt` would have wiped the catalogue (now an error, and a catalogue without lines is refused), a row longer than the header aborted the import, and a failed download left its temporary file behind.

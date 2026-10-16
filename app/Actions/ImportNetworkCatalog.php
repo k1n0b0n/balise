@@ -14,6 +14,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 final readonly class ImportNetworkCatalog
 {
@@ -49,6 +50,11 @@ final readonly class ImportNetworkCatalog
                 'text_color' => $line->textColor,
                 'sync_id' => $syncId,
             ]);
+
+            // A feed without lines is broken, not empty: keep the current catalogue.
+            if ($lines === 0) {
+                throw new RuntimeException("The {$network} catalogue has no lines; the current one is kept.");
+            }
 
             $stops = $this->upsert(Stop::class, $snapshot->stops(), fn (CatalogStop $stop): array => [
                 'id' => $stop->id,
