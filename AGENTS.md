@@ -34,6 +34,7 @@ Pest architecture rules ignore classes that cannot be autoloaded: the feed-forma
 - Never implement anything that is not in `docs/prd.md`. Propose it for the *Later* section instead.
 - A decision that is costly to reverse (new dependency, boundary, data store, hosting) needs an ADR in `docs/adr/` before code.
 - All code, docs, comments and commit messages in English. Conventional Commits.
+- Open pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once with `@coderabbitai review`, for code pull requests only (ADR-0014). Group a session's documentation changes into one pull request.
 - A story is done only when tests, static analysis and architecture tests pass, the non-functional requirements of the PRD (RGAA, RGESN) are met, and the diff has been reviewed by a human.
 
 ## Architecture (from `docs/architecture.md` and the ADRs)
