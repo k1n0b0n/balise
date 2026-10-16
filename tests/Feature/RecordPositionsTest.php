@@ -65,6 +65,15 @@ it('announces only the vehicles that changed', function (): void {
         && $event->removedVehicleIds === []);
 });
 
+it('keeps a newer stored position when a late report arrives', function (): void {
+    record([position('bus', 10, latitude: 44.85)], $this->now);
+    Event::fake([PositionsUpdated::class]);
+
+    expect(record([position('bus', 40, latitude: 44.80)], $this->now)['changed'])->toBe(0)
+        ->and(StoredPosition::query()->findOrFail('tbm:bus')->latitude)->toBe(44.85);
+    Event::assertNotDispatched(PositionsUpdated::class);
+});
+
 it('emits nothing when nothing changed', function (): void {
     record([position('bus', 20)], $this->now);
     Event::fake([PositionsUpdated::class]);

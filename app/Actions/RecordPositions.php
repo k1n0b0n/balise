@@ -55,7 +55,9 @@ final readonly class RecordPositions
             foreach ($fresh as $vehicleId => $position) {
                 $current = $stored->get($vehicleId);
 
-                if ($current instanceof StoredPosition && ! $this->differs($current, $position)) {
+                // Unchanged, or a late report older than what is stored: keep the stored position.
+                if ($current instanceof StoredPosition
+                    && (! $this->differs($current, $position) || $current->recorded_at->getTimestamp() > $position->recordedAt->getTimestamp())) {
                     continue;
                 }
 

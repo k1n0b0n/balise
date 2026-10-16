@@ -21,3 +21,4 @@ See E2.3 in [prd.md](../prd.md).
 - Live TBM at 19:56 on 2026-10-16: 390 vehicles read, 24 dropped as stale, 366 changed, 2 removed; decoding 130 ms, recording 23 to 46 ms, about 0.35 s for the whole scheduled run. Almost every vehicle moves between two polls, so the "changed only" rule mostly filters vehicles at a standstill.
 - The last criterion (under one second on the production server) stays open until the server exists (E1.3).
 - Payload helpers for GTFS-RT tests moved to `tests/Pest.php`, shared by the poll and record tests.
+- CodeRabbit (#27) found one issue, fixed with a test: a late report, older than the stored position but still fresh, used to overwrite it and go out as a move; the newer stored position now wins.
