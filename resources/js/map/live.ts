@@ -2,9 +2,12 @@
 
 export interface Vehicle {
     id: string;
+    displayId: string;
     latitude: number;
     longitude: number;
+    recordedAt: string;
     line: string | null;
+    lineName: string | null;
     mode: string | null;
     colour: string;
 }
