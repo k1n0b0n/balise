@@ -60,6 +60,17 @@ it('returns every vehicle with its line, mode and colour', function (): void {
     ]);
 });
 
+it('gives what the popup shows: vehicle id without the network prefix, line long name, time of the position', function (): void {
+    Line::query()->whereKey('tbm:A')->update(['long_name' => 'Le Haillan Rostand / Floirac Dravemont']);
+    poll(['1234' => 'tbm:A', 'tbm:odd' => null]);
+
+    expect(collect(vehicles()->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['displayId'], $vehicle['lineName'], $vehicle['recordedAt']])->all())->toEqual([
+        'tbm:1234' => ['1234', 'Le Haillan Rostand / Floirac Dravemont', '2026-10-16T12:00:00+00:00'],
+        // Only the network prefix goes, not a colon that belongs to the feed's own id.
+        'tbm:tbm:odd' => ['tbm:odd', null, '2026-10-16T12:00:00+00:00'],
+    ]);
+});
+
 it('sends only what changed since the browser’s version', function (): void {
     poll(['still' => 'tbm:A', 'moving' => 'tbm:A', 'leaving' => 'tbm:B']);
     $version = vehicles()->json('version');

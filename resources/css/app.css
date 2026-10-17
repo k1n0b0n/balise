@@ -7,3 +7,11 @@
         outline-offset: 2px;
     }
 }
+
+/* MapLibre's popup close button is 14 px wide; 24 px makes it an easier target (WCAG 2.5.8). */
+.maplibregl-popup .maplibregl-popup-close-button {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.25rem;
+    line-height: 1;
+}
