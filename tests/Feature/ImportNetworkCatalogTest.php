@@ -211,7 +211,7 @@ it('writes no line for a catalogue without shapes', function (): void {
 });
 
 it('leaves a gap where the source jumps across the city', function (): void {
-    // About 1.1 km between the second and third points: no street is drawn there.
+    // About 1.1 km between the second and third points, turning a right angle: no street is drawn there.
     $jumping = "shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\nSA_1,44.840,-0.580,1\nSA_1,44.840,-0.579,2\nSA_1,44.850,-0.579,3\nSA_1,44.850,-0.578,4\n";
 
     Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(replace: ['shapes.txt' => $jumping]), 200, ['ETag' => '"v1"'])]);
@@ -253,4 +253,17 @@ it('downloads the archive again when the catalogue has no shapes yet', function 
 
     Http::assertSent(fn (Request $request): bool => $request->header('If-None-Match') === []);
     expect(Storage::disk('local')->exists('shapes/tbm.json'))->toBeTrue();
+});
+
+it('keeps a long step that goes straight on, such as a bridge', function (): void {
+    // About 790 m between the second and third points, on the same heading as the rest.
+    $straight = "shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\nSA_1,44.840,-0.580,1\nSA_1,44.840,-0.579,2\nSA_1,44.840,-0.569,3\nSA_1,44.840,-0.568,4\n";
+
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(replace: ['shapes.txt' => $straight]), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(json_decode(Storage::disk('local')->get('shapes/tbm.json') ?? '', true)['features'][0]['geometry']['coordinates'])->toBe([
+        [[-0.58, 44.84], [-0.568, 44.84]],
+    ]);
 });
