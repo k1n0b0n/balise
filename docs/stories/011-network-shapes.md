@@ -26,3 +26,4 @@ See E3.8 in [prd.md](../prd.md).
 - The colours come from the line catalogue through a paint expression: a new catalogue changes the paint, not the data, so the shapes are not rebuilt.
 - The shapes are fetched once per page; a failure leaves the map without lines, as before, since they are decorative.
 - JavaScript budget: 501.8 KB compressed (+0.4 KB).
+- CodeRabbit reviewed the pull request on its own when it was marked ready: one finding, fixed. The archive's ETag was saved before the shapes step, so a failed step, or the first import after deploying this story, left the map without lines until the next archive. The ETag is now saved with the fingerprint, and an import without a fingerprint downloads the archive again.

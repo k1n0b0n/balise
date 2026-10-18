@@ -34,7 +34,8 @@ final readonly class ImportNetworkCatalog
     public function handle(string $network): ?array
     {
         $previous = CatalogImport::query()->find($network);
-        $snapshot = $this->catalogs->for($network)->fetch($previous?->etag);
+        // Without shapes yet (first import since E3.8, or a failed shapes step), the archive is downloaded again.
+        $snapshot = $this->catalogs->for($network)->fetch($previous?->shapes_fingerprint === null ? null : $previous->etag);
 
         if ($snapshot === null) {
             return null;
@@ -74,7 +75,7 @@ final readonly class ImportNetworkCatalog
 
             CatalogImport::query()->updateOrCreate(
                 ['network' => $network],
-                ['etag' => $snapshot->etag(), 'imported_at' => now()],
+                ['imported_at' => now()],
             );
 
             return ['lines' => $lines, 'stops' => $stops];
@@ -87,7 +88,8 @@ final readonly class ImportNetworkCatalog
             Line::query()->where('network', $network)->get()->map(fn (Line $line): string => $line->id)->all(),
             $previous?->shapes_fingerprint,
         );
-        CatalogImport::query()->whereKey($network)->update(['shapes_fingerprint' => $fingerprint]);
+        // The ETag is saved last: when the shapes step fails, the next run downloads the archive again.
+        CatalogImport::query()->whereKey($network)->update(['etag' => $snapshot->etag(), 'shapes_fingerprint' => $fingerprint]);
 
         return $counts;
     }
