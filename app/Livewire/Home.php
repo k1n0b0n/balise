@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Enums\TransportMode;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
@@ -17,6 +18,9 @@ final class Home extends Component
     public function render(): View
     {
         $network = (string) array_key_first(Config::array('networks'));
+        $lines = $this->lines($network);
+        // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
+        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
         $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
 
         return view('livewire.home', [
@@ -27,19 +31,21 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
-            'groups' => $this->groups($positions),
+            'lineOptions' => $lines->groupBy(fn (Line $line): string => $line->mode->label()),
+            'selectedLine' => $selectedLine,
+            'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
         ]);
     }
 
     /**
-     * The text view (E3.5): lines in natural order of their short name, each with its vehicles, and the vehicles whose
-     * line is unknown last. The browser sorts the same way when it takes over.
+     * The text view (E3.5): the selected line first (E3.4), then lines in natural order of their short name, each with
+     * its vehicles, and the vehicles whose line is unknown last. The browser sorts the same way when it takes over.
      *
      * @param  Collection<int, VehiclePosition>  $positions
      * @return Collection<int, array{line: ?Line, vehicles: Collection<int, VehiclePosition>}>
      */
-    private function groups(Collection $positions): Collection
+    private function groups(Collection $positions, ?Line $selectedLine): Collection
     {
         return $positions
             ->groupBy(fn (VehiclePosition $position): string => $position->line->id ?? '')
@@ -48,10 +54,28 @@ final class Home extends Component
                 'vehicles' => $vehicles->sort(fn (VehiclePosition $a, VehiclePosition $b): int => strnatcasecmp($a->displayId(), $b->displayId()))->values(),
             ])
             ->sort(fn (array $a, array $b): int => match (true) {
+                $a['line']?->is($selectedLine) === true => -1,
+                $b['line']?->is($selectedLine) === true => 1,
                 $a['line'] === null => 1,
                 $b['line'] === null => -1,
                 default => strnatcasecmp($a['line']->short_name, $b['line']->short_name),
             })
+            ->values();
+    }
+
+    /**
+     * The lines of the selector: by mode in the order of the enum, trams first, then in natural order of their short name.
+     *
+     * @return Collection<int, Line>
+     */
+    private function lines(string $network): Collection
+    {
+        $modes = array_flip(array_map(fn (TransportMode $mode): string => $mode->value, TransportMode::cases()));
+
+        return Line::query()
+            ->where('network', $network)
+            ->get()
+            ->sort(fn (Line $a, Line $b): int => $modes[$a->mode->value] <=> $modes[$b->mode->value] ?: strnatcasecmp($a->short_name, $b->short_name))
             ->values();
     }
 

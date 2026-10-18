@@ -22,7 +22,7 @@ interface Row {
 }
 
 export interface TextView {
-    update(vehicles: Vehicle[]): void;
+    update(vehicles: Vehicle[], firstLineId: string | null): void;
     updated(at: Date): void;
     paused(): void;
     resumed(): void;
@@ -38,6 +38,8 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
     let empty: Element | null = null;
     let rendered = false;
     let lastUpdate: Date | null = null;
+    // The selected line's group comes first (E3.4); the others keep their order.
+    let firstLine: string | null = null;
 
     root.addEventListener('click', (event) => {
         const id = (event.target as Element).closest('[data-open]')?.closest<HTMLElement>('[data-vehicle]')?.dataset.vehicle;
@@ -53,7 +55,9 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         }
     }, AGE_EVERY_SECONDS * 1000);
 
-    function update(vehicles: Vehicle[]): void {
+    function update(vehicles: Vehicle[], firstLineId: string | null): void {
+        firstLine = firstLineId;
+
         if (!rendered) {
             // The server's rows are plain text; from now on they are rebuilt with their buttons.
             container.replaceChildren();
@@ -133,6 +137,9 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
     }
 
     function compareGroups(a: string, b: string): number {
+        if (a === firstLine || b === firstLine) {
+            return Number(b === firstLine) - Number(a === firstLine);
+        }
         if (a === UNKNOWN_LINE || b === UNKNOWN_LINE) {
             return Number(a === UNKNOWN_LINE) - Number(b === UNKNOWN_LINE);
         }

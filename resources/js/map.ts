@@ -4,7 +4,13 @@ import { type Bounds, mountMap } from './map/index';
 const container = document.querySelector<HTMLElement>('[data-map]');
 
 if (container !== null) {
-    mountMap(container, document.querySelector<HTMLElement>('[data-text-view]'), document.querySelector<HTMLButtonElement>('[data-pause]'), {
+    const controls = {
+        textView: document.querySelector<HTMLElement>('[data-text-view]'),
+        pause: document.querySelector<HTMLButtonElement>('[data-pause]'),
+        lineFilter: document.querySelector<HTMLFormElement>('[data-line-filter]'),
+    };
+
+    mountMap(container, controls, {
         styleUrl: container.dataset.style ?? '',
         bounds: JSON.parse(container.dataset.bounds ?? 'null') as Bounds | null,
         label: container.dataset.label ?? 'Carte',
