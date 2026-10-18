@@ -17,6 +17,7 @@ export interface MapControls {
     textView: HTMLElement | null;
     pause: HTMLButtonElement | null;
     lineFilter: HTMLFormElement | null;
+    lineClear: HTMLElement | null;
 }
 
 export interface MapOptions {
@@ -161,22 +162,32 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         );
     }
 
-    // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup keeps the line.
+    // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup ends both.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
         follow(vehicle?.id ?? null);
+        selection = { line: vehicle === null ? null : (lines.get(vehicle.lineId)?.shortName ?? null), vehicle: vehicle === null ? null : displayId(vehicle) };
+        changed();
+    }
 
-        if (vehicle === null) {
-            selection = { ...selection, vehicle: null };
-        } else {
-            selection = { line: lines.get(vehicle.lineId)?.shortName ?? null, vehicle: displayId(vehicle) };
-            if (lineSelector !== null) {
-                lineSelector.value = selection.line ?? '';
-            }
+    // The selection changed: the selector, the URL, the "deselect" link and the drawing follow.
+    function changed(): void {
+        if (lineSelector !== null) {
+            lineSelector.value = selection.line ?? '';
         }
-
         writeSelection(selection);
+        showLineClear();
         redraw();
+    }
+
+    // Shown with a selected line only; the server renders it the same way before JavaScript loads.
+    function showLineClear(): void {
+        const name = controls.lineClear?.querySelector('[data-line-clear-name]');
+
+        if (controls.lineClear !== null && name) {
+            controls.lineClear.hidden = selection.line === null;
+            name.textContent = selection.line ?? '';
+        }
     }
 
     function follow(id: string | null): void {
@@ -243,16 +254,33 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         lineFilter.addEventListener('submit', (event) => {
             event.preventDefault();
             const value = new FormData(lineFilter).get('ligne');
-            selection = { ...selection, line: typeof value === 'string' && value !== '' ? value : null };
+            const line = typeof value === 'string' && value !== '' ? value : null;
             // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
-            if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== selection.line) {
+            if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== line) {
                 layer?.close();
             }
-            fitPending = selection.line !== null;
-            writeSelection(selection);
-            redraw();
+            selection = { ...selection, line };
+            fitPending = line !== null;
+            changed();
         });
     }
+
+    // The link works without JavaScript by loading the page without `?ligne=`; here it applies at once. Its paragraph
+    // hides, so the focus goes to the text view rather than to the page.
+    controls.lineClear?.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element) || event.target.closest('a') === null) {
+            return;
+        }
+
+        event.preventDefault();
+        if (selectedVehicle === null) {
+            selection = { line: null, vehicle: null };
+            changed();
+        } else {
+            layer?.close();
+        }
+        controls.textView?.focus();
+    });
 
     // Rendered hidden: without JavaScript nothing updates, so there is nothing to pause (E3.6, RGAA 13.8).
     const pauseButton = controls.pause;

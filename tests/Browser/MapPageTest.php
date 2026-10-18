@@ -223,6 +223,15 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertScript('location.search', '?ligne=B')
         ->assertMissing('[role="dialog"]')
         ->assertPresent('[data-map][data-followed=""]')
+        // The link of the text view deselects the line, and the focus stays in the text view.
+        ->assertSeeIn('[data-line-clear]', 'Désélectionner la ligne B')
+        ->click('[data-line-clear] a')
+        ->assertScript('location.search', '')
+        ->assertMissing('[data-line-clear]')
+        ->assertScript('document.activeElement.id', 'vue-texte')
+        ->assertScript("document.querySelector('#ligne').value", '')
+        ->select('#ligne', 'B')
+        ->click('[data-line-filter] button[type="submit"]')
         ->select('#ligne', '')
         ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '')
@@ -250,9 +259,11 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertPresent('[data-map][data-followed=""]')
         // Still selected: the popup stays open and the URL keeps the vehicle.
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
-        // Closing the popup ends the vehicle's selection, not its line's.
+        // Closing the popup ends the selection of the vehicle and of its line.
         ->keys('[role="dialog"] button', 'Escape')
-        ->assertScript('location.search', '?ligne=A')
+        ->assertScript('location.search', '')
+        ->assertScript("document.querySelector('#ligne').value", '')
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", '')
         ->assertNoJavaScriptErrors();
 
     visit('/?vehicule=1234')

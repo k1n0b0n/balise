@@ -8,6 +8,7 @@ if (container !== null) {
         textView: document.querySelector<HTMLElement>('[data-text-view]'),
         pause: document.querySelector<HTMLButtonElement>('[data-pause]'),
         lineFilter: document.querySelector<HTMLFormElement>('[data-line-filter]'),
+        lineClear: document.querySelector<HTMLElement>('[data-line-clear]'),
     };
 
     mountMap(container, controls, {

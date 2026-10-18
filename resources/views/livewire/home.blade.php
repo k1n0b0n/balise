@@ -113,6 +113,11 @@
                 @endif
             </p>
 
+            {{-- A link, so that it works before JavaScript loads; the map module then deselects without reloading (E3.4). --}}
+            <p data-line-clear @if ($selectedLine === null) hidden @endif class="mt-2 text-sm">
+                <a href="{{ route('home') }}" class="underline underline-offset-2 hover:no-underline">Désélectionner la ligne <span data-line-clear-name>{{ $selectedLine?->short_name }}</span></a>
+            </p>
+
             <div data-lines>
                 @forelse ($groups as $group)
                     <div class="mt-4">
