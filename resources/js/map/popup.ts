@@ -124,6 +124,11 @@ export class VehiclePopup {
         // Give the focus back only if it was in the popup, which is now gone; a click elsewhere keeps its target.
         if (document.activeElement === document.body && this.returnFocusTo instanceof HTMLElement) {
             this.returnFocusTo.focus();
+
+            // Hidden meanwhile, in a closed panel for instance: the page shows it again and gives it the focus.
+            if (document.activeElement !== this.returnFocusTo) {
+                document.dispatchEvent(new CustomEvent('vehicle-popup-focus-lost', { detail: this.returnFocusTo }));
+            }
         }
 
         this.returnFocusTo = null;

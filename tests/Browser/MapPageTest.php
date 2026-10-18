@@ -101,3 +101,34 @@ it('lists vehicles by line in the text view and opens their popup from the keybo
         ->assertScript("document.activeElement.closest('[data-vehicle]')?.dataset.vehicle", 'tbm:1234')
         ->assertNoJavaScriptErrors();
 });
+
+it('keeps the text view in a side panel on a portrait screen', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    visit('/')
+        ->on()->mobile()
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->assertMissing('#vue-texte')
+        ->assertAttribute('button[aria-controls="vue-texte"]', 'aria-expanded', 'false')
+        ->click('button[aria-controls="vue-texte"]')
+        ->assertVisible('#vue-texte')
+        ->assertAttribute('button[aria-controls="vue-texte"]', 'aria-expanded', 'true')
+        ->assertScript('document.activeElement.id', 'vue-texte')
+        ->assertNoAccessibilityIssues(level: 3)
+        // Choosing a vehicle closes the panel, which would hide the popup.
+        ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
+        ->assertMissing('#vue-texte')
+        // Escape on the popup reopens the panel on that vehicle; Escape again closes it, back to its button.
+        ->keys('[role="dialog"] button', 'Escape')
+        ->assertVisible('#vue-texte')
+        ->assertScript("document.activeElement.closest('[data-vehicle]')?.dataset.vehicle", 'tbm:1234')
+        ->keys('[data-vehicle="tbm:1234"] button', 'Escape')
+        ->assertMissing('#vue-texte')
+        ->assertScript("document.activeElement.getAttribute('aria-controls')", 'vue-texte')
+        ->assertNoJavaScriptErrors();
+});
