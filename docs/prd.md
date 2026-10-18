@@ -87,7 +87,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E3.4 Select a line or a vehicle and let the map follow it
   - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
   - [ ] Moving the map by hand stops following; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
-  - [ ] The selected line's shape is drawn under its vehicles, from `shapes.txt` imported by `network:import`; its simplification tolerance is chosen by testing at street and city zoom levels, and recorded in the story file
+  - [ ] The selected line's shape, from the network file of E3.8, becomes less transparent and wider, still under its vehicles; with its transparency it reaches 3:1 against the basemap (WCAG 1.4.11), measured and recorded in the story file
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
   - [x] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
   - [x] Each vehicle has a button that opens its popup on the map (E3.3, RGAA 7.3.1)
@@ -104,6 +104,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [ ] A vehicle's destination is the last stop of its trip's updates, named from the stop catalogue; a position without a line takes the `route_id` of its trip update (TBM `nt_` trips: 38 of 38 had one on 2026-10-18)
   - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
   - [ ] The positions payload grows by less than the measured cost of the chosen encoding, recorded in the story file (RGESN)
+- E3.8 Every line of the network on the map, faint, under the vehicles (ADR-0016); comes before E3.4
+  - [ ] `network:import` writes one GeoJSON file per network, one feature per line (its shapes merged, duplicates removed), only when the shapes or their lines changed, not on every new archive
+  - [ ] The simplification tolerance is chosen by testing at street and city zoom levels; tolerance and compressed weight are recorded in the story file
+  - [ ] A lines-shapes endpoint serves the file with `no-cache` and its fingerprint as `ETag` (`304` on a revisit); the map fetches it after the first positions
+  - [ ] Every line is drawn in its colour, thin and mostly transparent, under the vehicles; the text view is unchanged, the shapes being decorative
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
@@ -129,7 +134,7 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
 - Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates (TBM publishes them, checked 2026-10-18), behind the anticipated trip updates port (ADR-0001); needs the brief's scope changed (no timetables), storage of stop times to be discussed, after E7.2
-- Whole-network shapes on the map: static GeoJSON (130 to 280 KB compressed) or vector tiles (PostGIS or PMTiles, own ADR); to be discussed ([ideas/network-on-map.md](ideas/network-on-map.md))
+- Vector tiles for line shapes (PostGIS or PMTiles), when a second network makes the GeoJSON files too heavy (ADR-0016)
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
