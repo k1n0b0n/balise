@@ -5,7 +5,7 @@
 
 ## Why
 
-The text view groups vehicles by line only; a rider looks for a line *and* a direction. Live TBM at midday on 2026-10-18 also showed up to 14 of 37 trams without a line: their positions carry an `nt_` trip, absent from the static GTFS, with an empty `route_id` ([vehicles-without-line.md](vehicles-without-line.md)).
+The text view groups vehicles by line only; a rider looks for a line *and* a direction. Grouping is hierarchical: a heading per line, then a sub-heading per destination within it (`h3` then `h4`, RGAA 9.1), then the vehicles. Live TBM at midday on 2026-10-18 also showed up to 14 of 37 trams without a line: their positions carry an `nt_` trip, absent from the static GTFS, with an empty `route_id` ([vehicles-without-line.md](vehicles-without-line.md)).
 
 ## Measures (live TBM, 2026-10-18 at 12:40)
 

@@ -82,26 +82,27 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Lines without a colour use a neutral colour; vehicles without a line are shown, labelled "?" on the map
 - E3.3 Vehicle popup: line, vehicle id, age of last position
   - [x] Clicking a vehicle opens a popup with the line (short and long name, or "Ligne inconnue"), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
-  - [ ] Keyboard users open the same popup from the text view (delivered with E3.5; canvas vehicles cannot take focus, ADR-0011; RGAA test 7.3.1 accepts an element of the same page doing the same action)
+  - [x] Keyboard users open the same popup from the text view (delivered with E3.5; canvas vehicles cannot take focus, ADR-0011; RGAA test 7.3.1 accepts an element of the same page doing the same action)
   - [x] Escape, or the close button, closes the popup and returns focus to where it was; the popup follows its vehicle and closes if the vehicle disappears
 - E3.4 Select a line or a vehicle and let the map follow it
   - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
   - [ ] Moving the map by hand stops following; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
   - [ ] The selected line's shape is drawn under its vehicles, from `shapes.txt` imported by `network:import`; its simplification tolerance is chosen by testing at street and city zoom levels, and recorded in the story file
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
-  - [ ] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
-  - [ ] Each vehicle has a button that opens its popup on the map (E3.3, RGAA 7.3.1)
-  - [ ] Live updates never move the focus and do not announce every change; a single polite status line gives the time of the last update
+  - [x] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
+  - [x] Each vehicle has a button that opens its popup on the map (E3.3, RGAA 7.3.1)
+  - [x] Live updates never move the focus and do not announce every change; a single polite status line gives the time of the last update
   - [ ] Checked with the keyboard only and with VoiceOver; no axe violation; findings recorded in the story file
-  - [ ] Line data (short and long name, mode, colour) comes from a line catalogue endpoint, fetched in parallel with the first positions and cached with `ETag`; positions carry only the line id, and the vehicle number shown is derived from the vehicle id in the browser (RGESN)
-  - [ ] A position naming a line the catalogue lacks triggers one conditional refetch; a line still unknown, or a catalogue that failed to load, shows the vehicle like one without a line
+  - [x] Line data (short and long name, mode, colour) comes from a line catalogue endpoint, fetched in parallel with the first positions and cached with `ETag`; positions carry only the line id, and the vehicle number shown is derived from the vehicle id in the browser (RGESN)
+  - [x] A position naming a line the catalogue lacks triggers one conditional refetch, repeated at most once an hour while that line stays unknown (the daily import may add it); a line still unknown, or a catalogue that failed to load, shows the vehicle like one without a line
+  - [x] On a landscape screen the text view sits beside the map; on a portrait screen it is a side panel over the map, opened and closed by a button (`aria-expanded`), and shown under the map without JavaScript. Choosing a vehicle in the panel closes it to show the popup; Escape on the popup reopens the panel on that vehicle
 - E3.6 Pause and resume live updates (ADR-0006)
   - [ ] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [ ] Resuming catches up with one request, then the normal interval resumes
 - E3.7 Group vehicles by line and destination ([ideas/line-and-destination.md](ideas/line-and-destination.md))
   - [ ] An ADR adds GTFS-RT TripUpdates behind the trip updates port (ADR-0001) before any code; the feed is polled with the positions and only the ingestion layer reads it
   - [ ] A vehicle's destination is the last stop of its trip's updates, named from the stop catalogue; a position without a line takes the `route_id` of its trip update (TBM `nt_` trips: 38 of 38 had one on 2026-10-18)
-  - [ ] The text view groups each line's vehicles by destination, sorted by name, "Destination inconnue" last; the popup shows the destination
+  - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
   - [ ] The positions payload grows by less than the measured cost of the chosen encoding, recorded in the story file (RGESN)
 
 ### E4: Real-time push
@@ -132,5 +133,6 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
+- Vehicles without a line: check whether TBM `nt_` trips (absent from the static GTFS) are all of them or other causes exist, then decide how to show them ([ideas/vehicles-without-line.md](ideas/vehicles-without-line.md))
 - Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
