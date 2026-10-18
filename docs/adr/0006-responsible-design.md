@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-15
+- **Amended:** 2026-10-16, during E3.2: the browser asks every 5 s; data sent still follows the feed's rate, since an unchanged answer is a bodyless `304` (story 007)
 
 ## Context
 
@@ -23,7 +24,7 @@
    - only changed positions are sent to browsers;
    - updates stop while the tab is hidden;
    - basemap tiles and static assets are cached;
-   - the refresh interval matches the feed's own update rate, not faster.
+   - data is sent at the feed's own update rate, not faster: browsers may ask more often, but an unchanged answer is a bodyless `304`.
 4. **Automated checks in the build:** axe through Pest browser tests on every page, from E3.1. A page weight and EcoIndex budget is measured on the map page and published.
 5. **Public declarations:** an accessibility statement and an ecodesign statement, honest about partial conformance and listing known gaps.
 

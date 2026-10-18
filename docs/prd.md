@@ -76,7 +76,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Tailwind CSS v4 through its Vite plugin, with explicit `focus-visible` styles; the interface is in French (`lang="fr"`)
   - [x] The map bundle loads on the map page only; the JavaScript of the map page stays under 600 KB compressed, measured in CI and published in the README with the page's EcoIndex, measured locally (ADR-0006, ADR-0011)
   - [x] A Pest browser test loads the page and finds no axe violation; the map has an accessible name, labelled keyboard-reachable controls and a skip link to the text view
-- E3.2 Vehicles as small markers coloured by line, shaped by mode and labelled with the line's short name; colours checked for contrast; vehicles without a line shown, labelled "?" (ADR-0006, ADR-0013)
+- E3.2 Live vehicles on the map, coloured by line and shaped by mode (ADR-0006, ADR-0013)
   - [x] The page reads positions from a JSON endpoint that returns only what changed since the browser's last request (moved and removed vehicles), with `ETag` and `304`; it asks every 5 s and stops while the tab is hidden (ADR-0006)
   - [x] Each vehicle is a small marker in its line's colour, shaped by mode (bus circle, tram square, ferry diamond, other or unknown triangle) so that colour is not the only cue, with an outline reaching 3:1 against the basemap; the line's short name is written beside the point, reaching 4.5:1 against the basemap
   - [x] Lines without a colour use a neutral colour; vehicles without a line are shown, labelled "?" on the map
@@ -90,6 +90,8 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [ ] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
   - [ ] Live updates never move the focus and do not announce every change; a single polite status line gives the time of the last update
   - [ ] Checked with the keyboard only and with VoiceOver; no axe violation; findings recorded in the story file
+  - [ ] Line data (short and long name, mode, colour) comes from a line catalogue endpoint, fetched in parallel with the first positions and cached with `ETag`; positions carry only the line id, and the vehicle number shown is derived from the vehicle id in the browser (RGESN)
+  - [ ] A position naming a line the catalogue lacks triggers one conditional refetch; a line still unknown, or a catalogue that failed to load, shows the vehicle like one without a line
 - E3.6 Pause and resume live updates (ADR-0006)
   - [ ] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [ ] Resuming catches up with one request, then the normal interval resumes

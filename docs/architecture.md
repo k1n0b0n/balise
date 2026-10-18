@@ -29,7 +29,7 @@
 | Basemap tiles | OpenFreeMap (no key); self-hosted Protomaps PMTiles as fallback | Decided, ADR-0011 |
 | Database | PostgreSQL; PostGIS later, with the first spatial story | Decided, [ADR-0002](adr/0002-database.md) |
 | Cache / queue | Redis | To confirm |
-| Feed decoding | `google/protobuf` runtime, GTFS-Realtime classes generated from the official proto and committed | Decided, [ADR-0015](adr/0015-gtfs-realtime-library.md) |
+| Feed decoding | `google/protobuf` runtime, GTFS-Realtime classes generated from the official proto at build time, not committed | Decided, [ADR-0015](adr/0015-gtfs-realtime-library.md) |
 | Real-time | Laravel Reverb | Agreed |
 | Hosting | Oracle Cloud Always Free A1 (arm64, Ubuntu 26.04), provisioned with OpenTofu and Ansible, one server | Decided, [ADR-0012](adr/0012-hosting.md) |
 | Edge | Cloudflare (free plan): DNS, proxy, TLS, cache rules | Decided, ADR-0012 |

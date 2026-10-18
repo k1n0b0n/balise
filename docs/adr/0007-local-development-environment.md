@@ -12,7 +12,7 @@
 - Production runs on Ubuntu 26.04, configured by Ansible (ADR-0012): nginx + php-fpm, systemd or supervisor daemons for workers, the scheduler. No Docker in production.
 - The application needs PHP 8.5, PostgreSQL (PostGIS later, ADR-0002), Redis, a queue worker, the scheduler, Reverb and Vite.
 - A reviewer must be able to start the project with one command, on macOS or Linux.
-- Laravel Sail is also Ubuntu 24.04 with the same PPA, but serves the app with `php artisan serve`, ships a large toolset, and leaves workers to be started by hand.
+- Laravel Sail runs Ubuntu 24.04 with `ppa:ondrej/php`, serves the app with `php artisan serve`, ships a large toolset, and leaves workers to be started by hand.
 
 ## Decision
 
