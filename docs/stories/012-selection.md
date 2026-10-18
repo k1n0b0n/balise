@@ -1,7 +1,7 @@
 # Story 012: Select a line or a vehicle and let the map follow it
 
 - **PRD:** E3.4
-- **Status:** Review
+- **Status:** Done
 
 ## Acceptance criteria
 
