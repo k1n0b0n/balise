@@ -18,6 +18,10 @@ export class LineCatalogue {
     // True once the first fetch has answered or failed: drawing earlier would show every vehicle without its line.
     settled = false;
     private loading = false;
+    // While live updates are paused (E3.6), an answer is kept but not shown, and a failed load is retried on resume.
+    private paused = false;
+    private changedWhilePaused = false;
+    private retryOnResume = false;
     private retry: number | undefined;
     // When each missing line was last looked for: a line the import does not know is not asked for on every update.
     private readonly searched = new Map<string, number>();
@@ -54,6 +58,29 @@ export class LineCatalogue {
         }
     }
 
+    pause(): void {
+        this.paused = true;
+
+        if (this.retry !== undefined) {
+            window.clearTimeout(this.retry);
+            this.retry = undefined;
+            this.retryOnResume = true;
+        }
+    }
+
+    resume(): void {
+        this.paused = false;
+
+        if (this.changedWhilePaused) {
+            this.changedWhilePaused = false;
+            this.onChange();
+        }
+        if (this.retryOnResume) {
+            this.retryOnResume = false;
+            void this.load();
+        }
+    }
+
     private async load(): Promise<void> {
         if (this.loading) {
             return;
@@ -72,12 +99,17 @@ export class LineCatalogue {
             this.lines = new Map(lines.map((line) => [line.id, line]));
             this.loaded = true;
             this.settled = true;
-            this.onChange();
+            this.changed();
         } catch {
             // Until it loads, vehicles show like vehicles without a line.
             if (!this.settled) {
                 this.settled = true;
-                this.onChange();
+                this.changed();
+            }
+            if (this.paused) {
+                this.retryOnResume = true;
+
+                return;
             }
             this.retry ??= window.setTimeout(() => {
                 this.retry = undefined;
@@ -85,6 +117,14 @@ export class LineCatalogue {
             }, this.retrySeconds * 1000);
         } finally {
             this.loading = false;
+        }
+    }
+
+    private changed(): void {
+        if (this.paused) {
+            this.changedWhilePaused = true;
+        } else {
+            this.onChange();
         }
     }
 }

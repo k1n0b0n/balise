@@ -39,7 +39,7 @@ setWorkerUrl(workerUrl);
 /**
  * Mounts the map and, when the page has one, its text view; both follow the same live store.
  */
-export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | null, options: MapOptions): Map {
+export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | null, pauseButton: HTMLButtonElement | null, options: MapOptions): Map {
     const map = new Map({
         container,
         style: options.styleUrl,
@@ -91,12 +91,31 @@ export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | nul
     });
 
     // Positions and the line catalogue are fetched while the basemap loads, not after.
-    followVehicles(options.vehiclesUrl, options.refreshSeconds, (next) => {
+    const live = followVehicles(options.vehiclesUrl, options.refreshSeconds, (next) => {
         vehicles = next;
         lines.ensure(next.map((vehicle) => vehicle.lineId));
         redraw();
         textView?.updated(new Date());
     });
+
+    // Rendered hidden: without JavaScript nothing updates, so there is nothing to pause (E3.6, RGAA 13.8).
+    if (pauseButton !== null) {
+        pauseButton.hidden = false;
+        pauseButton.addEventListener('click', () => {
+            const pausing = pauseButton.getAttribute('aria-pressed') !== 'true';
+            pauseButton.setAttribute('aria-pressed', String(pausing));
+
+            if (pausing) {
+                live.pause();
+                lines.pause();
+                textView?.paused();
+            } else {
+                live.resume();
+                lines.resume();
+                textView?.resumed();
+            }
+        });
+    }
 
     return map;
 }

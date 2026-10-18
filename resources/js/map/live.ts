@@ -22,11 +22,18 @@ interface Changes {
     removed: string[];
 }
 
-export function followVehicles(url: string, everySeconds: number, onChange: (vehicles: Vehicle[]) => void): void {
+export interface LiveControl {
+    pause(): void;
+    resume(): void;
+}
+
+export function followVehicles(url: string, everySeconds: number, onChange: (vehicles: Vehicle[]) => void): LiveControl {
     const vehicles = new Map<string, Vehicle>();
     let version: number | null = null;
     let timer: number | undefined;
     let requesting = false;
+    // Paused by the user (E3.6): no request at all until resumed.
+    let paused = false;
 
     async function refresh(): Promise<void> {
         const response = await fetch(version === null ? url : `${url}?since=${version}`, {
@@ -42,6 +49,11 @@ export function followVehicles(url: string, everySeconds: number, onChange: (veh
         }
 
         const changes = (await response.json()) as Changes;
+
+        // Paused while the request was on its way: nothing moves, and resuming asks again from the same version.
+        if (paused) {
+            return;
+        }
 
         if (changes.full) {
             vehicles.clear();
@@ -69,7 +81,7 @@ export function followVehicles(url: string, everySeconds: number, onChange: (veh
 
         requesting = false;
 
-        if (!document.hidden) {
+        if (!document.hidden && !paused) {
             timer = window.setTimeout(tick, everySeconds * 1000);
         }
     }
@@ -78,10 +90,26 @@ export function followVehicles(url: string, everySeconds: number, onChange: (veh
         if (document.hidden) {
             window.clearTimeout(timer);
             timer = undefined;
-        } else if (timer === undefined && !requesting) {
+        } else if (timer === undefined && !requesting && !paused) {
             void tick();
         }
     });
 
     void tick();
+
+    return {
+        pause() {
+            paused = true;
+            window.clearTimeout(timer);
+            timer = undefined;
+        },
+        // One request catches up with every change since the last version, then the interval resumes.
+        resume() {
+            paused = false;
+
+            if (timer === undefined && !requesting && !document.hidden) {
+                void tick();
+            }
+        },
+    };
 }
