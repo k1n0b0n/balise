@@ -27,4 +27,5 @@ See E3.5 in [prd.md](../prd.md).
 - First version drew before the catalogue answered: every marker flashed "?" and the text view regrouped everything under "Ligne inconnue". Drawing now waits for the catalogue's first answer, success or failure.
 - Sizes, live TBM at 04:05: line catalogue 2.6 KB compressed for 202 lines; home page 4.4 KB compressed. JavaScript budget: 501.0 KB compressed (+1.4 KB).
 - Not covered by an automated test: the catalogue failing or lacking a line, the focus kept when a row moves or its vehicle leaves; checked by reading the code. Keyboard path checked by hand in Chromium as well.
+- Live TBM at 04:11 on 2026-10-18: one vehicle, a tram whose trip `nt_268436716` has no `route_id` and is not in the static GTFS (probably an unplanned run). ADR-0013 measured `route_id` on 100 % of vehicles at midday; at night TBM also sends such trips. Shown as "Ligne inconnue", as ADR-0013 requires; whether to show them is a *Later* question.
 - To do by the maintainer: the VoiceOver check of the PRD criterion.
