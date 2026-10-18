@@ -32,7 +32,7 @@ Update this section at the end of every working session.
 - **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page), 007 (E3.2, vehicles on the map) and 008 (E3.3, vehicle popup) done: ingestion (E2) complete, live vehicles on the map locally, with a popup on click. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0015 accepted (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
-  1. Stories E3.4 to E3.6.
+  1. Stories E3.4 to E3.6, then E3.7 (line and destination, ADR first).
   2. Discuss the open questions of [ideas/network-on-map.md](ideas/network-on-map.md): whole-network shapes, storage of stop times.
   3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
   4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.

@@ -98,6 +98,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E3.6 Pause and resume live updates (ADR-0006)
   - [ ] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [ ] Resuming catches up with one request, then the normal interval resumes
+- E3.7 Group vehicles by line and destination ([ideas/line-and-destination.md](ideas/line-and-destination.md))
+  - [ ] An ADR adds GTFS-RT TripUpdates behind the trip updates port (ADR-0001) before any code; the feed is polled with the positions and only the ingestion layer reads it
+  - [ ] A vehicle's destination is the last stop of its trip's updates, named from the stop catalogue; a position without a line takes the `route_id` of its trip update (TBM `nt_` trips: 38 of 38 had one on 2026-10-18)
+  - [ ] The text view groups each line's vehicles by destination, sorted by name, "Destination inconnue" last; the popup shows the destination
+  - [ ] The positions payload grows by less than the measured cost of the chosen encoding, recorded in the story file (RGESN)
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
@@ -126,7 +131,6 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - Whole-network shapes on the map: static GeoJSON (130 to 280 KB compressed) or vector tiles (PostGIS or PMTiles, own ADR); to be discussed ([ideas/network-on-map.md](ideas/network-on-map.md))
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
-- Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
