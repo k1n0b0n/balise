@@ -79,6 +79,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     let selectedVehicle: Vehicle | null = null;
     // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
     let followed: string | null = null;
+    const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
 
     const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
         redraw();
@@ -162,12 +163,22 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         );
     }
 
+    // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup keeps the line.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
         follow(vehicle?.id ?? null);
-        selection = { ...selection, vehicle: vehicle === null ? null : displayId(vehicle) };
+
+        if (vehicle === null) {
+            selection = { ...selection, vehicle: null };
+        } else {
+            selection = { line: lines.get(vehicle.lineId)?.shortName ?? null, vehicle: displayId(vehicle) };
+            if (lineSelector !== null) {
+                lineSelector.value = selection.line ?? '';
+            }
+        }
+
         writeSelection(selection);
-        highlight();
+        redraw();
     }
 
     function follow(id: string | null): void {

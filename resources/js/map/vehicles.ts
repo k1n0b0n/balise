@@ -14,8 +14,10 @@ const PIXEL_RATIO = 2;
 const CLICK_TOLERANCE = 6;
 // A vehicle opened from the text view is shown at least at street level.
 const FOCUS_ZOOM = 14;
-// The selected line's vehicles (E3.4) are drawn larger, over the others; the others stay as they are.
+// The selected line's vehicles (E3.4) are drawn larger, over the others, with a white ring that sets them apart from
+// their line's shape, drawn in the same colour under them; the others stay as they are.
 const SELECTED_SCALE = 1.5;
+const RING = 2;
 const NONE = '';
 
 type Shape = 'circle' | 'square' | 'diamond' | 'triangle';
@@ -48,11 +50,11 @@ export interface VehicleLayer {
 export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColour: string, onSelect: (vehicle: Vehicle | null) => void): VehicleLayer {
     map.addSource(SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
-    // One image per shape and colour, drawn the first time the map needs it.
+    // One image per shape, colour and state, drawn the first time the map needs it.
     map.setMissingStyleImageResolver((id) => {
-        const [prefix, shape, colour] = id.split(':');
+        const [prefix, shape, colour, state] = id.split(':');
         if (prefix === 'vehicle' && shape !== undefined && shape in SHAPES && colour !== undefined) {
-            map.addImage(id, drawMarker(shape as Shape, colour), { pixelRatio: PIXEL_RATIO });
+            map.addImage(id, drawMarker(shape as Shape, colour, state === 'selected'), { pixelRatio: PIXEL_RATIO });
         }
     });
 
@@ -62,12 +64,9 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
         type: 'symbol',
         source: SOURCE,
         layout: {
-            'icon-image': ['concat', 'vehicle:', ['get', 'shape'], ':', ['get', 'colour']],
+            ...highlighted(NONE),
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
-            'icon-size': sizeOf(NONE, SELECTED_SCALE, 1),
-            'symbol-sort-key': sizeOf(NONE, 1, 0),
-            'text-size': sizeOf(NONE, 13, 11),
             'text-field': ['get', 'label'],
             'text-font': ['Noto Sans Bold'],
             'text-anchor': 'left',
@@ -114,9 +113,10 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
         },
 
         highlight(lineId) {
-            map.setLayoutProperty('vehicles', 'icon-size', sizeOf(lineId ?? NONE, SELECTED_SCALE, 1));
-            map.setLayoutProperty('vehicles', 'symbol-sort-key', sizeOf(lineId ?? NONE, 1, 0));
-            map.setLayoutProperty('vehicles', 'text-size', sizeOf(lineId ?? NONE, 13, 11));
+            const layout = highlighted(lineId ?? NONE);
+            for (const property of Object.keys(layout) as (keyof typeof layout)[]) {
+                map.setLayoutProperty('vehicles', property, layout[property]);
+            }
         },
 
         // From the text view: bring the vehicle into view, then open its popup, which takes the focus.
@@ -149,15 +149,22 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
 }
 
 /**
- * One value for the selected line's vehicles, another for the rest; no line selected matches no vehicle.
+ * The layout properties that set the selected line's vehicles apart; no line selected matches no vehicle.
  */
-function sizeOf(lineId: string, selected: number, other: number): ExpressionSpecification {
-    return ['case', ['all', ['!=', lineId, NONE], ['==', ['get', 'line'], lineId]], selected, other];
+function highlighted(lineId: string): Record<'icon-image' | 'icon-size' | 'symbol-sort-key' | 'text-size', ExpressionSpecification> {
+    const selected: ExpressionSpecification = ['all', ['!=', lineId, NONE], ['==', ['get', 'line'], lineId]];
+
+    return {
+        'icon-image': ['concat', 'vehicle:', ['get', 'shape'], ':', ['get', 'colour'], ['case', selected, ':selected', '']],
+        'icon-size': ['case', selected, SELECTED_SCALE, 1],
+        'symbol-sort-key': ['case', selected, 1, 0],
+        'text-size': ['case', selected, 13, 11],
+    };
 }
 
-function drawMarker(shape: Shape, colour: string): ImageData {
+function drawMarker(shape: Shape, colour: string, selected: boolean): ImageData {
     const size = SHAPES[shape] * PIXEL_RATIO;
-    const side = Math.ceil(size + 2 * PIXEL_RATIO);
+    const side = Math.ceil(size + 2 * PIXEL_RATIO * (selected ? 1 + RING : 1));
     const centre = side / 2;
     const half = size / 2;
     const context = new OffscreenCanvas(side, side).getContext('2d');
@@ -187,6 +194,13 @@ function drawMarker(shape: Shape, colour: string): ImageData {
             break;
     }
     context.closePath();
+
+    // The ring goes outside the dark outline, which stays next to the colour for its 3:1.
+    if (selected) {
+        context.lineWidth = PIXEL_RATIO * (1 + 2 * RING);
+        context.strokeStyle = '#FFFFFF';
+        context.stroke();
+    }
 
     context.fillStyle = colour;
     context.fill();

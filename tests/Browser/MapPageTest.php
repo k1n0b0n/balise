@@ -212,6 +212,12 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         // Its group comes first in the text view, the others stay.
         ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:3,tbm:1,tbm:2')
         ->assertNoAccessibilityIssues(level: 3)
+        // A vehicle of another line selects that line.
+        ->keys('[data-vehicle="tbm:1"] button', 'Enter')
+        ->assertScript('location.search', '?ligne=A&vehicule=1')
+        ->assertScript("document.querySelector('#ligne').value", 'A')
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
+        ->keys('[role="dialog"] button', 'Escape')
         ->select('#ligne', '')
         ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '')
@@ -231,15 +237,17 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertPresent('[data-map][data-vehicle-count="1"]')
         ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
         ->assertPresent('[data-map][data-followed="tbm:1234"]')
-        ->assertScript('location.search', '?vehicule=1234')
-        // Its line stands out, though no line is selected.
+        // Choosing a vehicle selects its line.
+        ->assertScript('location.search', '?ligne=A&vehicule=1234')
+        ->assertScript("document.querySelector('#ligne').value", 'A')
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
         ->keys('[data-map] canvas', 'ArrowRight')
         ->assertPresent('[data-map][data-followed=""]')
         // Still selected: the popup stays open and the URL keeps the vehicle.
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
+        // Closing the popup ends the vehicle's selection, not its line's.
         ->keys('[role="dialog"] button', 'Escape')
-        ->assertScript('location.search', '')
+        ->assertScript('location.search', '?ligne=A')
         ->assertNoJavaScriptErrors();
 
     visit('/?vehicule=1234')
