@@ -54,7 +54,7 @@ it('opens a vehicle popup on click and closes it with Escape', function (): void
     Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'long_name' => 'Le Haillan Rostand / Floirac Dravemont', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
     VehiclePosition::query()->create([
         'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
-        'line_id' => 'tbm:A', 'recorded_at' => now()->subSeconds(25), 'received_at' => now(),
+        'line_id' => 'tbm:A', 'recorded_at' => now()->subMinutes(3), 'received_at' => now(),
     ]);
 
     // Two stops around the vehicle: the map fits them, so the vehicle sits at the centre of the canvas.
@@ -66,7 +66,8 @@ it('opens a vehicle popup on click and closes it with Escape', function (): void
         ->assertPresent('[data-map][data-vehicle-count="1"]')
         ->click('[data-map] canvas')
         ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
-        ->assertSeeIn('[role="dialog"]', 'il y a 2')
+        // Minutes, not seconds: the age stays the same however slow the browser is to open the popup.
+        ->assertSeeIn('[role="dialog"]', 'il y a 3 min')
         ->assertNoAccessibilityIssues(level: 3)
         ->keys('[role="dialog"] button', 'Escape')
         ->assertMissing('[role="dialog"]')
