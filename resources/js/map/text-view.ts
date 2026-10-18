@@ -16,6 +16,7 @@ interface Group {
 
 interface Row {
     element: HTMLLIElement;
+    lineName: HTMLElement;
     age: HTMLTimeElement;
     vehicle: Vehicle;
 }
@@ -81,6 +82,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         for (const key of [...byGroup.keys()].sort(compareGroups)) {
             const group = groups.get(key) ?? createGroup(key);
             group.heading.textContent = headingOf(key);
+            const lineName = lineNameOf(key);
             place(container, group.element, previousGroup);
             previousGroup = group.element;
 
@@ -88,6 +90,10 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             for (const vehicle of (byGroup.get(key) ?? []).sort((a, b) => collator.compare(displayId(a), displayId(b)))) {
                 const row = rows.get(vehicle.id) ?? createRow(vehicle);
                 row.vehicle = vehicle;
+                // Keyboard users reach the buttons with Tab, past the headings: the button's name carries the line.
+                if (row.lineName.textContent !== lineName) {
+                    row.lineName.textContent = lineName;
+                }
                 renderAge(row);
                 place(group.list, row.element, previousRow);
                 previousRow = row.element;
@@ -129,6 +135,12 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         return `${line.modeName} ${line.shortName}${line.longName === null ? '' : ` – ${line.longName}`}`;
     }
 
+    function lineNameOf(key: string): string {
+        const line = lines.get(key);
+
+        return line === undefined ? 'ligne inconnue' : `${line.modeName} ${line.shortName}`;
+    }
+
     function createGroup(key: string): Group {
         const element = template(root, '[data-line-template]');
         const group = { element, heading: required(element, '[data-heading]'), list: required(element, '[data-vehicles]') };
@@ -141,7 +153,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         const element = template(root, '[data-vehicle-template]') as HTMLLIElement;
         element.dataset.vehicle = vehicle.id;
         required(element, '[data-name]').textContent = displayId(vehicle);
-        const row = { element, age: required(element, '[data-age]') as HTMLTimeElement, vehicle };
+        const row = { element, lineName: required(element, '[data-line-name]'), age: required(element, '[data-age]') as HTMLTimeElement, vehicle };
         rows.set(vehicle.id, row);
 
         return row;

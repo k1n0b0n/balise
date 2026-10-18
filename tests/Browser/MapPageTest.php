@@ -91,6 +91,9 @@ it('lists vehicles by line in the text view and opens their popup from the keybo
         // A line the catalogue lacks shows like no line at all, in the last group.
         ->assertScript("[...document.querySelectorAll('#vue-texte h3')].map((heading) => heading.textContent).join(' | ')", 'Tram A – Le Haillan Rostand / Floirac Dravemont | Ligne inconnue')
         ->assertSeeIn('[data-vehicle="tbm:stranger"]', 'il y a 3 min')
+        // Tab skips the headings: each button's name says its line.
+        ->assertScript("document.querySelector('[data-vehicle=\"tbm:1234\"] button').textContent.replace(/\\s+/g, ' ')", 'Véhicule 1234, Tram A, afficher sur la carte')
+        ->assertScript("document.querySelector('[data-vehicle=\"tbm:stranger\"] button').textContent.replace(/\\s+/g, ' ')", 'Véhicule stranger, ligne inconnue, afficher sur la carte')
         ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
         ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
         // The popup takes the focus, so that keyboard and screen reader users land on it.
