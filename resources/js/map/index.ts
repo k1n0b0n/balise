@@ -3,6 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { followVehicles, type Vehicle } from './live';
 import { LineCatalogue } from './lines';
+import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
 import { showTextView } from './text-view';
 import { showVehicles, type VehicleLayer } from './vehicles';
 
@@ -16,6 +17,7 @@ export interface MapOptions {
     label: string;
     vehiclesUrl: string;
     linesUrl: string;
+    shapesUrl: string;
     neutralColour: string;
     refreshSeconds: number;
 }
@@ -53,10 +55,16 @@ export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | nul
 
     let vehicles: Vehicle[] = [];
     let layer: VehicleLayer | null = null;
+    let shapeLayer: ShapeLayer | null = null;
+    let shapes: Shapes | null = null;
+    let shapesRequested = false;
     // A vehicle chosen in the text view before the basemap is ready opens once it is.
     let waiting: string | null = null;
 
-    const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, redraw);
+    const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
+        redraw();
+        shapeLayer?.recolour();
+    });
     lines.ensure([]);
     const textView =
         textViewRoot === null
@@ -81,8 +89,13 @@ export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | nul
     // Lets pages and browser tests know the basemap actually rendered.
     map.once('load', () => {
         container.dataset.state = 'loaded';
+        shapeLayer = showShapes(map, lines, options.neutralColour);
         layer = showVehicles(map, lines, options.neutralColour);
         redraw();
+
+        if (shapes !== null) {
+            shapeLayer.show(shapes);
+        }
 
         if (waiting !== null) {
             layer.open(waiting);
@@ -93,6 +106,17 @@ export function mountMap(container: HTMLElement, textViewRoot: HTMLElement | nul
     // Positions and the line catalogue are fetched while the basemap loads, not after.
     const live = followVehicles(options.vehiclesUrl, options.refreshSeconds, (next) => {
         vehicles = next;
+
+        if (!shapesRequested) {
+            shapesRequested = true;
+            void fetchShapes(options.shapesUrl).then((loaded) => {
+                shapes = loaded;
+
+                if (shapes !== null) {
+                    shapeLayer?.show(shapes);
+                }
+            });
+        }
         lines.ensure(next.map((vehicle) => vehicle.lineId));
         redraw();
         textView?.updated(new Date());

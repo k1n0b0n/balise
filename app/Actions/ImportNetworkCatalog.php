@@ -10,6 +10,7 @@ use App\Ingestion\NetworkCatalogs;
 use App\Models\CatalogImport;
 use App\Models\Line;
 use App\Models\Stop;
+use App\Support\NetworkShapes;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -20,10 +21,13 @@ final readonly class ImportNetworkCatalog
 {
     private const int CHUNK = 1000;
 
-    public function __construct(private NetworkCatalogs $catalogs) {}
+    public function __construct(
+        private NetworkCatalogs $catalogs,
+        private NetworkShapes $shapes,
+    ) {}
 
     /**
-     * Replace a network's lines and stops with its current catalogue.
+     * Replace a network's lines and stops with its current catalogue, then its shapes file when the shapes changed.
      *
      * @return array{lines: int, stops: int}|null null when the catalogue has not changed
      */
@@ -39,7 +43,7 @@ final readonly class ImportNetworkCatalog
         // Rows not touched by this run belong to lines or stops that left the feed.
         $syncId = (string) Str::uuid();
 
-        return DB::transaction(function () use ($network, $snapshot, $syncId): array {
+        $counts = DB::transaction(function () use ($network, $snapshot, $syncId): array {
             $lines = $this->upsert(Line::class, $snapshot->lines(), fn (CatalogLine $line): array => [
                 'id' => $line->id,
                 'network' => $network,
@@ -75,6 +79,17 @@ final readonly class ImportNetworkCatalog
 
             return ['lines' => $lines, 'stops' => $stops];
         });
+
+        // After the lines are committed: a failed import never leaves a file naming lines the catalogue lacks.
+        $fingerprint = $this->shapes->store(
+            $network,
+            $snapshot->shapes(),
+            Line::query()->where('network', $network)->get()->map(fn (Line $line): string => $line->id)->all(),
+            $previous?->shapes_fingerprint,
+        );
+        CatalogImport::query()->whereKey($network)->update(['shapes_fingerprint' => $fingerprint]);
+
+        return $counts;
     }
 
     /**

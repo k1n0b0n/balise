@@ -32,6 +32,10 @@ export class LineCatalogue {
         private readonly onChange: () => void,
     ) {}
 
+    all(): Iterable<Line> {
+        return this.lines.values();
+    }
+
     get(id: string | null): Line | undefined {
         return id === null ? undefined : this.lines.get(id);
     }

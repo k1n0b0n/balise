@@ -10,6 +10,7 @@ if (container !== null) {
         label: container.dataset.label ?? 'Carte',
         vehiclesUrl: container.dataset.vehiclesUrl ?? '',
         linesUrl: container.dataset.linesUrl ?? '',
+        shapesUrl: container.dataset.shapesUrl ?? '',
         neutralColour: container.dataset.neutralColour ?? '#4B5563',
         refreshSeconds: Number(container.dataset.refresh ?? 20),
     });
