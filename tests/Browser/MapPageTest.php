@@ -217,7 +217,12 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertScript('location.search', '?ligne=A&vehicule=1')
         ->assertScript("document.querySelector('#ligne').value", 'A')
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
-        ->keys('[role="dialog"] button', 'Escape')
+        // Choosing another line ends the selection of a vehicle that is not on it.
+        ->select('#ligne', 'B')
+        ->click('[data-line-filter] button[type="submit"]')
+        ->assertScript('location.search', '?ligne=B')
+        ->assertMissing('[role="dialog"]')
+        ->assertPresent('[data-map][data-followed=""]')
         ->select('#ligne', '')
         ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '')

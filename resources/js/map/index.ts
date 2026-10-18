@@ -114,7 +114,10 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
 
         if (fitPending) {
             fitPending = false;
-            fit(vehicles.filter((vehicle) => vehicle.lineId === lineId));
+
+            if (lineId !== null) {
+                fit(vehicles.filter((vehicle) => vehicle.lineId === lineId));
+            }
         }
 
         if (reopenPending !== null) {
@@ -127,11 +130,6 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             } else {
                 layer.open(vehicle.id);
             }
-        }
-
-        const vehicle = followed === null ? undefined : vehicles.find((candidate) => candidate.id === followed);
-        if (vehicle !== undefined) {
-            map.easeTo({ center: [vehicle.longitude, vehicle.latitude] });
         }
     }
 
@@ -226,9 +224,17 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
                 }
             });
         }
+        // Only on new positions, and for a vehicle followed before them: a vehicle opened by this redraw, from the URL,
+        // is being zoomed to, and recentring would cancel that, as it would cancel a fit.
+        const following = followed;
         lines.ensure(next.map((vehicle) => vehicle.lineId));
         redraw();
         textView?.updated(new Date());
+
+        const vehicle = following === null || following !== followed ? undefined : next.find((candidate) => candidate.id === following);
+        if (vehicle !== undefined) {
+            map.easeTo({ center: [vehicle.longitude, vehicle.latitude] });
+        }
     });
 
     // The form works without JavaScript by reloading the page; here it applies at once.
@@ -238,6 +244,10 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             event.preventDefault();
             const value = new FormData(lineFilter).get('ligne');
             selection = { ...selection, line: typeof value === 'string' && value !== '' ? value : null };
+            // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
+            if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== selection.line) {
+                layer?.close();
+            }
             fitPending = selection.line !== null;
             writeSelection(selection);
             redraw();

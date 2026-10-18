@@ -41,6 +41,7 @@ function shapeOf(mode: string | null): Shape {
 export interface VehicleLayer {
     update(vehicles: Vehicle[]): void;
     open(id: string): void;
+    close(): void;
     highlight(lineId: string | null): void;
 }
 
@@ -124,6 +125,10 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
             for (const property of Object.keys(layout) as (keyof typeof layout)[]) {
                 map.setLayoutProperty('vehicles', property, layout[property]);
             }
+        },
+
+        close() {
+            popup.close();
         },
 
         // From the text view: bring the vehicle into view, then open its popup, which takes the focus.
