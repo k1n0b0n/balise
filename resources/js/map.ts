@@ -4,11 +4,13 @@ import { type Bounds, mountMap } from './map/index';
 const container = document.querySelector<HTMLElement>('[data-map]');
 
 if (container !== null) {
-    mountMap(container, {
+    mountMap(container, document.querySelector<HTMLElement>('[data-text-view]'), {
         styleUrl: container.dataset.style ?? '',
         bounds: JSON.parse(container.dataset.bounds ?? 'null') as Bounds | null,
         label: container.dataset.label ?? 'Carte',
         vehiclesUrl: container.dataset.vehiclesUrl ?? '',
+        linesUrl: container.dataset.linesUrl ?? '',
+        neutralColour: container.dataset.neutralColour ?? '#4B5563',
         refreshSeconds: Number(container.dataset.refresh ?? 20),
     });
 }

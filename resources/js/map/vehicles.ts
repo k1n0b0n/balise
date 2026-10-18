@@ -1,6 +1,7 @@
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { Vehicle } from './live';
+import type { LineCatalogue } from './lines';
 import { VehiclePopup } from './popup';
 
 // Dark grey reaches 13.9:1 on Positron's background (#F2F3F0): marker outlines pass 3:1 and labels 4.5:1,
@@ -11,6 +12,8 @@ const SOURCE = 'vehicles';
 const PIXEL_RATIO = 2;
 // Markers are 7 px wide: a click counts if it lands this close.
 const CLICK_TOLERANCE = 6;
+// A vehicle opened from the text view is shown at least at street level.
+const FOCUS_ZOOM = 14;
 
 type Shape = 'circle' | 'square' | 'diamond' | 'triangle';
 
@@ -30,12 +33,16 @@ function shapeOf(mode: string | null): Shape {
     }
 }
 
+export interface VehicleLayer {
+    update(vehicles: Vehicle[]): void;
+    open(id: string): void;
+}
+
 /**
- * Draws vehicles as small markers shaped by mode, in their line's colour, labelled beside the marker; returns the
- * function that updates them.
+ * Draws vehicles as small markers shaped by mode, in their line's colour, labelled beside the marker.
  */
-export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
-    map.addSource(SOURCE, { type: 'geojson', data: toGeoJson([]) });
+export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColour: string): VehicleLayer {
+    map.addSource(SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
     // One image per shape and colour, drawn the first time the map needs it.
     map.setMissingStyleImageResolver((id) => {
@@ -69,7 +76,7 @@ export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
     });
 
     let current = new Map<string, Vehicle>();
-    const popup = new VehiclePopup(map);
+    const popup = new VehiclePopup(map, lines);
 
     // Keyboard users open the same popup from the text view (E3.5): canvas markers cannot take focus (ADR-0011).
     map.on('click', ({ point }) => {
@@ -91,26 +98,41 @@ export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
     map.on('mousemove', 'vehicles', () => (map.getCanvas().style.cursor = 'pointer'));
     map.on('mouseleave', 'vehicles', () => (map.getCanvas().style.cursor = ''));
 
-    return (vehicles) => {
-        current = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle]));
-        map.getSource<GeoJSONSource>(SOURCE)?.setData(toGeoJson(vehicles));
-        map.getContainer().dataset.vehicleCount = String(vehicles.length);
-        popup.update(current);
-    };
-}
-
-function toGeoJson(vehicles: Vehicle[]): FeatureCollection<Point> {
     return {
-        type: 'FeatureCollection',
-        features: vehicles.map(
-            (vehicle): Feature<Point> => ({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [vehicle.longitude, vehicle.latitude] },
-                // Feature ids must be numbers in MapLibre: the vehicle id travels as a property.
-                properties: { id: vehicle.id, label: vehicle.line ?? UNKNOWN_LINE, shape: shapeOf(vehicle.mode), colour: vehicle.colour },
-            }),
-        ),
+        update(vehicles) {
+            current = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle]));
+            map.getSource<GeoJSONSource>(SOURCE)?.setData(toGeoJson(vehicles));
+            map.getContainer().dataset.vehicleCount = String(vehicles.length);
+            popup.update(current);
+        },
+
+        // From the text view: bring the vehicle into view, then open its popup, which takes the focus.
+        open(id) {
+            const vehicle = current.get(id);
+
+            if (vehicle !== undefined) {
+                map.easeTo({ center: [vehicle.longitude, vehicle.latitude], zoom: Math.max(map.getZoom(), FOCUS_ZOOM) });
+                popup.open(vehicle);
+            }
+        },
     };
+
+    function toGeoJson(vehicles: Vehicle[]): FeatureCollection<Point> {
+        return {
+            type: 'FeatureCollection',
+            features: vehicles.map((vehicle): Feature<Point> => {
+                // A line the catalogue lacks, or a catalogue not loaded yet, shows like no line at all (ADR-0013).
+                const line = lines.get(vehicle.lineId);
+
+                return {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [vehicle.longitude, vehicle.latitude] },
+                    // Feature ids must be numbers in MapLibre: the vehicle id travels as a property.
+                    properties: { id: vehicle.id, label: line?.shortName ?? UNKNOWN_LINE, shape: shapeOf(line?.mode ?? null), colour: line?.colour ?? neutralColour },
+                };
+            }),
+        };
+    }
 }
 
 function drawMarker(shape: Shape, colour: string): ImageData {

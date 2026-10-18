@@ -75,3 +75,60 @@ it('opens a vehicle popup on click and closes it with Escape', function (): void
         ->assertScript("document.activeElement === document.querySelector('[data-map] canvas')", true)
         ->assertNoJavaScriptErrors();
 });
+
+it('lists vehicles by line in the text view and opens their popup from the keyboard', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'long_name' => 'Le Haillan Rostand / Floirac Dravemont', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+
+    foreach (['1234' => 'tbm:A', 'lineless' => null, 'stranger' => 'tbm:gone'] as $vehicle => $line) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => $line, 'recorded_at' => now()->subMinutes(3), 'received_at' => now(),
+        ]);
+    }
+
+    visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="3"]')
+        // A line the catalogue lacks shows like no line at all, in the last group.
+        ->assertScript("[...document.querySelectorAll('#vue-texte h3')].map((heading) => heading.textContent).join(' | ')", 'Tram A – Le Haillan Rostand / Floirac Dravemont | Ligne inconnue')
+        ->assertSeeIn('[data-vehicle="tbm:stranger"]', 'il y a 3 min')
+        ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
+        ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
+        // The popup takes the focus, so that keyboard and screen reader users land on it.
+        ->assertScript("document.activeElement.closest('[role=\"dialog\"]') !== null", true)
+        ->assertNoAccessibilityIssues(level: 3)
+        ->keys('[role="dialog"] button', 'Escape')
+        ->assertMissing('[role="dialog"]')
+        ->assertScript("document.activeElement.closest('[data-vehicle]')?.dataset.vehicle", 'tbm:1234')
+        ->assertNoJavaScriptErrors();
+});
+
+it('keeps the text view in a side panel on a portrait screen', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    visit('/')
+        ->on()->mobile()
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->assertMissing('#vue-texte')
+        ->assertAttribute('button[aria-controls="vue-texte"]', 'aria-expanded', 'false')
+        ->click('button[aria-controls="vue-texte"]')
+        ->assertVisible('#vue-texte')
+        ->assertAttribute('button[aria-controls="vue-texte"]', 'aria-expanded', 'true')
+        ->assertScript('document.activeElement.id', 'vue-texte')
+        ->assertNoAccessibilityIssues(level: 3)
+        // Choosing a vehicle closes the panel, which would hide the popup.
+        ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
+        ->assertMissing('#vue-texte')
+        // Escape on the popup reopens the panel on that vehicle; Escape again closes it, back to its button.
+        ->keys('[role="dialog"] button', 'Escape')
+        ->assertVisible('#vue-texte')
+        ->assertScript("document.activeElement.closest('[data-vehicle]')?.dataset.vehicle", 'tbm:1234')
+        ->keys('[data-vehicle="tbm:1234"] button', 'Escape')
+        ->assertMissing('#vue-texte')
+        ->assertScript("document.activeElement.getAttribute('aria-controls')", 'vue-texte')
+        ->assertNoJavaScriptErrors();
+});

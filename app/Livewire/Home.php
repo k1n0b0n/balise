@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Models\Line;
 use App\Models\Stop;
+use App\Models\VehiclePosition;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Livewire\Component;
 
@@ -14,14 +17,42 @@ final class Home extends Component
     public function render(): View
     {
         $network = (string) array_key_first(Config::array('networks'));
+        $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
 
         return view('livewire.home', [
             'network' => $network,
             'networkName' => Config::string("networks.{$network}.name"),
+            'timezone' => Config::string("networks.{$network}.timezone"),
             'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
+            'neutralColour' => Line::NEUTRAL_COLOUR,
+            'groups' => $this->groups($positions),
+            'updatedAt' => $positions->max('received_at'),
         ]);
+    }
+
+    /**
+     * The text view (E3.5): lines in natural order of their short name, each with its vehicles, and the vehicles whose
+     * line is unknown last. The browser sorts the same way when it takes over.
+     *
+     * @param  Collection<int, VehiclePosition>  $positions
+     * @return Collection<int, array{line: ?Line, vehicles: Collection<int, VehiclePosition>}>
+     */
+    private function groups(Collection $positions): Collection
+    {
+        return $positions
+            ->groupBy(fn (VehiclePosition $position): string => $position->line->id ?? '')
+            ->map(fn (Collection $vehicles): array => [
+                'line' => $vehicles->first()?->line,
+                'vehicles' => $vehicles->sort(fn (VehiclePosition $a, VehiclePosition $b): int => strnatcasecmp($a->displayId(), $b->displayId()))->values(),
+            ])
+            ->sort(fn (array $a, array $b): int => match (true) {
+                $a['line'] === null => 1,
+                $b['line'] === null => -1,
+                default => strnatcasecmp($a['line']->short_name, $b['line']->short_name),
+            })
+            ->values();
     }
 
     /**

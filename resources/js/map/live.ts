@@ -2,14 +2,17 @@
 
 export interface Vehicle {
     id: string;
-    displayId: string;
     latitude: number;
     longitude: number;
     recordedAt: string;
-    line: string | null;
-    lineName: string | null;
-    mode: string | null;
-    colour: string;
+    lineId: string | null;
+}
+
+/**
+ * The vehicle id as the feed gave it: ids are namespaced by network (`tbm:1234`), only the prefix goes.
+ */
+export function displayId(vehicle: Vehicle): string {
+    return vehicle.id.slice(vehicle.id.indexOf(':') + 1);
 }
 
 interface Changes {

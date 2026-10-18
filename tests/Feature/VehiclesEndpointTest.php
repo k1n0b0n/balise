@@ -46,28 +46,17 @@ function vehicles(?int $since = null): TestResponse
     return test()->getJson(route('vehicles', ['network' => 'tbm', 'since' => $since]));
 }
 
-it('returns every vehicle with its line, mode and colour', function (): void {
-    poll(['yellow' => 'tbm:A', 'blue' => 'tbm:B', 'plain' => 'tbm:12', 'lineless' => null, 'unknown' => 'tbm:gone']);
+it('returns every vehicle with its position and line id only', function (): void {
+    poll(['yellow' => 'tbm:A', 'lineless' => null, 'unknown' => 'tbm:gone']);
 
     $response = vehicles()->assertOk()->assertJsonPath('full', true)->assertJsonPath('removed', []);
 
-    expect(collect($response->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['line'], $vehicle['mode'], $vehicle['colour']])->all())->toEqual([
-        'tbm:yellow' => ['A', 'tram', '#FFD200'],
-        'tbm:blue' => ['B', 'bus', '#00387B'],
-        'tbm:plain' => ['12', 'bus', Line::NEUTRAL_COLOUR],
-        'tbm:lineless' => [null, null, Line::NEUTRAL_COLOUR],
-        'tbm:unknown' => [null, null, Line::NEUTRAL_COLOUR],
-    ]);
-});
-
-it('gives what the popup shows: vehicle id without the network prefix, line long name, time of the position', function (): void {
-    Line::query()->whereKey('tbm:A')->update(['long_name' => 'Le Haillan Rostand / Floirac Dravemont']);
-    poll(['1234' => 'tbm:A', 'tbm:odd' => null]);
-
-    expect(collect(vehicles()->json('vehicles'))->keyBy('id')->map(fn (array $vehicle): array => [$vehicle['displayId'], $vehicle['lineName'], $vehicle['recordedAt']])->all())->toEqual([
-        'tbm:1234' => ['1234', 'Le Haillan Rostand / Floirac Dravemont', '2026-10-16T12:00:00+00:00'],
-        // Only the network prefix goes, not a colon that belongs to the feed's own id.
-        'tbm:tbm:odd' => ['tbm:odd', null, '2026-10-16T12:00:00+00:00'],
+    // What a line looks like comes from the line catalogue, once (E3.5, RGESN).
+    expect(collect($response->json('vehicles'))->keyBy('id')->all())->toEqual([
+        'tbm:yellow' => ['id' => 'tbm:yellow', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:A'],
+        'tbm:lineless' => ['id' => 'tbm:lineless', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => null],
+        // A line the catalogue does not know is still sent: the browser refetches the catalogue once (E3.5).
+        'tbm:unknown' => ['id' => 'tbm:unknown', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:gone'],
     ]);
 });
 

@@ -33,7 +33,6 @@ final class VehicleController extends Controller
         $delta = is_string($since) && ctype_digit($since) ? $changes->since($network, (int) $since) : null;
 
         $positions = VehiclePosition::query()
-            ->with('line')
             ->where('network', $network)
             ->when($delta !== null, fn ($query) => $query->whereKey($delta['changed'] ?? []))
             ->get();
