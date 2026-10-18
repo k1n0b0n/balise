@@ -102,7 +102,8 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
         update(vehicles) {
             current = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle]));
             map.getSource<GeoJSONSource>(SOURCE)?.setData(toGeoJson(vehicles));
-            map.getContainer().dataset.vehicleCount = String(vehicles.length);
+            // Lets browser tests know the vehicles are drawn: the worker processes the data, the map renders it later.
+            map.once('idle', () => (map.getContainer().dataset.vehicleCount = String(vehicles.length)));
             popup.update(current);
         },
 

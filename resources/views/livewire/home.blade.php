@@ -30,17 +30,22 @@
             <h1 class="text-xl font-semibold">balise</h1>
             <p class="text-sm text-gray-700">Véhicules {{ $networkName }} en circulation</p>
         </div>
-        <button
-            type="button"
-            x-cloak
-            x-ref="toggle"
-            x-bind:aria-expanded="open"
-            aria-controls="vue-texte"
-            x-on:click="open ? hide() : show()"
-            class="rounded border border-gray-500 px-3 py-2 text-sm landscape:hidden"
-        >
-            Liste des véhicules
-        </button>
+        <div class="flex items-center gap-2">
+            <button type="button" hidden data-pause aria-pressed="false" class="rounded border border-gray-500 px-3 py-2 text-sm aria-pressed:bg-gray-900 aria-pressed:text-white">
+                Pause<span class="sr-only"> des mises à jour</span>
+            </button>
+            <button
+                type="button"
+                x-cloak
+                x-ref="toggle"
+                x-bind:aria-expanded="open"
+                aria-controls="vue-texte"
+                x-on:click="open ? hide() : show()"
+                class="rounded border border-gray-500 px-3 py-2 text-sm landscape:hidden"
+            >
+                Liste des véhicules
+            </button>
+        </div>
     </header>
 
     <main class="relative flex min-h-0 grow flex-col landscape:flex-row">

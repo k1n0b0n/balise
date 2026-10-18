@@ -18,6 +18,7 @@ export class LineCatalogue {
     // True once the first fetch has answered or failed: drawing earlier would show every vehicle without its line.
     settled = false;
     private loading = false;
+    private paused = false;
     private retry: number | undefined;
     // When each missing line was last looked for: a line the import does not know is not asked for on every update.
     private readonly searched = new Map<string, number>();
@@ -54,6 +55,23 @@ export class LineCatalogue {
         }
     }
 
+    /**
+     * No retry while live updates are paused (E3.6); resuming loads a catalogue that never arrived.
+     */
+    pause(): void {
+        this.paused = true;
+        window.clearTimeout(this.retry);
+        this.retry = undefined;
+    }
+
+    resume(): void {
+        this.paused = false;
+
+        if (!this.loaded) {
+            void this.load();
+        }
+    }
+
     private async load(): Promise<void> {
         if (this.loading) {
             return;
@@ -78,6 +96,9 @@ export class LineCatalogue {
             if (!this.settled) {
                 this.settled = true;
                 this.onChange();
+            }
+            if (this.paused) {
+                return;
             }
             this.retry ??= window.setTimeout(() => {
                 this.retry = undefined;

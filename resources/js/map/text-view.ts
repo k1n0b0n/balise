@@ -24,6 +24,8 @@ interface Row {
 export interface TextView {
     update(vehicles: Vehicle[]): void;
     updated(at: Date): void;
+    paused(): void;
+    resumed(): void;
 }
 
 export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id: string) => void): TextView {
@@ -35,6 +37,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
     const rows = new Map<string, Row>();
     let empty: Element | null = null;
     let rendered = false;
+    let lastUpdate: Date | null = null;
 
     root.addEventListener('click', (event) => {
         const id = (event.target as Element).closest('[data-open]')?.closest<HTMLElement>('[data-vehicle]')?.dataset.vehicle;
@@ -109,9 +112,21 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
     }
 
     function updated(at: Date): void {
-        const text = `Mis à jour à ${clock.format(at)}`;
-
+        lastUpdate = at;
         // Worded to the minute and written only when it changes: screen readers hear it at most once a minute.
+        setStatus(`Mis à jour à ${clock.format(at)}`);
+    }
+
+    function paused(): void {
+        setStatus(lastUpdate === null ? 'Mises à jour en pause' : `Mises à jour en pause, dernière à ${clock.format(lastUpdate)}`);
+    }
+
+    // The catch-up request may find nothing new and leave the status alone: say at once that updates are back.
+    function resumed(): void {
+        setStatus(lastUpdate === null ? 'En attente des positions' : `Mis à jour à ${clock.format(lastUpdate)}`);
+    }
+
+    function setStatus(text: string): void {
         if (status.textContent?.trim() !== text) {
             status.textContent = text;
         }
@@ -167,7 +182,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         element.remove();
     }
 
-    return { update, updated };
+    return { update, updated, paused, resumed };
 }
 
 function renderAge(row: Row): void {
