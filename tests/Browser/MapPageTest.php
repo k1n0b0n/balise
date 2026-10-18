@@ -203,8 +203,9 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertPresent('[data-map][data-vehicle-count="3"]');
     $page->script('window.samePage = true');
 
-    $page->select('#ligne', 'B')
-        ->click('[data-line-filter] button[type="submit"]')
+    // Without a submit button: a choice applies at once.
+    $page->assertMissing('[data-line-submit]')
+        ->select('#ligne', 'B')
         ->assertScript('location.search', '?ligne=B')
         ->assertScript('window.samePage', true)
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:B')
@@ -219,21 +220,19 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
         // Choosing another line ends the selection of a vehicle that is not on it.
         ->select('#ligne', 'B')
-        ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '?ligne=B')
         ->assertMissing('[role="dialog"]')
         ->assertPresent('[data-map][data-followed=""]')
-        // The link of the text view deselects the line, and the focus stays in the text view.
-        ->assertSeeIn('[data-line-clear]', 'Désélectionner la ligne B')
-        ->click('[data-line-clear] a')
+        // The button next to the selector deselects the line; the focus goes back to the selector.
+        // The cross is hidden from assistive technologies: the link's name says what it does.
+        ->assertPresent('internal:role=link[name=/^ ?Désélectionner la ligne B$/]')
+        ->click('[data-line-clear]')
         ->assertScript('location.search', '')
         ->assertMissing('[data-line-clear]')
-        ->assertScript('document.activeElement.id', 'vue-texte')
+        ->assertScript('document.activeElement.id', 'ligne')
         ->assertScript("document.querySelector('#ligne').value", '')
         ->select('#ligne', 'B')
-        ->click('[data-line-filter] button[type="submit"]')
         ->select('#ligne', '')
-        ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '')
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", '')
         ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:1,tbm:2,tbm:3')

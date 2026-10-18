@@ -17,7 +17,6 @@ export interface MapControls {
     textView: HTMLElement | null;
     pause: HTMLButtonElement | null;
     lineFilter: HTMLFormElement | null;
-    lineClear: HTMLElement | null;
 }
 
 export interface MapOptions {
@@ -81,6 +80,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
     let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
+    const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
 
     const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
         redraw();
@@ -182,10 +182,10 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
 
     // Shown with a selected line only; the server renders it the same way before JavaScript loads.
     function showLineClear(): void {
-        const name = controls.lineClear?.querySelector('[data-line-clear-name]');
+        const name = lineClear?.querySelector('[data-line-clear-name]');
 
-        if (controls.lineClear !== null && name) {
-            controls.lineClear.hidden = selection.line === null;
+        if (lineClear !== null && name) {
+            lineClear.hidden = selection.line === null;
             name.textContent = selection.line ?? '';
         }
     }
@@ -248,11 +248,16 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
     });
 
-    // The form works without JavaScript by reloading the page; here it applies at once.
+    // The form works without JavaScript by reloading the page with its button; here a choice applies at once.
     const lineFilter = controls.lineFilter;
     if (lineFilter !== null) {
-        lineFilter.addEventListener('submit', (event) => {
-            event.preventDefault();
+        const submit = lineFilter.querySelector<HTMLElement>('[data-line-submit]');
+        if (submit !== null) {
+            submit.hidden = true;
+        }
+
+        lineFilter.addEventListener('submit', (event) => event.preventDefault());
+        lineFilter.addEventListener('change', () => {
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;
             // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
@@ -265,13 +270,9 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         });
     }
 
-    // The link works without JavaScript by loading the page without `?ligne=`; here it applies at once. Its paragraph
-    // hides, so the focus goes to the text view rather than to the page.
-    controls.lineClear?.addEventListener('click', (event) => {
-        if (!(event.target instanceof Element) || event.target.closest('a') === null) {
-            return;
-        }
-
+    // The link works without JavaScript by loading the page without `?ligne=`; here it applies at once. It hides, so
+    // the focus goes to the selector rather than to the page.
+    lineClear?.addEventListener('click', (event) => {
         event.preventDefault();
         if (selectedVehicle === null) {
             selection = { line: null, vehicle: null };
@@ -279,7 +280,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         } else {
             layer?.close();
         }
-        controls.textView?.focus();
+        lineSelector?.focus();
     });
 
     // Rendered hidden: without JavaScript nothing updates, so there is nothing to pause (E3.6, RGAA 13.8).

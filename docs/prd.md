@@ -86,7 +86,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Escape, or the close button, closes the popup and returns focus to where it was; the popup follows its vehicle and closes if the vehicle disappears
 - E3.4 Select a line or a vehicle and let the map follow it
   - [x] A labelled line selector highlights that line without hiding the others: its vehicles drawn larger and over the rest, its group first in the text view, the map fitted to them; choosing a vehicle (popup or text view) selects its line and makes the map follow it on each update
-  - [x] Moving the map by hand stops following; closing the popup, or a link in the text view, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
+  - [x] Moving the map by hand stops following; closing the popup, or a button next to the selector, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
   - [x] The selected line's shape, from the network file of E3.8, is drawn over the others at the same width, still under its vehicles, in a colour that reaches 3:1 against the basemap (WCAG 1.4.11), measured and recorded in the story file
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
   - [x] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
