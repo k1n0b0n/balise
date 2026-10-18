@@ -143,7 +143,8 @@ it('pauses and resumes live updates without a request while paused', function ()
         'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
         'line_id' => null, 'recorded_at' => now(), 'received_at' => now(),
     ]);
-    $requests = "performance.getEntriesByType('resource').filter((entry) => entry.name.includes('/vehicles')).length";
+    // Requests started after the pause: one already on its way when the button is pressed may end after it.
+    $requestsSincePause = "performance.getEntriesByType('resource').filter((entry) => entry.name.includes('/vehicles') && entry.startTime > window.pausedAt).length";
 
     $page = visit('/')
         ->assertPresent('[data-map][data-vehicle-count="1"]')
@@ -152,15 +153,15 @@ it('pauses and resumes live updates without a request while paused', function ()
         ->assertAttribute('[data-pause]', 'aria-pressed', 'true')
         ->assertSeeIn('[data-status]', 'Mises à jour en pause, dernière à')
         ->assertNoAccessibilityIssues(level: 3);
-    $before = $page->script($requests);
+    $page->script('window.pausedAt = performance.now()');
 
     // Two intervals without a request, then one request as soon as it resumes.
     $page->wait(2.5)
-        ->assertScript($requests, $before)
+        ->assertScript($requestsSincePause, 0)
         ->click('[data-pause]')
         ->assertAttribute('[data-pause]', 'aria-pressed', 'false')
         ->wait(0.5)
-        ->assertScript($requests, $before + 1)
+        ->assertScript($requestsSincePause, 1)
         ->assertSeeIn('[data-status]', 'Mis à jour à')
         ->assertNoJavaScriptErrors();
 });

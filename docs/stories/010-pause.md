@@ -18,7 +18,8 @@ See E3.6 in [prd.md](../prd.md).
 
 - A response already on its way when the user pauses is dropped, version included: nothing moves after the click, and resuming asks again from the same version.
 - The button keeps its label ("Pause des mises à jour" for assistive technologies) and only `aria-pressed` changes, as a toggle button should; pressed, it is dark.
-- The line catalogue's retry after a failed load is paused too; resuming loads it if it never arrived. Not paused: the ages ("il y a 25 s") keep counting, since they stay true.
+- The line catalogue pauses too: an answer arriving during the pause is kept but drawn only on resume, and a retry cancelled by the pause, or a load failing during it, runs again on resume. Not paused: the ages ("il y a 25 s") keep counting, since they stay true.
 - The browser test counts requests with the Resource Timing API, the refresh interval set to 1 s.
 - The popup test failed in the full suite (twice), never with the browser file alone, nor on `main`: `data-vehicle-count` was written when the data was handed to MapLibre, whose worker draws it later, so a test could click before the vehicle was there. The attribute is now written when the map is next idle.
 - JavaScript budget: 501.3 KB compressed (+0.3 KB).
+- CodeRabbit reviewed the pull request on its own when it was marked ready (the explicit request then hit the hourly limit): four findings. Fixed: a catalogue answer redrawing during the pause, a missing-line retry lost on resume, the test counting requests by end rather than start. Not changed: a request started before a pause and ending after a quick resume is applied, since its data is no older than the catch-up request would bring; the interval then resumes.
