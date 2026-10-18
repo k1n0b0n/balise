@@ -60,6 +60,7 @@ it('lists the line in the URL first, before JavaScript loads, and keeps the othe
     $this->get('/?ligne=A')
         ->assertOk()
         ->assertSee('<option value="A" selected>', escape: false)
+        ->assertSee('Désélectionner la ligne <span data-line-clear-name>A</span>', escape: false)
         ->assertSeeInOrder(['Véhicule on-A,', 'Véhicule on-10,']);
 
     // Trams first in the selector, whatever the names.

@@ -80,6 +80,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
     let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
+    const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
 
     const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
         redraw();
@@ -161,22 +162,38 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         );
     }
 
-    // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup keeps the line.
+    // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup ends both.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
         follow(vehicle?.id ?? null);
+        selection = { line: vehicle === null ? null : (lines.get(vehicle.lineId)?.shortName ?? null), vehicle: vehicle === null ? null : displayId(vehicle) };
+        changed();
+    }
 
-        if (vehicle === null) {
-            selection = { ...selection, vehicle: null };
-        } else {
-            selection = { line: lines.get(vehicle.lineId)?.shortName ?? null, vehicle: displayId(vehicle) };
-            if (lineSelector !== null) {
-                lineSelector.value = selection.line ?? '';
-            }
+    // The selection changed: the selector, the URL, the "deselect" link and the drawing follow.
+    function changed(): void {
+        if (lineSelector !== null) {
+            lineSelector.value = selection.line ?? '';
         }
-
         writeSelection(selection);
+        showLineClear();
         redraw();
+    }
+
+    // A vehicle still waiting to open, from the URL or the text view, would undo a choice made meanwhile.
+    function cancelPendingOpenings(): void {
+        reopenPending = null;
+        waiting = null;
+    }
+
+    // Shown with a selected line only; the server renders it the same way before JavaScript loads.
+    function showLineClear(): void {
+        const name = lineClear?.querySelector('[data-line-clear-name]');
+
+        if (lineClear !== null && name) {
+            lineClear.hidden = selection.line === null;
+            name.textContent = selection.line ?? '';
+        }
     }
 
     function follow(id: string | null): void {
@@ -237,22 +254,42 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
     });
 
-    // The form works without JavaScript by reloading the page; here it applies at once.
+    // The form works without JavaScript by reloading the page with its button; here a choice applies at once.
     const lineFilter = controls.lineFilter;
     if (lineFilter !== null) {
-        lineFilter.addEventListener('submit', (event) => {
-            event.preventDefault();
+        const submit = lineFilter.querySelector<HTMLElement>('[data-line-submit]');
+        if (submit !== null) {
+            submit.hidden = true;
+        }
+
+        lineFilter.addEventListener('submit', (event) => event.preventDefault());
+        lineFilter.addEventListener('change', () => {
+            cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
-            selection = { ...selection, line: typeof value === 'string' && value !== '' ? value : null };
+            const line = typeof value === 'string' && value !== '' ? value : null;
             // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
-            if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== selection.line) {
+            if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== line) {
                 layer?.close();
             }
-            fitPending = selection.line !== null;
-            writeSelection(selection);
-            redraw();
+            selection = { ...selection, line };
+            fitPending = line !== null;
+            changed();
         });
     }
+
+    // The link works without JavaScript by loading the page without `?ligne=`; here it applies at once. It hides, so
+    // the focus goes to the selector rather than to the page.
+    lineClear?.addEventListener('click', (event) => {
+        event.preventDefault();
+        cancelPendingOpenings();
+        if (selectedVehicle === null) {
+            selection = { line: null, vehicle: null };
+            changed();
+        } else {
+            layer?.close();
+        }
+        lineSelector?.focus();
+    });
 
     // Rendered hidden: without JavaScript nothing updates, so there is nothing to pause (E3.6, RGAA 13.8).
     const pauseButton = controls.pause;

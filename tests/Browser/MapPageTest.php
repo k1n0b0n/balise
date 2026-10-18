@@ -203,8 +203,9 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertPresent('[data-map][data-vehicle-count="3"]');
     $page->script('window.samePage = true');
 
-    $page->select('#ligne', 'B')
-        ->click('[data-line-filter] button[type="submit"]')
+    // Without a submit button: a choice applies at once.
+    $page->assertMissing('[data-line-submit]')
+        ->select('#ligne', 'B')
         ->assertScript('location.search', '?ligne=B')
         ->assertScript('window.samePage', true)
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:B')
@@ -219,12 +220,19 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
         // Choosing another line ends the selection of a vehicle that is not on it.
         ->select('#ligne', 'B')
-        ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '?ligne=B')
         ->assertMissing('[role="dialog"]')
         ->assertPresent('[data-map][data-followed=""]')
+        // The button next to the selector deselects the line; the focus goes back to the selector.
+        // The cross is hidden from assistive technologies: the link's name says what it does.
+        ->assertPresent('internal:role=link[name=/^ ?Désélectionner la ligne B$/]')
+        ->click('[data-line-clear]')
+        ->assertScript('location.search', '')
+        ->assertMissing('[data-line-clear]')
+        ->assertScript('document.activeElement.id', 'ligne')
+        ->assertScript("document.querySelector('#ligne').value", '')
+        ->select('#ligne', 'B')
         ->select('#ligne', '')
-        ->click('[data-line-filter] button[type="submit"]')
         ->assertScript('location.search', '')
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", '')
         ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:1,tbm:2,tbm:3')
@@ -250,9 +258,11 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertPresent('[data-map][data-followed=""]')
         // Still selected: the popup stays open and the URL keeps the vehicle.
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
-        // Closing the popup ends the vehicle's selection, not its line's.
+        // Closing the popup ends the selection of the vehicle and of its line.
         ->keys('[role="dialog"] button', 'Escape')
-        ->assertScript('location.search', '?ligne=A')
+        ->assertScript('location.search', '')
+        ->assertScript("document.querySelector('#ligne').value", '')
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", '')
         ->assertNoJavaScriptErrors();
 
     visit('/?vehicule=1234')

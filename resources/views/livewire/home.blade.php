@@ -43,7 +43,15 @@
                     </optgroup>
                 @endforeach
             </select>
-            <button type="submit" class="rounded border border-gray-500 px-3 py-2 text-sm">Afficher<span class="sr-only"> la ligne</span></button>
+            {{-- Without JavaScript only: the map module applies a choice at once and hides it. --}}
+            <button type="submit" data-line-submit class="rounded border border-gray-500 px-3 py-2 text-sm">Afficher<span class="sr-only"> la ligne</span></button>
+            {{-- A link, so that it works before JavaScript loads; the map module then deselects without reloading. --}}
+            <a
+                href="{{ route('home') }}"
+                data-line-clear
+                @if ($selectedLine === null) hidden @endif
+                class="rounded border border-gray-500 px-3 py-2 text-sm leading-none"
+            ><span aria-hidden="true">×</span><span class="sr-only">Désélectionner la ligne <span data-line-clear-name>{{ $selectedLine?->short_name }}</span></span></a>
         </form>
         <div class="flex items-center gap-2">
             <button type="button" hidden data-pause aria-pressed="false" class="rounded border border-gray-500 px-3 py-2 text-sm aria-pressed:bg-gray-900 aria-pressed:text-white">
