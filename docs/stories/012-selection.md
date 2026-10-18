@@ -12,12 +12,12 @@ See E3.4 in [prd.md](../prd.md).
 - [x] Line selector in the header: a GET form (`?ligne=` with the line's short name) and a submit button, so it works without JavaScript; the server lists that line first in the text view and keeps the choice selected
 - [x] With JavaScript, the form applies without reloading: the line's vehicles are drawn larger and over the others, its group comes first in the text view, the map fits them once, the URL follows (`history.replaceState`)
 - [x] Choosing a vehicle (popup or text view) selects it and its line: `?ligne=` and `?vehicule=`, the map follows it on each update; closing the popup ends the selection; moving the map by hand stops following; a reload opens the vehicle again
-- [x] The selected line (or the selected vehicle's line) is drawn over the others, stronger and wider, with a dark casing for 3:1
+- [x] The selected line is drawn over the others at the same width, in its full colour, darkened where needed to reach 3:1
 - [x] Browser tests: selection without reload, URL, reload, following stopped by a drag, axe
 
 ## Notes
 
-- **Contrast of the selected line: a dark casing.** Measured against Positron's background (#F2F3F0): 54 of TBM's 202 line colours stay under 3:1 even at full strength (the Lianes' green #76B82A at 2.18:1, the blue #00B1EB at 2.22:1), so no transparency could reach it. The selected line is drawn over the others in its colour mixed at 75 % with the background, still a little transparent, inside a #1F2937 casing (13.9:1), like the markers' outline (E3.2).
+- **Contrast of the selected line: its colour, darkened where needed.** Measured against Positron's background (#F2F3F0): 54 of TBM's 202 lines (5 of its 24 colours) stay under 3:1 even at full strength, such as the Lianes' green #76B82A (2.18:1) and blue #00B1EB (2.22:1). The selected line is drawn in its full colour, mixed with the markers' dark grey #1F2937 in steps of 5 % until it reaches 3:1 (30 % at most on TBM), so every selected line reaches 3:1 and keeps its hue. A first version drew it wider inside a dark casing; at the maintainer's review it keeps the others' width, so as not to hide more of the map.
 - **The other vehicles stay.** The first version showed only the selected line's vehicles; at the maintainer's review, a line is highlighted instead: its markers 1.5 times larger and drawn over the others, its labels at 13 px instead of 11, its group first in the text view. The PRD criterion was reworded accordingly.
 - **Choosing a vehicle selects its line** (selector, URL, highlight), as asked at the maintainer's review: choosing another vehicle moves the highlight to its line. Closing the popup ends the vehicle's selection and keeps the line.
 - **A white ring sets the selected line's vehicles apart from its shape**, drawn in the same colour under them (maintainer's review): 2 px outside the dark outline, which stays next to the marker's colour for its 3:1.
