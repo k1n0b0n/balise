@@ -84,7 +84,7 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
     const popup = new VehiclePopup(map, lines, onSelect);
 
     // Keyboard users open the same popup from the text view (E3.5): canvas markers cannot take focus (ADR-0011).
-    // Markers may be stacked, at a terminus for instance: each click on them opens the next one.
+    // Markers may be stacked, at a terminus for instance: the popup opens on the first and its arrows go through the rest.
     map.on('click', ({ point }) => {
         const features = map.queryRenderedFeatures(
             [
@@ -101,11 +101,10 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
             return;
         }
 
-        const position = (ids.indexOf(popup.openId ?? '') + 1) % ids.length;
-        const vehicle = current.get(ids[position] ?? '');
+        const vehicle = current.get(ids[0] ?? '');
 
         if (vehicle !== undefined) {
-            popup.open(vehicle, ids.length > 1 ? { position: position + 1, count: ids.length } : null);
+            popup.open(vehicle, ids);
         }
     });
     map.on('mousemove', 'vehicles', () => (map.getCanvas().style.cursor = 'pointer'));

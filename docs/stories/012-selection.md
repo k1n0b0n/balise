@@ -13,7 +13,7 @@ See E3.4 in [prd.md](../prd.md).
 - [x] With JavaScript, the form applies without reloading: the line's vehicles are drawn larger and over the others, its group comes first in the text view, the map fits them once, the URL follows (`history.replaceState`)
 - [x] Choosing a vehicle (popup or text view) selects it and its line: `?ligne=` and `?vehicule=`, the map follows it on each update; closing the popup ends the selection; moving the map by hand stops following; a reload opens the vehicle again
 - [x] The selected line is drawn over the others at the same width, in its full colour, darkened where needed to reach 3:1
-- [x] Stacked markers: each click on them opens the next vehicle, and the popup says how many there are
+- [x] Stacked markers: the popup opens on the first, and its arrows go through the others
 - [x] Browser tests: selection without reload, URL, reload, following stopped by a drag, axe
 
 ## Notes
@@ -27,4 +27,4 @@ See E3.4 in [prd.md](../prd.md).
 - Following stops on a drag or on the arrow keys, not on a zoom, which keeps the vehicle in the centre. Closing the popup ends the selection.
 - The URL is updated with `history.replaceState`: choices do not pile up in the history.
 - JavaScript budget: 502.6 KB compressed (+0.8 KB).
-- **Stacked markers** (maintainer's review): one of two vehicles at the same place could not be opened from the map. Each click on the spot now opens the next vehicle, in order of id, and the popup says "Véhicule 1 sur 2 à cet endroit : cliquez à nouveau pour le suivant." Chosen over a list of the stacked vehicles in a popup, and over spreading the markers, which would show false positions; the text view still reaches every vehicle.
+- **Stacked markers** (maintainer's review): one of two vehicles at the same place could not be opened from the map. A click opens the popup on the first (in order of id), with arrows ‹ › and "1 sur 2 à cet endroit" to go through the others; the arrows are buttons, named for screen readers, and keep the focus. A first version went to the next vehicle on each click, which nobody would guess. Spreading the markers was rejected: it shows false positions. The text view still reaches every vehicle.

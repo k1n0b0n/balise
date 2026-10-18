@@ -27,8 +27,9 @@ export function formatAge(recordedAt: string, now: number = Date.now()): string 
 export class VehiclePopup {
     private readonly popup = new Popup({ closeOnClick: false, maxWidth: '18rem' });
     private vehicle: Vehicle | null = null;
-    // Opened from a click on stacked markers: its rank among them, so that the user knows another click shows the next.
-    private stack: { position: number; count: number } | null = null;
+    // Opened from a click on stacked markers: their ids, which the arrows of the popup go through.
+    private stack: string[] = [];
+    private vehicles: ReadonlyMap<string, Vehicle> = new Map();
     private returnFocusTo: Element | null = null;
     private ticking: number | undefined;
 
@@ -47,11 +48,7 @@ export class VehiclePopup {
         });
     }
 
-    get openId(): string | null {
-        return this.popup.isOpen() ? (this.vehicle?.id ?? null) : null;
-    }
-
-    open(vehicle: Vehicle, stack: { position: number; count: number } | null = null): void {
+    open(vehicle: Vehicle, stack: string[] = []): void {
         if (!this.popup.isOpen()) {
             this.returnFocusTo = document.activeElement;
         }
@@ -60,10 +57,8 @@ export class VehiclePopup {
         this.stack = stack;
         this.render();
         this.popup.addTo(this.map);
-
-        const element = this.popup.getElement();
-        element.setAttribute('role', 'dialog');
-        element.setAttribute('aria-label', `Véhicule ${displayId(vehicle)}`);
+        this.popup.getElement().setAttribute('role', 'dialog');
+        this.label();
 
         // The age changes every second; it is not a live region, so screen readers are not flooded.
         window.clearInterval(this.ticking);
@@ -75,6 +70,8 @@ export class VehiclePopup {
      * Follows the open vehicle to its new position, or closes when it is no longer on the map.
      */
     update(vehicles: ReadonlyMap<string, Vehicle>): void {
+        this.vehicles = vehicles;
+
         if (this.vehicle === null || !this.popup.isOpen()) {
             return;
         }
@@ -91,6 +88,31 @@ export class VehiclePopup {
 
     close(): void {
         this.popup.remove();
+    }
+
+    // The next or previous vehicle of the stack, in a loop; the arrows keep the focus.
+    private step(offset: number): void {
+        const stack = this.present();
+        const position = stack.indexOf(this.vehicle?.id ?? '');
+        const vehicle = this.vehicles.get(stack[(position + offset + stack.length) % stack.length] ?? '');
+
+        if (vehicle !== undefined) {
+            this.vehicle = vehicle;
+            this.render();
+            this.label();
+            this.onSelect(vehicle);
+        }
+    }
+
+    // The stacked vehicles still on the map.
+    private present(): string[] {
+        return this.stack.filter((id) => this.vehicles.has(id));
+    }
+
+    private label(): void {
+        if (this.vehicle !== null) {
+            this.popup.getElement()?.setAttribute('aria-label', `Véhicule ${displayId(this.vehicle)}`);
+        }
     }
 
     private render(): void {
@@ -118,15 +140,34 @@ export class VehiclePopup {
 
         const content = document.createElement('div');
         content.append(list);
+        const stack = this.present();
+        // Rebuilt on every render: the arrow that had the focus gets it back.
+        const focused = document.activeElement?.closest<HTMLElement>('[data-step]')?.dataset.step;
 
-        if (this.stack !== null) {
-            const note = document.createElement('p');
-            note.className = 'mt-2 pr-5 text-sm text-gray-700';
-            note.textContent = `Véhicule ${this.stack.position} sur ${this.stack.count} à cet endroit : cliquez à nouveau pour le suivant.`;
-            content.append(note);
+        if (stack.length > 1) {
+            const nav = document.createElement('div');
+            nav.className = 'mt-2 flex items-center gap-2 text-sm';
+            const count = document.createElement('span');
+            count.textContent = `${stack.indexOf(this.vehicle.id) + 1} sur ${stack.length} à cet endroit`;
+
+            const [previous, next] = (['-1', '1'] as const).map((step) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.dataset.step = step;
+                button.className = 'rounded border border-gray-500 px-2 leading-6';
+                button.textContent = step === '-1' ? '‹' : '›';
+                button.setAttribute('aria-label', step === '-1' ? 'Véhicule précédent à cet endroit' : 'Véhicule suivant à cet endroit');
+                button.addEventListener('click', () => this.step(Number(step)));
+
+                return button;
+            }) as [HTMLButtonElement, HTMLButtonElement];
+
+            nav.append(previous, count, next);
+            content.append(nav);
         }
 
         this.popup.setLngLat([longitude, latitude]).setDOMContent(content);
+        content.querySelector<HTMLElement>(`[data-step="${focused}"]`)?.focus();
     }
 
     private renderAge(): void {

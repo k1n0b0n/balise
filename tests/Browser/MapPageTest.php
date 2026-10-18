@@ -256,7 +256,7 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertNoJavaScriptErrors();
 });
 
-it('opens stacked vehicles one after the other on successive clicks', function (): void {
+it('goes through stacked vehicles with the arrows of the popup', function (): void {
     Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
 
     foreach (['1111', '2222'] as $vehicle) {
@@ -275,12 +275,17 @@ it('opens stacked vehicles one after the other on successive clicks', function (
         ->assertPresent('[data-map][data-vehicle-count="2"]')
         ->click('[data-map] canvas')
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1111"]')
-        ->assertSeeIn('[role="dialog"]', 'Véhicule 1 sur 2 à cet endroit : cliquez à nouveau pour le suivant.')
-        ->click('[data-map] canvas')
-        ->assertPresent('[role="dialog"][aria-label="Véhicule 2222"]')
-        ->assertSeeIn('[role="dialog"]', 'Véhicule 2 sur 2')
-        ->click('[data-map] canvas')
-        ->assertPresent('[role="dialog"][aria-label="Véhicule 1111"]')
+        ->assertSeeIn('[role="dialog"]', '1 sur 2 à cet endroit')
         ->assertNoAccessibilityIssues(level: 3)
+        ->keys('[data-step="1"]', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 2222"]')
+        ->assertSeeIn('[role="dialog"]', '2 sur 2 à cet endroit')
+        // The arrow keeps the focus, so that the next press goes on.
+        ->assertScript('document.activeElement.dataset.step', '1')
+        ->assertScript('location.search', '?ligne=A&vehicule=2222')
+        ->keys('[data-step="1"]', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1111"]')
+        ->keys('[data-step="-1"]', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 2222"]')
         ->assertNoJavaScriptErrors();
 });
