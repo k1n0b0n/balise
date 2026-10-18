@@ -1,5 +1,8 @@
 // Line catalogue: what each line looks like, fetched once instead of with every position (E3.5, RGESN).
 
+// A line still missing after a refetch is looked for again at most once an hour: the daily import may bring it.
+const SEARCH_AGAIN_MS = 60 * 60 * 1000;
+
 export interface Line {
     id: string;
     shortName: string;
@@ -16,8 +19,8 @@ export class LineCatalogue {
     settled = false;
     private loading = false;
     private retry: number | undefined;
-    // Lines already looked for in a refetch: a line the import does not know is not asked for on every update.
-    private readonly searched = new Set<string>();
+    // When each missing line was last looked for: a line the import does not know is not asked for on every update.
+    private readonly searched = new Map<string, number>();
 
     constructor(
         private readonly url: string,
@@ -30,7 +33,8 @@ export class LineCatalogue {
     }
 
     /**
-     * Loads the catalogue, or fetches it again once when positions name lines it lacks (a newer daily import).
+     * Loads the catalogue, or fetches it again when positions name lines it lacks (a newer daily import), at most once
+     * an hour for the same line.
      */
     ensure(lineIds: Iterable<string | null>): void {
         if (!this.loaded) {
@@ -39,10 +43,13 @@ export class LineCatalogue {
             return;
         }
 
-        const missing = [...new Set(lineIds)].filter((id): id is string => id !== null && !this.lines.has(id) && !this.searched.has(id));
+        const now = Date.now();
+        const missing = [...new Set(lineIds)].filter(
+            (id): id is string => id !== null && !this.lines.has(id) && now - (this.searched.get(id) ?? -Infinity) >= SEARCH_AGAIN_MS,
+        );
 
         if (missing.length > 0) {
-            missing.forEach((id) => this.searched.add(id));
+            missing.forEach((id) => this.searched.set(id, now));
             void this.load();
         }
     }

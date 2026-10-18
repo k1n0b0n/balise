@@ -94,7 +94,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Live updates never move the focus and do not announce every change; a single polite status line gives the time of the last update
   - [ ] Checked with the keyboard only and with VoiceOver; no axe violation; findings recorded in the story file
   - [x] Line data (short and long name, mode, colour) comes from a line catalogue endpoint, fetched in parallel with the first positions and cached with `ETag`; positions carry only the line id, and the vehicle number shown is derived from the vehicle id in the browser (RGESN)
-  - [x] A position naming a line the catalogue lacks triggers one conditional refetch; a line still unknown, or a catalogue that failed to load, shows the vehicle like one without a line
+  - [x] A position naming a line the catalogue lacks triggers one conditional refetch, repeated at most once an hour while that line stays unknown (the daily import may add it); a line still unknown, or a catalogue that failed to load, shows the vehicle like one without a line
   - [x] On a landscape screen the text view sits beside the map; on a portrait screen it is a side panel over the map, opened and closed by a button (`aria-expanded`), and shown under the map without JavaScript. Choosing a vehicle in the panel closes it to show the popup; Escape on the popup reopens the panel on that vehicle
 - E3.6 Pause and resume live updates (ADR-0006)
   - [ ] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
