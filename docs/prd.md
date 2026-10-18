@@ -82,7 +82,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Lines without a colour use a neutral colour; vehicles without a line are shown, labelled "?" on the map
 - E3.3 Vehicle popup: line, vehicle id, age of last position
   - [x] Clicking a vehicle opens a popup with the line (short and long name, or "Ligne inconnue"), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
-  - [ ] Keyboard users open the same popup from the text view, delivered with E3.5: canvas vehicles cannot take focus (ADR-0011), and RGAA test 7.3.1 accepts an element of the same page that performs the same action
+  - [ ] Keyboard users open the same popup from the text view (delivered with E3.5; canvas vehicles cannot take focus, ADR-0011; RGAA test 7.3.1 accepts an element of the same page doing the same action)
   - [x] Escape, or the close button, closes the popup and returns focus to where it was; the popup follows its vehicle and closes if the vehicle disappears
 - E3.4 Select a line or a vehicle and let the map follow it
   - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
