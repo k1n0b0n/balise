@@ -28,10 +28,10 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 
 Update this section at the end of every working session.
 
-- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page) and 007 (E3.2, vehicles on the map) done: ingestion (E2) complete, live vehicles on the map locally. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
-- **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0015 accepted (feed ingestion ports, database, MIT license, delivery workflow, quality tooling, RGAA and RGESN, local environment, CSS approach, Laravel Boost, UI stack, map library, hosting, position model, AI review bot, GTFS-Realtime library), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
+- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page) and 007 (E3.2, vehicles on the map) done: ingestion (E2) complete, live vehicles on the map locally. Story 008 (E3.3, vehicle popup) in review. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
+- **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0015 accepted (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
-  1. Stories E3.3 to E3.6.
+  1. Stories E3.4 to E3.6.
   2. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
   3. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
   4. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).

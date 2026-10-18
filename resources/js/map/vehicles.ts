@@ -1,6 +1,7 @@
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { Vehicle } from './live';
+import { VehiclePopup } from './popup';
 
 // Dark grey reaches 13.9:1 on Positron's background (#F2F3F0): marker outlines pass 3:1 and labels 4.5:1,
 // whatever the line colour. The white halo keeps labels readable over roads and other markers.
@@ -8,6 +9,8 @@ const DARK = '#1F2937';
 const UNKNOWN_LINE = '?';
 const SOURCE = 'vehicles';
 const PIXEL_RATIO = 2;
+// Markers are 7 px wide: a click counts if it lands this close.
+const CLICK_TOLERANCE = 6;
 
 type Shape = 'circle' | 'square' | 'diamond' | 'triangle';
 
@@ -65,9 +68,34 @@ export function showVehicles(map: MapLibreMap): (vehicles: Vehicle[]) => void {
         },
     });
 
+    let current = new Map<string, Vehicle>();
+    const popup = new VehiclePopup(map);
+
+    // Keyboard users open the same popup from the text view (E3.5): canvas markers cannot take focus (ADR-0011).
+    map.on('click', ({ point }) => {
+        const [feature] = map.queryRenderedFeatures(
+            [
+                [point.x - CLICK_TOLERANCE, point.y - CLICK_TOLERANCE],
+                [point.x + CLICK_TOLERANCE, point.y + CLICK_TOLERANCE],
+            ],
+            { layers: ['vehicles'] },
+        );
+        const vehicle = current.get(String(feature?.properties.id));
+
+        if (vehicle === undefined) {
+            popup.close();
+        } else {
+            popup.open(vehicle);
+        }
+    });
+    map.on('mousemove', 'vehicles', () => (map.getCanvas().style.cursor = 'pointer'));
+    map.on('mouseleave', 'vehicles', () => (map.getCanvas().style.cursor = ''));
+
     return (vehicles) => {
+        current = new Map(vehicles.map((vehicle) => [vehicle.id, vehicle]));
         map.getSource<GeoJSONSource>(SOURCE)?.setData(toGeoJson(vehicles));
         map.getContainer().dataset.vehicleCount = String(vehicles.length);
+        popup.update(current);
     };
 }
 
@@ -77,9 +105,9 @@ function toGeoJson(vehicles: Vehicle[]): FeatureCollection<Point> {
         features: vehicles.map(
             (vehicle): Feature<Point> => ({
                 type: 'Feature',
-                id: vehicle.id,
                 geometry: { type: 'Point', coordinates: [vehicle.longitude, vehicle.latitude] },
-                properties: { label: vehicle.line ?? UNKNOWN_LINE, shape: shapeOf(vehicle.mode), colour: vehicle.colour },
+                // Feature ids must be numbers in MapLibre: the vehicle id travels as a property.
+                properties: { id: vehicle.id, label: vehicle.line ?? UNKNOWN_LINE, shape: shapeOf(vehicle.mode), colour: vehicle.colour },
             }),
         ),
     };
