@@ -180,6 +180,12 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         redraw();
     }
 
+    // A vehicle still waiting to open, from the URL or the text view, would undo a choice made meanwhile.
+    function cancelPendingOpenings(): void {
+        reopenPending = null;
+        waiting = null;
+    }
+
     // Shown with a selected line only; the server renders it the same way before JavaScript loads.
     function showLineClear(): void {
         const name = lineClear?.querySelector('[data-line-clear-name]');
@@ -258,6 +264,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
 
         lineFilter.addEventListener('submit', (event) => event.preventDefault());
         lineFilter.addEventListener('change', () => {
+            cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;
             // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
@@ -274,6 +281,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // the focus goes to the selector rather than to the page.
     lineClear?.addEventListener('click', (event) => {
         event.preventDefault();
+        cancelPendingOpenings();
         if (selectedVehicle === null) {
             selection = { line: null, vehicle: null };
             changed();
