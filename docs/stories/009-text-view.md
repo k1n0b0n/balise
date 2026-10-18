@@ -1,7 +1,7 @@
 # Story 009: Text view equivalent to the map, line catalogue
 
 - **PRD:** E3.5 (and the keyboard criterion of E3.3)
-- **Status:** Review
+- **Status:** Done
 - **Idea:** [ideas/line-catalogue.md](../ideas/line-catalogue.md)
 
 ## Acceptance criteria
@@ -32,3 +32,5 @@ See E3.5 in [prd.md](../prd.md).
 - The visually hidden texts are absolutely positioned: the scrolling column must be positioned too (`relative`), or they escape it and lengthen the page.
 - Live TBM at 04:11 on 2026-10-18: one vehicle, a tram whose trip `nt_268436716` has no `route_id` and is not in the static GTFS (probably an unplanned run). ADR-0013 measured `route_id` on 100 % of vehicles at midday; at night TBM also sends such trips. Shown as "Ligne inconnue", as ADR-0013 requires; investigation in [ideas/vehicles-without-line.md](../ideas/vehicles-without-line.md).
 - To do by the maintainer: the VoiceOver check of the PRD criterion.
+- VoiceOver with Firefox and Chrome, landscape and portrait, 2026-10-18 (maintainer): skip link, headings, popup opened with Enter and closed with Escape, status line at most once a minute, side panel opened, closed and reopened on the chosen vehicle. One finding: with Tab the line headings are skipped, so "Véhicule 1234, afficher sur la carte" said no line; fixed in #39, the button's name now carries it. The browser test checks the name computed for assistive technologies.
+- CodeRabbit reviewed #37 (one finding: a line still missing after a refetch was never looked for again; now at most once an hour) and #39 (one nitpick: assert the computed accessible name rather than the text content).
