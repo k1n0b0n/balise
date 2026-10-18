@@ -1,6 +1,6 @@
 # Idea: the network on the map and in text
 
-- **Status:** Planned → E3.4 (selected line's shape), E7.1, E7.2; Exploring: whole-network shapes, next departures
+- **Status:** Planned → E3.8 (whole-network shapes, ADR-0016), E3.4 (selected line), E7.1, E7.2; Exploring: next departures
 - **Related:** ADR-0001, ADR-0002, ADR-0006
 
 ## Data (TBM static GTFS of 2026-10-17)
@@ -31,9 +31,9 @@ One variant per line and direction would likely be two to three times smaller; n
 ## Steps
 
 1. **Stations on the map** from a street zoom level, cached like the line catalogue (E7.1).
-2. **The selected line's shape** under its vehicles, a few KB per line (E3.4).
+2. **The selected line's shape** under its vehicles, highlighted in the whole-network file (E3.4, after E3.8).
 3. **One server-rendered page per line** (`/lignes/{line}`) with its stops in order for each direction, from one representative trip per direction (E7.2). Better for RGAA than listing 5,000 stops in the map's text view.
-4. **Whole-network shapes:** static GeoJSON generated at import (130 to 280 KB at once), or vector tiles loaded per viewport and simplified per zoom (PostGIS `ST_AsMVT` or PMTiles, own ADR). To be discussed.
+4. **Whole-network shapes:** decided 2026-10-18, a static GeoJSON file generated at import only when shapes change, every line faint and the selected one less transparent (E3.8, ADR-0016); vector tiles when a second network needs them.
 5. **Next departures at a stop:** static stop times corrected by TripUpdates, behind the trip updates port anticipated by ADR-0001.
 
 ## Open questions
