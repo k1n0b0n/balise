@@ -28,13 +28,14 @@
 2. **The `gtfs-rt` driver of `VehicleFeed` reads the trip updates feed**, a second URL of the same standard in the network's configuration. For each position, its trip's update gives the destination (the last stop of the update) and, when the position has no `route_id`, its line. No new port: the third port of ADR-0001 stays for next departures.
 3. **Trip updates are fetched only when needed**: when a position names a trip not yet known, at most once a minute, with the feed's `ETag`. What a trip gives is cached for the trip's lifetime (a day at most), so most polls read only positions. The real frequency and volume are measured in the story (RGESN).
 4. **The positions payload carries the destination's name**, not its stop id: measured on 119 vehicles at 23:32, the name adds 364 bytes compressed (+12 %), the stop id 488 bytes and would need the names from another endpoint.
-5. **Coverage is checked in the story** over a day (morning, midday, evening): share of positions with an update, of updates without a last stop, and stability of the destination along a trip. If it falls short, the static `trip_headsign` (option 3 of the idea) is the fallback, by a new ADR.
+5. **The vehicle's own label is kept and named in the interface** (maintainer's choice): `vehicle.label` becomes an optional field of the position, stored and sent as is. A vehicle reads "Tram F - AEROPORT" (mode, line, label) instead of its id ("ineo-tram:1302"), which riders never see; without a label, its number stays. Vehicles of the same line and sign would share that name, so the text view's buttons add the number for screen readers (RGAA: distinct names), and the popup shows it.
+6. **Coverage is checked in the story** over a day (morning, midday, evening): share of positions with an update, of updates without a last stop, and stability of the destination along a trip. If it falls short, the static `trip_headsign` (option 3 of the idea) is the fallback, by a new ADR.
 
 ## Alternatives considered
 
 | Option | Why not |
 |---|---|
-| `vehicle.label` as destination (TBM) | Free and what riders read on the vehicle, but specific to TBM (a fleet number elsewhere), in capitals and abbreviated; and trip updates are still needed for the line of `nt_` trips. Kept as a per-network option if trip updates prove too costly |
+| `vehicle.label` as destination (TBM) | Free and what riders read on the vehicle, but specific to TBM (a fleet number elsewhere), in capitals and abbreviated; and trip updates are still needed for the line of `nt_` trips. Kept as the vehicle's name instead (decision 5), and as a per-network option for the destination if trip updates prove too costly |
 | A `TripUpdates` port now, merged outside the ingestion layer | The shape of next departures (predicted times per stop) is not known yet; building it for two fields is speculative |
 | Static `trip_headsign` from `trips.txt` | No answer for `nt_` trips, which are a third of the trams at midday; needs trips imported |
 | Fetching trip updates on every poll | 358 KB to 1.2 MB every 20 s for facts that change once per trip |
@@ -42,7 +43,8 @@
 
 ## Consequences
 
-- The `gtfs-rt` driver gets a second URL and a cache; `VehiclePosition` gets an optional destination; positions store the destination's stop id.
+- The `gtfs-rt` driver gets a second URL and a cache; `VehiclePosition` gets an optional destination and label; positions store the destination's stop id and the label.
+- On a network whose label is a fleet number, a vehicle reads "Bus 12 - 4021": still more telling than an internal id.
 - The line of `nt_` trips becomes known: "Ligne inconnue" should become rare on TBM.
 - A network without trip updates simply shows no destination.
 - Next departures will need the full trip updates (times per stop): the third port of ADR-0001 is still to be designed then, and may take over the fetching decided here.

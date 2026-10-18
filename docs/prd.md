@@ -103,6 +103,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [ ] The `gtfs-rt` driver reads GTFS-RT trip updates (ADR-0017): only when a position names an unknown trip, at most once a minute, cached per trip; only the ingestion layer reads it; frequency and volume measured and recorded in the story file
   - [ ] A vehicle's destination is the last stop of its trip's updates, named from the stop catalogue; a position without a line takes the `route_id` of its trip update (TBM `nt_` trips: 38 of 38 had one on 2026-10-18)
   - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
+  - [ ] A vehicle is named by its mode, line and own label ("Tram F - AEROPORT", ADR-0017) in the text view and the popup, its number without a label; the text view's buttons keep distinct accessible names with the number
   - [ ] Positions carry the destination's name (ADR-0017, +12 % compressed measured); the payload growth is measured again and recorded in the story file (RGESN)
   - [ ] Coverage checked over a day (morning, midday, evening): positions with a trip update, updates without a last stop, destination stable along a trip; recorded in the story file
 - E3.8 Every line of the network on the map, faint, under the vehicles (ADR-0016); comes before E3.4
