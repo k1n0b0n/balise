@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-16
-- **Amended:** 2026-10-16, during E3.2: a vehicle without a line is labelled "?" on the map, where a marker has no room for more; "Ligne inconnue" is written in the popup (E3.3) and the text view (E3.5)
+- **Amended:** 2026-10-16, during E3.2: "?" on the map instead of "Unknown line", a marker has no room for more (decision 5)
 
 ## Context
 
@@ -40,7 +40,7 @@ TBM ages: median 9 s, 90 % under 49 s, 25 of 403 vehicles older than 5 minutes, 
 2. **Storage keeps the latest position per vehicle:** table `vehicle_positions`, primary key `vehicle_id`, the fields above plus `received_at` (ingestion time), written by upsert. No `vehicles` table while a vehicle has no attribute of its own; no foreign key on `line_id`, since a feed can name a line before the catalogue knows it.
 3. **One write path** (ADR-0002) upserts a batch, compares it with the stored state and emits `PositionsUpdated` with the changed positions only (ADR-0006).
 4. **Freshness filter (E2.3):** a position is dropped when `recordedAt` is more than **5 minutes** before `received_at`, or more than **2 minutes** after it (clock skew). Both limits are per-network settings.
-5. **A vehicle without a line is shown, not hidden:** neutral colour and the text "Unknown line" on the map, its own group in the text view (E3.5). The information stays in text, as RGAA requires, and a network whose producer never sends trips is not emptied.
+5. **A vehicle without a line is shown, not hidden:** neutral colour and "?" on the map, "Ligne inconnue" in the popup (E3.3) and as its own group in the text view (E3.5). The information stays in text, as RGAA requires, and a network whose producer never sends trips is not emptied.
 6. **Finding the line from the trip** is part of the model but built only when a network needs it (E6); TBM sends `route_id`.
 
 ## Alternatives considered
@@ -57,5 +57,5 @@ TBM ages: median 9 s, 90 % under 49 s, 25 of 403 vehicles older than 5 minutes, 
 
 - Every driver must produce the three required fields, with the fallbacks above; tests cover each fallback with a recorded payload.
 - An entity id that changes between fetches creates short-lived ghost vehicles, removed by the freshness filter after 5 minutes.
-- E3.2 and E3.5 handle "Unknown line" from the start.
+- E3.2, E3.3 and E3.5 handle vehicles without a line from the start.
 - *Later*: cross-check with GTFS-RT TripUpdates to give lineless vehicles their trip and line; bearing arrows and destination labels when a story asks for them.
