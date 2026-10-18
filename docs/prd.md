@@ -128,6 +128,6 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
-- Decide whether to show vehicles on trips absent from the static GTFS (TBM `nt_` trips at night, without a line; story 009)
+- Vehicles without a line: check whether TBM `nt_` trips (absent from the static GTFS) are all of them or other causes exist, then decide how to show them ([ideas/vehicles-without-line.md](ideas/vehicles-without-line.md))
 - Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
