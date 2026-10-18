@@ -29,10 +29,10 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 
 Update this section at the end of every working session.
 
-- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page), 007 (E3.2, vehicles on the map) and 008 (E3.3, vehicle popup), 009 (E3.5, text view beside the map or in a side panel, line catalogue) and 010 (E3.6, pause) done, 011 (E3.8, network shapes) in review: ingestion (E2) complete, live vehicles on the map locally, with a popup on click and an accessible text view; up to a third of TBM trams can lack a line (unplanned `nt_` trips), E3.7 plans to fill it from TripUpdates. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
+- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page), 007 (E3.2, vehicles on the map) and 008 (E3.3, vehicle popup), 009 (E3.5, text view beside the map or in a side panel, line catalogue) and 010 (E3.6, pause) and 011 (E3.8, every line of the network on the map) done: ingestion (E2) complete, live vehicles on the map locally, with a popup on click and an accessible text view; up to a third of TBM trams can lack a line (unplanned `nt_` trips), E3.7 plans to fill it from TripUpdates. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0016 accepted (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
-  1. Review and merge story 011 (E3.8, network shapes); then E3.4 (line selection) and E3.7 (line and destination, ADR first).
+  1. E3.4 (line or vehicle selection, the selected line's shape highlighted), then E3.7 (line and destination, ADR first).
   2. Discuss the open question of [ideas/network-on-map.md](ideas/network-on-map.md): storage of stop times.
   3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
   4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.

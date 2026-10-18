@@ -1,7 +1,7 @@
 # Story 011: Every line of the network on the map
 
 - **PRD:** E3.8
-- **Status:** Review
+- **Status:** Done
 
 ## Acceptance criteria
 

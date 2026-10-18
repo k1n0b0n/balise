@@ -1,7 +1,7 @@
 # Story 010: Pause and resume live updates
 
 - **PRD:** E3.6
-- **Status:** Review
+- **Status:** Done
 
 ## Acceptance criteria
 
