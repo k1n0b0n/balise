@@ -186,3 +186,62 @@ it('pauses and resumes live updates without a request while paused', function ()
         ->assertSeeIn('[data-status]', 'Mis à jour à')
         ->assertNoJavaScriptErrors();
 });
+
+it('shows only the selected line, without reloading, and keeps it in the URL', function (): void {
+    foreach (['A' => '81057F', 'B' => 'DA0063'] as $line => $colour) {
+        Line::query()->create(['id' => "tbm:{$line}", 'network' => 'tbm', 'short_name' => $line, 'mode' => TransportMode::Tram, 'color' => $colour, 'sync_id' => Str::uuid()]);
+    }
+
+    foreach (['1' => 'tbm:A', '2' => 'tbm:A', '3' => 'tbm:B'] as $vehicle => $line) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => $line, 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    $page = visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="3"]');
+    $page->script('window.samePage = true');
+
+    $page->select('#ligne', 'B')
+        ->click('[data-line-filter] button[type="submit"]')
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->assertScript('window.samePage', true)
+        ->assertScript('location.search', '?ligne=B')
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:B')
+        ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:3')
+        ->assertNoAccessibilityIssues(level: 3)
+        ->select('#ligne', '')
+        ->click('[data-line-filter] button[type="submit"]')
+        ->assertPresent('[data-map][data-vehicle-count="3"]')
+        ->assertScript('location.search', '')
+        ->assertNoJavaScriptErrors();
+});
+
+it('follows the chosen vehicle until the map is moved by hand, and reopens it from the URL', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
+        ->assertPresent('[data-map][data-followed="tbm:1234"]')
+        ->assertScript('location.search', '?vehicule=1234')
+        // Its line stands out, though no line is selected.
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
+        ->keys('[data-map] canvas', 'ArrowRight')
+        ->assertPresent('[data-map][data-followed=""]')
+        // Still selected: the popup stays open and the URL keeps the vehicle.
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
+        ->keys('[role="dialog"] button', 'Escape')
+        ->assertScript('location.search', '')
+        ->assertNoJavaScriptErrors();
+
+    visit('/?vehicule=1234')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
+        ->assertPresent('[data-map][data-followed="tbm:1234"]')
+        ->assertNoJavaScriptErrors();
+});

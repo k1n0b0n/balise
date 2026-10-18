@@ -41,7 +41,7 @@ export interface VehicleLayer {
 /**
  * Draws vehicles as small markers shaped by mode, in their line's colour, labelled beside the marker.
  */
-export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColour: string): VehicleLayer {
+export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColour: string, onSelect: (vehicle: Vehicle | null) => void): VehicleLayer {
     map.addSource(SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
     // One image per shape and colour, drawn the first time the map needs it.
@@ -76,7 +76,7 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
     });
 
     let current = new Map<string, Vehicle>();
-    const popup = new VehiclePopup(map, lines);
+    const popup = new VehiclePopup(map, lines, onSelect);
 
     // Keyboard users open the same popup from the text view (E3.5): canvas markers cannot take focus (ADR-0011).
     map.on('click', ({ point }) => {

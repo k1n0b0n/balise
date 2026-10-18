@@ -9,12 +9,18 @@ const SOURCE = 'shapes';
 // line is drawn opaque instead, in its colour mixed with Positron's background (#F2F3F0), which looks transparent.
 const BACKGROUND = [0xf2, 0xf3, 0xf0];
 const STRENGTH = 0.35;
+// The selected line (E3.4) is drawn again over the others, stronger and wider. A third of TBM's colours stay under 3:1
+// on the basemap even at full strength, so a dark casing gives its edges the contrast (WCAG 1.4.11), like the markers'.
+const SELECTED_STRENGTH = 0.75;
+const CASING = '#1F2937';
+const NONE = '';
 
 export type Shapes = FeatureCollection<MultiLineString, { line: string }>;
 
 export interface ShapeLayer {
     show(shapes: Shapes): void;
     recolour(): void;
+    highlight(lineId: string | null): void;
 }
 
 /**
@@ -52,12 +58,34 @@ export function showShapes(map: MapLibreMap, lines: LineCatalogue, neutralColour
         },
         firstLabels,
     );
+    map.addLayer(
+        {
+            id: 'shapes-selected-casing',
+            type: 'line',
+            source: SOURCE,
+            filter: ['==', ['get', 'line'], NONE],
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': CASING, 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 4, 16, 9] },
+        },
+        firstLabels,
+    );
+    map.addLayer(
+        {
+            id: 'shapes-selected',
+            type: 'line',
+            source: SOURCE,
+            filter: ['==', ['get', 'line'], NONE],
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': colours(SELECTED_STRENGTH), 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 16, 6] },
+        },
+        firstLabels,
+    );
 
     // Colours live in the line catalogue, not in the file: a paint expression, so a new catalogue never rebuilds the tiles.
-    function colours(): ExpressionSpecification {
-        const byLine = Object.fromEntries([...lines.all()].map((line) => [line.id, faint(line.colour)]));
+    function colours(strength = STRENGTH): ExpressionSpecification {
+        const byLine = Object.fromEntries([...lines.all()].map((line) => [line.id, mix(line.colour, strength)]));
 
-        return ['to-color', ['coalesce', ['get', ['get', 'line'], ['literal', byLine]], faint(neutralColour)]];
+        return ['to-color', ['coalesce', ['get', ['get', 'line'], ['literal', byLine]], mix(neutralColour, strength)]];
     }
 
     return {
@@ -68,13 +96,21 @@ export function showShapes(map: MapLibreMap, lines: LineCatalogue, neutralColour
 
         recolour() {
             map.setPaintProperty('shapes', 'line-color', colours());
+            map.setPaintProperty('shapes-selected', 'line-color', colours(SELECTED_STRENGTH));
+        },
+
+        highlight(lineId) {
+            for (const layer of ['shapes-selected-casing', 'shapes-selected']) {
+                map.setFilter(layer, ['==', ['get', 'line'], lineId ?? NONE]);
+            }
+            map.getContainer().dataset.highlightedLine = lineId ?? '';
         },
     };
 }
 
-function faint(colour: string): string {
+function mix(colour: string, strength: number): string {
     const channels = [1, 3, 5].map((start, index) => {
-        const mixed = STRENGTH * parseInt(colour.slice(start, start + 2), 16) + (1 - STRENGTH) * BACKGROUND[index]!;
+        const mixed = strength * parseInt(colour.slice(start, start + 2), 16) + (1 - strength) * BACKGROUND[index]!;
 
         return Math.round(mixed).toString(16).padStart(2, '0');
     });

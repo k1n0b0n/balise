@@ -25,11 +25,26 @@
         Aller à la liste des véhicules
     </a>
 
-    <header class="flex items-center justify-between gap-4 border-b border-gray-300 px-4 py-3">
+    <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-300 px-4 py-3">
         <div>
             <h1 class="text-xl font-semibold">balise</h1>
             <p class="text-sm text-gray-700">Véhicules {{ $networkName }} en circulation</p>
         </div>
+        {{-- A plain form, so that it works before JavaScript loads; the map module then applies it without reloading (E3.4). --}}
+        <form method="get" action="{{ route('home') }}" data-line-filter class="flex items-center gap-2">
+            <label for="ligne" class="text-sm">Ligne</label>
+            <select id="ligne" name="ligne" class="max-w-48 rounded border border-gray-500 px-2 py-2 text-sm">
+                <option value="">Toutes les lignes</option>
+                @foreach ($lineOptions as $mode => $modeLines)
+                    <optgroup label="{{ $mode }}">
+                        @foreach ($modeLines as $line)
+                            <option value="{{ $line->short_name }}" @selected($line->is($selectedLine))>{{ $line->short_name }}{{ $line->long_name === null ? '' : " – {$line->long_name}" }}</option>
+                        @endforeach
+                    </optgroup>
+                @endforeach
+            </select>
+            <button type="submit" class="rounded border border-gray-500 px-3 py-2 text-sm">Afficher<span class="sr-only"> la ligne</span></button>
+        </form>
         <div class="flex items-center gap-2">
             <button type="button" hidden data-pause aria-pressed="false" class="rounded border border-gray-500 px-3 py-2 text-sm aria-pressed:bg-gray-900 aria-pressed:text-white">
                 Pause<span class="sr-only"> des mises à jour</span>

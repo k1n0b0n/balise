@@ -44,3 +44,27 @@ it('says so when no vehicle runs', function (): void {
         ->assertSee('En attente des positions')
         ->assertSee('Aucun véhicule en circulation.');
 });
+
+it('filters the text view by the line in the URL, before JavaScript loads', function (): void {
+    foreach (['A' => TransportMode::Tram, '10' => TransportMode::Bus] as $name => $mode) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => $name, 'mode' => $mode, 'sync_id' => Str::uuid()]);
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:on-{$name}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => "tbm:{$name}", 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    $this->get('/?ligne=10')
+        ->assertOk()
+        ->assertSee('<option value="10" selected>', escape: false)
+        ->assertSee('Véhicule on-10,')
+        ->assertDontSee('Véhicule on-A,');
+
+    // Trams first in the selector, whatever the names.
+    $this->get('/')->assertSeeInOrder(['<optgroup label="Tram">', '<optgroup label="Bus">'], escape: false);
+
+    // A line the network does not have filters nothing.
+    $this->get('/?ligne=nowhere')
+        ->assertSee('Véhicule on-10,')
+        ->assertSee('Véhicule on-A,');
+});

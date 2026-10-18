@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Enums\TransportMode;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
@@ -17,7 +18,14 @@ final class Home extends Component
     public function render(): View
     {
         $network = (string) array_key_first(Config::array('networks'));
-        $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
+        $lines = $this->lines($network);
+        // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
+        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
+        $positions = VehiclePosition::query()
+            ->with('line')
+            ->where('network', $network)
+            ->when($selectedLine !== null, fn ($query) => $query->where('line_id', $selectedLine?->id))
+            ->get();
 
         return view('livewire.home', [
             'network' => $network,
@@ -27,6 +35,8 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
+            'lineOptions' => $lines->groupBy(fn (Line $line): string => $line->mode->label()),
+            'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions),
             'updatedAt' => $positions->max('received_at'),
         ]);
@@ -52,6 +62,22 @@ final class Home extends Component
                 $b['line'] === null => -1,
                 default => strnatcasecmp($a['line']->short_name, $b['line']->short_name),
             })
+            ->values();
+    }
+
+    /**
+     * The lines of the selector: by mode in the order of the enum, trams first, then in natural order of their short name.
+     *
+     * @return Collection<int, Line>
+     */
+    private function lines(string $network): Collection
+    {
+        $modes = array_flip(array_map(fn (TransportMode $mode): string => $mode->value, TransportMode::cases()));
+
+        return Line::query()
+            ->where('network', $network)
+            ->get()
+            ->sort(fn (Line $a, Line $b): int => $modes[$a->mode->value] <=> $modes[$b->mode->value] ?: strnatcasecmp($a->short_name, $b->short_name))
             ->values();
     }
 

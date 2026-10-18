@@ -33,6 +33,8 @@ export class VehiclePopup {
     constructor(
         private readonly map: MapLibreMap,
         private readonly lines: LineCatalogue,
+        // The open vehicle is the selected one (E3.4): told when it opens, and with null when the popup closes.
+        private readonly onSelect: (vehicle: Vehicle | null) => void,
     ) {
         this.popup.on('close', () => this.closed());
 
@@ -59,6 +61,7 @@ export class VehiclePopup {
         // The age changes every second; it is not a live region, so screen readers are not flooded.
         window.clearInterval(this.ticking);
         this.ticking = window.setInterval(() => this.renderAge(), 1000);
+        this.onSelect(vehicle);
     }
 
     /**
@@ -120,6 +123,7 @@ export class VehiclePopup {
     private closed(): void {
         window.clearInterval(this.ticking);
         this.vehicle = null;
+        this.onSelect(null);
 
         // Give the focus back only if it was in the popup, which is now gone; a click elsewhere keeps its target.
         if (document.activeElement === document.body && this.returnFocusTo instanceof HTMLElement) {
