@@ -10,12 +10,13 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 | 2 | Planning | `prd.md` | Every MVP story has testable acceptance criteria |
 | 3 | Solutioning | `architecture.md` + `adr/` | Every structuring decision has an accepted ADR |
 | 4 | Implementation | `stories/NNN-*.md` | Story loop below, one story at a time |
+| — | Ideas | `ideas/*.md` | Not a phase: studies that feed the PRD; status Exploring, Planned (→ PRD ids) or Dropped (with the reason) |
 
 ## Story loop
 
 1. **Draft**: copy `stories/_template.md`, link the PRD story, list the tasks.
 2. **Dev**: implement on a branch, tests first where it pays.
-3. **Review**: the pull request opens as a draft; quality gates green (tests, static analysis, architecture rules), then the maintainer reviews the diff. Once it is marked *Ready for review*, the AI review is requested once with `@coderabbitai review` (ADR-0014); valid findings are fixed before merging. Documentation changes of a working session go into one pull request, opened ready for review and reviewed by the maintainer only.
+3. **Review**: the pull request opens as a draft; quality gates green (tests, static analysis, architecture rules), then the maintainer reviews the diff. Once it is marked *Ready for review*, the AI review of the whole pull request is requested once with `@coderabbitai full review` (ADR-0014); valid findings are fixed before merging. Documentation changes of a working session go into one pull request, opened ready for review and reviewed by the maintainer only.
 4. **Done**: merged, deployed, story file updated with what was learned.
 
 ## Rules
@@ -28,10 +29,11 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 
 Update this section at the end of every working session.
 
-- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page) and 007 (E3.2, vehicles on the map) done: ingestion (E2) complete, live vehicles on the map locally. Story 008 (E3.3, vehicle popup) in review. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
+- **Phase:** 4 (implementation) started; planning items below still open. Stories 001 (E1.1), 002 (E1.2, CI), 003 (E2.1, static GTFS import), 004 (E2.2, live polling), 005 (E2.3, latest positions), 006 (E3.1, map page), 007 (E3.2, vehicles on the map) and 008 (E3.3, vehicle popup) done: ingestion (E2) complete, live vehicles on the map locally, with a popup on click. Local stack and CI on Ubuntu 26.04 and PostgreSQL 18.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0015 accepted (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
   1. Stories E3.4 to E3.6.
-  2. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
-  3. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
-  4. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).
+  2. Discuss the open questions of [ideas/network-on-map.md](ideas/network-on-map.md): whole-network shapes, storage of stop times.
+  3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
+  4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
+  5. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).
