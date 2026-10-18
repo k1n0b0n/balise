@@ -1,5 +1,6 @@
 import { type Map as MapLibreMap, Popup } from 'maplibre-gl';
-import type { Vehicle } from './live';
+import { displayId, type Vehicle } from './live';
+import type { LineCatalogue } from './lines';
 
 /**
  * "il y a 25 s": how long ago a position was recorded; a position slightly in the future counts as now.
@@ -29,7 +30,10 @@ export class VehiclePopup {
     private returnFocusTo: Element | null = null;
     private ticking: number | undefined;
 
-    constructor(private readonly map: MapLibreMap) {
+    constructor(
+        private readonly map: MapLibreMap,
+        private readonly lines: LineCatalogue,
+    ) {
         this.popup.on('close', () => this.closed());
 
         document.addEventListener('keydown', (event) => {
@@ -50,7 +54,7 @@ export class VehiclePopup {
 
         const element = this.popup.getElement();
         element.setAttribute('role', 'dialog');
-        element.setAttribute('aria-label', `Véhicule ${vehicle.displayId}`);
+        element.setAttribute('aria-label', `Véhicule ${displayId(vehicle)}`);
 
         // The age changes every second; it is not a live region, so screen readers are not flooded.
         window.clearInterval(this.ticking);
@@ -84,13 +88,14 @@ export class VehiclePopup {
             return;
         }
 
-        const { line, lineName, displayId, latitude, longitude, recordedAt } = this.vehicle;
+        const { latitude, longitude, recordedAt } = this.vehicle;
+        const line = this.lines.get(this.vehicle.lineId);
         const list = document.createElement('dl');
         list.className = 'grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 pr-5 text-sm';
 
         for (const [term, value] of [
-            ['Ligne', line === null ? 'Ligne inconnue' : [line, lineName].filter(Boolean).join(' – ')],
-            ['Véhicule', displayId],
+            ['Ligne', line === undefined ? 'Ligne inconnue' : [line.shortName, line.longName].filter(Boolean).join(' – ')],
+            ['Véhicule', displayId(this.vehicle)],
             ['Position', formatAge(recordedAt)],
         ] as const) {
             const dt = document.createElement('dt');

@@ -1,6 +1,6 @@
 # Idea: line catalogue
 
-- **Status:** Planned → E3.5
+- **Status:** Planned → E3.5 (story 009)
 - **Related:** ADR-0006 (RGESN), ADR-0013
 
 ## Why

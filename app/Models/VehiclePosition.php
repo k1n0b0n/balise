@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Latest known position of a vehicle, written only by App\Actions\RecordPositions.
@@ -41,6 +42,14 @@ final class VehiclePosition extends Model
     public function line(): BelongsTo
     {
         return $this->belongsTo(Line::class);
+    }
+
+    /**
+     * The vehicle id as the feed gave it, without the network prefix.
+     */
+    public function displayId(): string
+    {
+        return Str::after($this->vehicle_id, "{$this->network}:");
     }
 
     protected function casts(): array
