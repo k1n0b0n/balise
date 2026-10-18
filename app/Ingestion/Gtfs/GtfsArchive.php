@@ -6,6 +6,7 @@ namespace App\Ingestion\Gtfs;
 
 use App\Enums\TransportMode;
 use App\Ingestion\CatalogLine;
+use App\Ingestion\CatalogShape;
 use App\Ingestion\CatalogSnapshot;
 use App\Ingestion\CatalogStop;
 use Generator;
@@ -70,6 +71,66 @@ final class GtfsArchive implements CatalogSnapshot
                 latitude: (float) $stop['stop_lat'],
                 longitude: (float) $stop['stop_lon'],
             );
+        }
+    }
+
+    /**
+     * GTFS ties shapes to lines only through trips; a shape no trip follows is left out. Points are kept as flat lists
+     * of numbers while reading: hundreds of thousands of small arrays would take several times the memory.
+     *
+     * @return Generator<CatalogShape>
+     */
+    public function shapes(): Generator
+    {
+        if (! $this->has('shapes.txt')) {
+            return;
+        }
+
+        $lines = [];
+
+        foreach ($this->rows('trips.txt') as $trip) {
+            if (($trip['shape_id'] ?? '') !== '') {
+                $lines[$trip['shape_id']][$this->id($trip['route_id'])] = true;
+            }
+        }
+
+        $sequences = [];
+        $coordinates = [];
+
+        foreach ($this->rows('shapes.txt') as $point) {
+            $shapeId = $point['shape_id'];
+
+            if (isset($lines[$shapeId])) {
+                $sequences[$shapeId][] = (int) $point['shape_pt_sequence'];
+                $coordinates[$shapeId][] = (float) $point['shape_pt_lon'];
+                $coordinates[$shapeId][] = (float) $point['shape_pt_lat'];
+            }
+        }
+
+        foreach ($sequences as $shapeId => $order) {
+            asort($order);
+            $points = [];
+
+            foreach (array_keys($order) as $index) {
+                $points[] = [$coordinates[$shapeId][2 * $index], $coordinates[$shapeId][2 * $index + 1]];
+            }
+
+            yield new CatalogShape(lineIds: array_keys($lines[$shapeId]), points: $points);
+        }
+    }
+
+    private function has(string $file): bool
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($this->path, ZipArchive::RDONLY) !== true) {
+            throw new RuntimeException("Not a readable GTFS archive: {$this->path}.");
+        }
+
+        try {
+            return $zip->locateName($file) !== false;
+        } finally {
+            $zip->close();
         }
     }
 

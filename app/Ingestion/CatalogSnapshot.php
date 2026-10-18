@@ -20,4 +20,11 @@ interface CatalogSnapshot
      * @return iterable<CatalogStop>
      */
     public function stops(): iterable;
+
+    /**
+     * Empty when the source draws no shapes.
+     *
+     * @return iterable<CatalogShape>
+     */
+    public function shapes(): iterable;
 }

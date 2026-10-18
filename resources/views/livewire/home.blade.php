@@ -57,6 +57,7 @@
             data-label="Carte des véhicules {{ $networkName }} en circulation"
             data-vehicles-url="{{ route('vehicles', $network) }}"
             data-lines-url="{{ route('lines', $network) }}"
+            data-shapes-url="{{ route('shapes', $network) }}"
             data-neutral-colour="{{ $neutralColour }}"
             data-refresh="{{ $refreshSeconds }}"
             class="h-[70vh] w-full shrink-0 group-data-panel/page:h-auto group-data-panel/page:grow landscape:h-auto landscape:min-w-0 landscape:shrink landscape:grow"

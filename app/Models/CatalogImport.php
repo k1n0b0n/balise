@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
  *
  * @property string $network
  * @property ?string $etag
+ * @property ?string $shapes_fingerprint
  * @property Carbon $imported_at
  */
 final class CatalogImport extends Model

@@ -10,9 +10,11 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     config(['networks.tbm.catalog.url' => 'https://gtfs.test/tbm.zip']);
+    Storage::fake('local');
 });
 
 it('imports lines and stops with ids namespaced by network', function (): void {
@@ -142,4 +144,113 @@ it('leaves no temporary file behind when the download fails', function (): void 
 
     expect(fn () => $this->artisan('network:import', ['network' => 'tbm'])->run())->toThrow(ConnectionException::class);
     expect(glob(sys_get_temp_dir().'/gtfs*') ?: [])->toBe($before);
+});
+
+it('writes the network shapes, one simplified feature per line', function (): void {
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    $shapes = json_decode(Storage::disk('local')->get('shapes/tbm.json') ?? '', true);
+
+    // SA_1 is followed by two trips and read in its sequence order; S1 loses the point a metre off its line; SG belongs to a line the catalogue lacks.
+    expect($shapes['features'])->toBe([
+        ['type' => 'Feature', 'properties' => ['line' => 'tbm:01'], 'geometry' => ['type' => 'MultiLineString', 'coordinates' => [
+            [[-0.58, 44.84], [-0.57, 44.84]],
+        ]]],
+        ['type' => 'Feature', 'properties' => ['line' => 'tbm:A'], 'geometry' => ['type' => 'MultiLineString', 'coordinates' => [
+            [[-0.573, 44.845], [-0.5725, 44.844], [-0.571, 44.843], [-0.57, 44.842]],
+            [[-0.57, 44.842], [-0.573, 44.845]],
+        ]]],
+    ]);
+    expect(CatalogImport::query()->findOrFail('tbm')->shapes_fingerprint)->toBe(hash('xxh128', Storage::disk('local')->get('shapes/tbm.json') ?? ''));
+});
+
+it('rewrites the shapes only when they change, not on every new archive', function (): void {
+    $movedShapes = "shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\nSA_1,44.84,-0.57,1\nSA_1,44.841,-0.571,2\n";
+
+    Http::fakeSequence('gtfs.test/*')
+        ->push(gtfsArchive(), 200, ['ETag' => '"v1"'])
+        ->push(gtfsArchive(), 200, ['ETag' => '"v2"'])
+        ->push(gtfsArchive(replace: ['shapes.txt' => $movedShapes]), 200, ['ETag' => '"v3"']);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+    $fingerprint = CatalogImport::query()->findOrFail('tbm')->shapes_fingerprint;
+    // Overwritten behind the import's back: a new write would replace it.
+    Storage::disk('local')->put('shapes/tbm.json', 'untouched');
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Storage::disk('local')->get('shapes/tbm.json'))->toBe('untouched')
+        ->and(CatalogImport::query()->findOrFail('tbm')->shapes_fingerprint)->toBe($fingerprint);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Storage::disk('local')->get('shapes/tbm.json'))->toContain('[[-0.57,44.84],[-0.571,44.841]]')
+        ->and(CatalogImport::query()->findOrFail('tbm')->shapes_fingerprint)->not->toBe($fingerprint);
+});
+
+it('writes the shapes again when the file was lost', function (): void {
+    Http::fakeSequence('gtfs.test/*')
+        ->push(gtfsArchive(), 200, ['ETag' => '"v1"'])
+        ->push(gtfsArchive(), 200, ['ETag' => '"v2"']);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+    Storage::disk('local')->delete('shapes/tbm.json');
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Storage::disk('local')->get('shapes/tbm.json'))->toContain('tbm:A');
+});
+
+it('writes no line for a catalogue without shapes', function (): void {
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(replace: ['shapes.txt' => null]), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(json_decode(Storage::disk('local')->get('shapes/tbm.json') ?? '', true))->toBe(['type' => 'FeatureCollection', 'features' => []]);
+});
+
+it('leaves a gap where the source jumps across the city', function (): void {
+    // About 1.1 km between the second and third points: no street is drawn there.
+    $jumping = "shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\nSA_1,44.840,-0.580,1\nSA_1,44.840,-0.579,2\nSA_1,44.850,-0.579,3\nSA_1,44.850,-0.578,4\n";
+
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(replace: ['shapes.txt' => $jumping]), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(json_decode(Storage::disk('local')->get('shapes/tbm.json') ?? '', true)['features'][0]['geometry']['coordinates'])->toBe([
+        [[-0.579, 44.85], [-0.578, 44.85]],
+        [[-0.58, 44.84], [-0.579, 44.84]],
+    ]);
+});
+
+it('downloads the archive again when the shapes step failed', function (): void {
+    Http::fakeSequence('gtfs.test/*')
+        ->push(gtfsArchive(), 200, ['ETag' => '"v1"'])
+        ->push(gtfsArchive(replace: ['trips.txt' => null]), 200, ['ETag' => '"v2"'])
+        ->push(gtfsArchive(), 200, ['ETag' => '"v2"']);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(fn () => $this->artisan('network:import', ['network' => 'tbm'])->run())->toThrow(RuntimeException::class, 'no trips.txt');
+    expect(CatalogImport::query()->findOrFail('tbm')->etag)->toBe('"v1"');
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    Http::assertSentInOrder([
+        fn (Request $request): bool => $request->header('If-None-Match') === [],
+        fn (Request $request): bool => $request->header('If-None-Match') === ['"v1"'],
+        fn (Request $request): bool => $request->header('If-None-Match') === ['"v1"'],
+    ]);
+    expect(CatalogImport::query()->findOrFail('tbm')->etag)->toBe('"v2"');
+});
+
+it('downloads the archive again when the catalogue has no shapes yet', function (): void {
+    CatalogImport::query()->create(['network' => 'tbm', 'etag' => '"v1"', 'imported_at' => now()]);
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    Http::assertSent(fn (Request $request): bool => $request->header('If-None-Match') === []);
+    expect(Storage::disk('local')->exists('shapes/tbm.json'))->toBeTrue();
 });

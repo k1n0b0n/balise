@@ -1,0 +1,7 @@
+route_id,service_id,trip_id,direction_id,shape_id
+A,WEEK,A1,0,SA_1
+A,WEEK,A2,0,SA_1
+A,WEEK,A3,1,SA_2
+01,WEEK,L1,0,S1
+GONE,WEEK,G1,0,SG
+01,WEEK,L2,0,

@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\TransportMode;
+use App\Models\CatalogImport;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Str;
 
@@ -46,6 +48,25 @@ it('draws every vehicle without accessibility issues', function (): void {
 
     visit('/')
         ->assertPresent('[data-map][data-vehicle-count="3"]')
+        ->assertNoJavaScriptErrors()
+        ->assertNoAccessibilityIssues(level: 3);
+});
+
+it('draws the network lines under the vehicles once the first positions are in', function (): void {
+    Storage::fake('local');
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    Storage::disk('local')->put('shapes/tbm.json', (string) json_encode(['type' => 'FeatureCollection', 'features' => [
+        ['type' => 'Feature', 'properties' => ['line' => 'tbm:A'], 'geometry' => ['type' => 'MultiLineString', 'coordinates' => [[[-0.58, 44.84], [-0.56, 44.84]]]]],
+    ]]));
+    CatalogImport::query()->create(['network' => 'tbm', 'etag' => 'v1', 'shapes_fingerprint' => 'f1', 'imported_at' => now()]);
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    visit('/')
+        ->assertPresent('[data-map][data-shape-count="1"]')
+        ->assertScript("performance.getEntriesByType('resource').find((entry) => entry.name.endsWith('/shapes')).startTime > performance.getEntriesByType('resource').find((entry) => entry.name.endsWith('/vehicles')).responseEnd", true)
         ->assertNoJavaScriptErrors()
         ->assertNoAccessibilityIssues(level: 3);
 });
