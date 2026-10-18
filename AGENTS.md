@@ -36,11 +36,11 @@ The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Googl
 ## Rules
 
 - Start every session by reading the *Current state* section of `docs/README.md`, and update it before ending.
-- Follow the BMAD-lite workflow in `docs/README.md`. Work on one story at a time, from its file in `docs/stories/` (copy `_template.md`).
+- Follow the BMAD-lite workflow in `docs/README.md`. Work on one story at a time, from its file in `docs/stories/` (copy `_template.md`). Studies of possible features go to `docs/ideas/`; an idea never justifies code until the PRD has its story.
 - Never implement anything that is not in `docs/prd.md`. Propose it for the *Later* section instead.
 - A decision that is costly to reverse (new dependency, boundary, data store, hosting) needs an ADR in `docs/adr/` before code.
 - All code, docs, comments and commit messages in English. Conventional Commits.
-- Open code pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once with `@coderabbitai review` (ADR-0014). Group a session's documentation changes into one `docs:` pull request, opened ready for review, without the bot.
+- Open code pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once to review the whole pull request with `@coderabbitai full review` (ADR-0014). Group a session's documentation changes into one `docs:` pull request, opened ready for review, without the bot.
 - A story is done only when tests, static analysis and architecture tests pass, the non-functional requirements of the PRD (RGAA, RGESN) are met, and the diff has been reviewed by a human.
 
 ## Architecture (from `docs/architecture.md` and the ADRs)

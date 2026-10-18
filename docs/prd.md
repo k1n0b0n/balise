@@ -87,6 +87,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E3.4 Select a line or a vehicle and let the map follow it
   - [ ] A labelled line selector shows only that line's vehicles and fits the map to them; choosing a vehicle (popup or text view) makes the map follow it on each update
   - [ ] Moving the map by hand stops following; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
+  - [ ] The selected line's shape is drawn under its vehicles, from `shapes.txt` imported by `network:import`; its simplification tolerance is chosen by testing at street and city zoom levels, and recorded in the story file
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
   - [ ] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
   - [ ] Each vehicle has a button that opens its popup on the map (E3.3, RGAA 7.3.1)
@@ -110,13 +111,19 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 ### E6: Second network
 - E6.1 Add a second French network through configuration only
 
+### E7: Network on the map and in text
+Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/network-on-map.md)).
+- E7.1 Stations on the map from a street zoom level, cached like the line catalogue
+- E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
+
 ## Later
 
 - Position history, stage 2: short window (24–48 h), e.g. a vehicle's recent trail (ADR-0002)
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
-- Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates, behind the anticipated trip updates port (ADR-0001). Out of the MVP scope (brief: no timetables)
+- Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates (TBM publishes them, checked 2026-10-18), behind the anticipated trip updates port (ADR-0001); needs the brief's scope changed (no timetables), storage of stop times to be discussed, after E7.2
+- Whole-network shapes on the map: static GeoJSON (130 to 280 KB compressed) or vector tiles (PostGIS or PMTiles, own ADR); to be discussed ([ideas/network-on-map.md](ideas/network-on-map.md))
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Cross-check vehicle positions with GTFS-RT TripUpdates to give lineless vehicles their trip and line (ADR-0013)

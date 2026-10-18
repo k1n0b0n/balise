@@ -1,7 +1,7 @@
 # Story 008: Vehicle popup
 
 - **PRD:** E3.3
-- **Status:** Review
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -24,3 +24,6 @@ See E3.3 in [prd.md](../prd.md).
 - The browser test was checked against a broken focus return: it fails.
 - Not covered by an automated test: the popup following its vehicle and closing when the vehicle disappears (`VehiclePopup::update`); checked by reading the code. The keyboard criterion stays open until E3.5.
 - Payload: 4.1 KB compressed for 100 vehicles with the new fields. JavaScript budget: 499.6 KB compressed (+2.7 KB).
+- CI failed once on the browser test: it expected "il y a 2…" for a 25 s old position, and the slower runner opened the popup after the age had reached 30 s. The test now uses a 3 min old position and checks "il y a 3 min", stable for a minute.
+- CodeRabbit reviewed the whole pull request: no findings.
+- Moving the popup data out of the positions payload was studied: [ideas/line-catalogue.md](../ideas/line-catalogue.md), planned in E3.5.
