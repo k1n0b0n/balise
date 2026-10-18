@@ -21,11 +21,7 @@ final class Home extends Component
         $lines = $this->lines($network);
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
         $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
-        $positions = VehiclePosition::query()
-            ->with('line')
-            ->where('network', $network)
-            ->when($selectedLine !== null, fn ($query) => $query->where('line_id', $selectedLine?->id))
-            ->get();
+        $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
 
         return view('livewire.home', [
             'network' => $network,
@@ -37,19 +33,19 @@ final class Home extends Component
             'neutralColour' => Line::NEUTRAL_COLOUR,
             'lineOptions' => $lines->groupBy(fn (Line $line): string => $line->mode->label()),
             'selectedLine' => $selectedLine,
-            'groups' => $this->groups($positions),
+            'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
         ]);
     }
 
     /**
-     * The text view (E3.5): lines in natural order of their short name, each with its vehicles, and the vehicles whose
-     * line is unknown last. The browser sorts the same way when it takes over.
+     * The text view (E3.5): the selected line first (E3.4), then lines in natural order of their short name, each with
+     * its vehicles, and the vehicles whose line is unknown last. The browser sorts the same way when it takes over.
      *
      * @param  Collection<int, VehiclePosition>  $positions
      * @return Collection<int, array{line: ?Line, vehicles: Collection<int, VehiclePosition>}>
      */
-    private function groups(Collection $positions): Collection
+    private function groups(Collection $positions, ?Line $selectedLine): Collection
     {
         return $positions
             ->groupBy(fn (VehiclePosition $position): string => $position->line->id ?? '')
@@ -58,6 +54,8 @@ final class Home extends Component
                 'vehicles' => $vehicles->sort(fn (VehiclePosition $a, VehiclePosition $b): int => strnatcasecmp($a->displayId(), $b->displayId()))->values(),
             ])
             ->sort(fn (array $a, array $b): int => match (true) {
+                $a['line']?->is($selectedLine) === true => -1,
+                $b['line']?->is($selectedLine) === true => 1,
                 $a['line'] === null => 1,
                 $b['line'] === null => -1,
                 default => strnatcasecmp($a['line']->short_name, $b['line']->short_name),

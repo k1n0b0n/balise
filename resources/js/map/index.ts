@@ -102,9 +102,8 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
 
         const lineId = selectedLineId();
-        const shown = lineId === null ? vehicles : vehicles.filter((vehicle) => vehicle.lineId === lineId);
-        layer?.update(shown);
-        textView?.update(shown);
+        layer?.update(vehicles);
+        textView?.update(vehicles, lineId);
         highlight();
 
         // Before the first positions there is nothing to fit or to open.
@@ -114,11 +113,11 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
 
         if (fitPending) {
             fitPending = false;
-            fit(shown);
+            fit(vehicles.filter((vehicle) => vehicle.lineId === lineId));
         }
 
         if (reopenPending !== null) {
-            const vehicle = shown.find((candidate) => displayId(candidate) === reopenPending);
+            const vehicle = vehicles.find((candidate) => displayId(candidate) === reopenPending);
             reopenPending = null;
 
             if (vehicle === undefined) {
@@ -129,19 +128,22 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             }
         }
 
-        const vehicle = followed === null ? undefined : shown.find((candidate) => candidate.id === followed);
+        const vehicle = followed === null ? undefined : vehicles.find((candidate) => candidate.id === followed);
         if (vehicle !== undefined) {
             map.easeTo({ center: [vehicle.longitude, vehicle.latitude] });
         }
     }
 
-    // A line the catalogue does not know (yet) filters nothing, as on the server.
+    // A line the catalogue does not know (yet) highlights nothing, as on the server.
     function selectedLineId(): string | null {
         return selection.line === null ? null : ([...lines.all()].find((line) => line.shortName === selection.line)?.id ?? null);
     }
 
+    // The selected line, or else the selected vehicle's: the line the user is looking at.
     function highlight(): void {
-        shapeLayer?.highlight(selectedLineId() ?? lines.get(selectedVehicle?.lineId ?? null)?.id ?? null);
+        const lineId = selectedLineId() ?? lines.get(selectedVehicle?.lineId ?? null)?.id ?? null;
+        shapeLayer?.highlight(lineId);
+        layer?.highlight(lineId);
     }
 
     function fit(shown: Vehicle[]): void {

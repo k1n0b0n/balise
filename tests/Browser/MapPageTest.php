@@ -187,7 +187,7 @@ it('pauses and resumes live updates without a request while paused', function ()
         ->assertNoJavaScriptErrors();
 });
 
-it('shows only the selected line, without reloading, and keeps it in the URL', function (): void {
+it('highlights the selected line, without reloading or hiding the others, and keeps it in the URL', function (): void {
     foreach (['A' => '81057F', 'B' => 'DA0063'] as $line => $colour) {
         Line::query()->create(['id' => "tbm:{$line}", 'network' => 'tbm', 'short_name' => $line, 'mode' => TransportMode::Tram, 'color' => $colour, 'sync_id' => Str::uuid()]);
     }
@@ -205,16 +205,18 @@ it('shows only the selected line, without reloading, and keeps it in the URL', f
 
     $page->select('#ligne', 'B')
         ->click('[data-line-filter] button[type="submit"]')
-        ->assertPresent('[data-map][data-vehicle-count="1"]')
-        ->assertScript('window.samePage', true)
         ->assertScript('location.search', '?ligne=B')
+        ->assertScript('window.samePage', true)
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:B')
-        ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:3')
+        ->assertPresent('[data-map][data-vehicle-count="3"]')
+        // Its group comes first in the text view, the others stay.
+        ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:3,tbm:1,tbm:2')
         ->assertNoAccessibilityIssues(level: 3)
         ->select('#ligne', '')
         ->click('[data-line-filter] button[type="submit"]')
-        ->assertPresent('[data-map][data-vehicle-count="3"]')
         ->assertScript('location.search', '')
+        ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", '')
+        ->assertScript("[...document.querySelectorAll('#vue-texte [data-vehicle]')].map((row) => row.dataset.vehicle).join()", 'tbm:1,tbm:2,tbm:3')
         ->assertNoJavaScriptErrors();
 });
 

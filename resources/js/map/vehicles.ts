@@ -1,4 +1,4 @@
-import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
+import type { ExpressionSpecification, GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { Vehicle } from './live';
 import type { LineCatalogue } from './lines';
@@ -14,6 +14,9 @@ const PIXEL_RATIO = 2;
 const CLICK_TOLERANCE = 6;
 // A vehicle opened from the text view is shown at least at street level.
 const FOCUS_ZOOM = 14;
+// The selected line's vehicles (E3.4) are drawn larger, over the others; the others stay as they are.
+const SELECTED_SCALE = 1.5;
+const NONE = '';
 
 type Shape = 'circle' | 'square' | 'diamond' | 'triangle';
 
@@ -36,6 +39,7 @@ function shapeOf(mode: string | null): Shape {
 export interface VehicleLayer {
     update(vehicles: Vehicle[]): void;
     open(id: string): void;
+    highlight(lineId: string | null): void;
 }
 
 /**
@@ -61,9 +65,11 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
             'icon-image': ['concat', 'vehicle:', ['get', 'shape'], ':', ['get', 'colour']],
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
+            'icon-size': sizeOf(NONE, SELECTED_SCALE, 1),
+            'symbol-sort-key': sizeOf(NONE, 1, 0),
+            'text-size': sizeOf(NONE, 13, 11),
             'text-field': ['get', 'label'],
             'text-font': ['Noto Sans Bold'],
-            'text-size': 11,
             'text-anchor': 'left',
             'text-offset': [0.5, 0],
             'text-optional': true,
@@ -107,6 +113,12 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
             popup.update(current);
         },
 
+        highlight(lineId) {
+            map.setLayoutProperty('vehicles', 'icon-size', sizeOf(lineId ?? NONE, SELECTED_SCALE, 1));
+            map.setLayoutProperty('vehicles', 'symbol-sort-key', sizeOf(lineId ?? NONE, 1, 0));
+            map.setLayoutProperty('vehicles', 'text-size', sizeOf(lineId ?? NONE, 13, 11));
+        },
+
         // From the text view: bring the vehicle into view, then open its popup, which takes the focus.
         open(id) {
             const vehicle = current.get(id);
@@ -129,11 +141,18 @@ export function showVehicles(map: MapLibreMap, lines: LineCatalogue, neutralColo
                     type: 'Feature',
                     geometry: { type: 'Point', coordinates: [vehicle.longitude, vehicle.latitude] },
                     // Feature ids must be numbers in MapLibre: the vehicle id travels as a property.
-                    properties: { id: vehicle.id, label: line?.shortName ?? UNKNOWN_LINE, shape: shapeOf(line?.mode ?? null), colour: line?.colour ?? neutralColour },
+                    properties: { id: vehicle.id, line: line?.id ?? NONE, label: line?.shortName ?? UNKNOWN_LINE, shape: shapeOf(line?.mode ?? null), colour: line?.colour ?? neutralColour },
                 };
             }),
         };
     }
+}
+
+/**
+ * One value for the selected line's vehicles, another for the rest; no line selected matches no vehicle.
+ */
+function sizeOf(lineId: string, selected: number, other: number): ExpressionSpecification {
+    return ['case', ['all', ['!=', lineId, NONE], ['==', ['get', 'line'], lineId]], selected, other];
 }
 
 function drawMarker(shape: Shape, colour: string): ImageData {
