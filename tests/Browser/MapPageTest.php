@@ -255,3 +255,32 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertPresent('[data-map][data-followed="tbm:1234"]')
         ->assertNoJavaScriptErrors();
 });
+
+it('opens stacked vehicles one after the other on successive clicks', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+
+    foreach (['1111', '2222'] as $vehicle) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    // Two stops around the vehicles: the map fits them, so the vehicles sit at the centre of the canvas.
+    foreach (['west' => [44.83, -0.58], 'east' => [44.85, -0.56]] as $id => [$latitude, $longitude]) {
+        Stop::query()->create(['id' => "tbm:{$id}", 'network' => 'tbm', 'name' => $id, 'latitude' => $latitude, 'longitude' => $longitude, 'sync_id' => Str::uuid()]);
+    }
+
+    visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="2"]')
+        ->click('[data-map] canvas')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1111"]')
+        ->assertSeeIn('[role="dialog"]', 'Véhicule 1 sur 2 à cet endroit : cliquez à nouveau pour le suivant.')
+        ->click('[data-map] canvas')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 2222"]')
+        ->assertSeeIn('[role="dialog"]', 'Véhicule 2 sur 2')
+        ->click('[data-map] canvas')
+        ->assertPresent('[role="dialog"][aria-label="Véhicule 1111"]')
+        ->assertNoAccessibilityIssues(level: 3)
+        ->assertNoJavaScriptErrors();
+});

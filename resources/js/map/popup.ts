@@ -27,6 +27,8 @@ export function formatAge(recordedAt: string, now: number = Date.now()): string 
 export class VehiclePopup {
     private readonly popup = new Popup({ closeOnClick: false, maxWidth: '18rem' });
     private vehicle: Vehicle | null = null;
+    // Opened from a click on stacked markers: its rank among them, so that the user knows another click shows the next.
+    private stack: { position: number; count: number } | null = null;
     private returnFocusTo: Element | null = null;
     private ticking: number | undefined;
 
@@ -45,12 +47,17 @@ export class VehiclePopup {
         });
     }
 
-    open(vehicle: Vehicle): void {
+    get openId(): string | null {
+        return this.popup.isOpen() ? (this.vehicle?.id ?? null) : null;
+    }
+
+    open(vehicle: Vehicle, stack: { position: number; count: number } | null = null): void {
         if (!this.popup.isOpen()) {
             this.returnFocusTo = document.activeElement;
         }
 
         this.vehicle = vehicle;
+        this.stack = stack;
         this.render();
         this.popup.addTo(this.map);
 
@@ -109,7 +116,17 @@ export class VehiclePopup {
             list.append(dt, dd);
         }
 
-        this.popup.setLngLat([longitude, latitude]).setDOMContent(list);
+        const content = document.createElement('div');
+        content.append(list);
+
+        if (this.stack !== null) {
+            const note = document.createElement('p');
+            note.className = 'mt-2 pr-5 text-sm text-gray-700';
+            note.textContent = `Véhicule ${this.stack.position} sur ${this.stack.count} à cet endroit : cliquez à nouveau pour le suivant.`;
+            content.append(note);
+        }
+
+        this.popup.setLngLat([longitude, latitude]).setDOMContent(content);
     }
 
     private renderAge(): void {
