@@ -24,7 +24,7 @@ See E3.5 in [prd.md](../prd.md).
 - The only live region is the status line, worded to the minute ("Mis à jour à 14:00") and written only when its text changes: a screen reader hears it at most once a minute, not on every poll.
 - Updates never move the focus: rows and groups are moved only when their place changes, and a moved focused button gets the focus back. The one exception: when the focused vehicle leaves the network, the focus goes to the text view section rather than to the body.
 - The popup takes the focus when it opens (MapLibre's `focusAfterOpen`), so keyboard and screen reader users land on it; Escape gives it back to the vehicle's button. The map is centred on the vehicle, at least at zoom 14.
-- The buttons' accessible name is "Véhicule 1234, afficher sur la carte": the visible text first (WCAG 2.5.3), the action in a visually hidden span.
+- The buttons' accessible name is "Véhicule 1234, Tram A, afficher sur la carte": the visible text first (WCAG 2.5.3), then, in a visually hidden span, the line (VoiceOver check: with Tab the headings are skipped, so a name without the line left the vehicle out of context) and the action.
 - First version drew before the catalogue answered: every marker flashed "?" and the text view regrouped everything under "Ligne inconnue". Drawing now waits for the catalogue's first answer, success or failure.
 - Sizes, live TBM at 04:05: line catalogue 2.6 KB compressed for 202 lines; home page 4.4 KB compressed. JavaScript budget: 501.0 KB compressed (+1.4 KB).
 - Not covered by an automated test: the catalogue failing or lacking a line, the focus kept when a row moves or its vehicle leaves; checked by reading the code. Keyboard path checked by hand in Chromium as well.

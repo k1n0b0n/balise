@@ -125,7 +125,7 @@
             </template>
             <template data-vehicle-template>
                 <li>
-                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open>Véhicule <span data-name></span><span class="sr-only">, afficher sur la carte</span></button>,
+                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open>Véhicule <span data-name></span><span class="sr-only">, <span data-line-name></span>, afficher sur la carte</span></button>,
                     <time class="text-gray-700" data-age></time>
                 </li>
             </template>
