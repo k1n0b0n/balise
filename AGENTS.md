@@ -40,7 +40,7 @@ The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Googl
 - Never implement anything that is not in `docs/prd.md`. Propose it for the *Later* section instead.
 - A decision that is costly to reverse (new dependency, boundary, data store, hosting) needs an ADR in `docs/adr/` before code.
 - All code, docs, comments and commit messages in English. Conventional Commits.
-- Open code pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once to review the whole pull request with `@coderabbitai full review` (ADR-0014). Group a session's documentation changes into one `docs:` pull request, opened ready for review, without the bot.
+- Open code pull requests as drafts (`gh pr create --draft`). The maintainer reviews first and marks them ready; then CodeRabbit is asked once to review the whole pull request with `@coderabbitai full review` (ADR-0014). A story's documentation (story file, its closing, *Current state*) goes in the story's code pull request; a separate `docs:` pull request, one per session, opened ready for review without the bot, is only for planning work without code (ADR, PRD, ideas) or a session that ends without a code pull request.
 - A story is done only when tests, static analysis and architecture tests pass, the non-functional requirements of the PRD (RGAA, RGESN) are met, and the diff has been reviewed by a human.
 
 ## Architecture (from `docs/architecture.md` and the ADRs)
