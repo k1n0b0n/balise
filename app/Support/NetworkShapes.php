@@ -25,10 +25,18 @@ final readonly class NetworkShapes
     private const int DECIMALS = 5;
 
     /**
-     * Points of a shape are a few metres apart (median 6 m on TBM, 343 m at the 99.9th percentile); a longer step is a
-     * fault of the source, such as the depot runs of TBM's line G zigzagging across the city, and is left as a gap.
+     * Points of a shape are a few metres apart (median 6 m on TBM, 343 m at the 99.9th percentile). A longer step that
+     * goes straight on is a sparse but true stretch (a bridge, a straight road: TBM's line 39); one that turns sharply
+     * is a fault of the source, such as the depot runs of TBM's line G zigzagging across the city, and is left as a gap.
      */
     public const float MAX_STEP_METRES = 500.0;
+
+    public const float MAX_TURN_DEGREES = 30.0;
+
+    /**
+     * The direction before and after a step is taken over at least this distance, so that a doubled point is ignored.
+     */
+    private const float TURN_REACH_METRES = 30.0;
 
     private const float METRES_PER_DEGREE = 111_320.0;
 
@@ -127,13 +135,57 @@ final readonly class NetworkShapes
         $runs = [[$points[0]]];
 
         for ($index = 1; $index < count($points); $index++) {
-            if ($this->distance($points[$index - 1], $points[$index], $scaleX) > self::MAX_STEP_METRES) {
+            if ($this->distance($points[$index - 1], $points[$index], $scaleX) > self::MAX_STEP_METRES && $this->turnsSharply($points, $index, $scaleX)) {
                 $runs[] = [];
             }
             $runs[array_key_last($runs)][] = $points[$index];
         }
 
         return $runs;
+    }
+
+    /**
+     * Whether the path turns by more than the limit as it enters or leaves the step that ends at `$index`.
+     *
+     * @param  list<array{float, float}>  $points
+     */
+    private function turnsSharply(array $points, int $index, float $scaleX): bool
+    {
+        [$from, $to] = [$points[$index - 1], $points[$index]];
+        $step = $this->bearing($from, $to, $scaleX);
+
+        for ($before = $index - 2; $before >= 0; $before--) {
+            if ($this->distance($points[$before], $from, $scaleX) >= self::TURN_REACH_METRES) {
+                if ($this->turn($this->bearing($points[$before], $from, $scaleX), $step) > self::MAX_TURN_DEGREES) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        for ($after = $index + 1; $after < count($points); $after++) {
+            if ($this->distance($to, $points[$after], $scaleX) >= self::TURN_REACH_METRES) {
+                return $this->turn($step, $this->bearing($to, $points[$after], $scaleX)) > self::MAX_TURN_DEGREES;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array{float, float}  $from
+     * @param  array{float, float}  $to
+     */
+    private function bearing(array $from, array $to, float $scaleX): float
+    {
+        return rad2deg(atan2(($to[1] - $from[1]) * self::METRES_PER_DEGREE, ($to[0] - $from[0]) * $scaleX));
+    }
+
+    private function turn(float $from, float $to): float
+    {
+        $angle = fmod(abs($from - $to), 360.0);
+
+        return min($angle, 360.0 - $angle);
     }
 
     /**
