@@ -6,7 +6,7 @@
 - **Amended:** 2026-10-16: Ubuntu 26.04, the current Ubuntu LTS; PHP from the Ubuntu archive
 - **Amended:** 2026-10-16: hosting moved to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
 - **Amended:** 2026-10-16, during E3.1: the PHP Dockerfile has three targets, `runtime` (353 MB, queue and scheduler), `dev` (461 MB, adds Composer and tools) and `test` (2.3 GB, adds Node and a Chromium pinned to the Playwright version of `package.json`, built only for the on-demand `test` service)
-- **Amended:** 2026-10-21: production runs Docker images built from `runtime` (ADR-0020); point 6 is decided, and points 2 and 3 give way to the official `php:8.5-fpm-trixie` and `nginx:alpine` images in E1.3d
+- **Amended:** 2026-10-21: production runs Docker images built from `runtime` (ADR-0020); point 6 is decided, and points 2 and 3 give way to the official `php:8.5-fpm-trixie` and `nginx:alpine` images in E1.3d; CI runs in the `test` image from then on
 
 ## Context
 

@@ -52,7 +52,9 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E1.3c Releases, without a server
   - [ ] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
 - E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
-  - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; `versions.yaml` no longer names Ubuntu; every quality gate passes on them
+  - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; every quality gate passes on them
+  - [ ] CI runs the quality gates in the `test` image; each version is written in one place (PHP and Node in the Dockerfile, PostgreSQL and Redis in `compose.yaml`), so `versions.yaml`, its check and the required check `versions` are removed; CI's duration before and after is recorded
+  - [ ] The `app` image carries PostgreSQL's and Redis's versions as labels, and the deploy writes them on the host for the production `compose.yaml`; a new PostgreSQL major is moved by dump and restore, tried once from 17 to 18 on a local machine
   - [ ] Publishing a release builds the `app` and `web` images and pushes them to the GitHub Container Registry of the repository's owner
   - [ ] A bootstrap playbook prepares a host from templates in the repository: Docker, nginx and certbot from the distribution's archive when missing, one nginx site with its certificate, a deploy user restricted to the deploy command, the production `compose.yaml` and secrets generated on the host; an installed Docker, nginx and their other sites are left untouched; a second run changes nothing
   - [ ] The release workflow deploys over SSH, from a GitHub environment that waits for the maintainer's approval: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
@@ -64,7 +66,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [ ] Memory used by the stack measured on the server
   - [ ] One TBM poll timed on the server (E2.3)
 - E1.3f Version upkeep, once the images start from the official ones (E1.3d)
-  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone (ADR-0020)
+  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
   - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
