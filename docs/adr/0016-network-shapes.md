@@ -6,7 +6,7 @@
 ## Context
 
 - The map should show every line of the network, faint, and the selected line more visible (E3.8, then E3.4). ADR-0002 keeps the database for the latest positions and leaves spatial queries to PostGIS, with the first spatial story.
-- TBM static GTFS of 2026-10-17: `shapes.txt` is 19.6 MB, 514 shapes, 435,442 points, for 129 lines; shapes are tied to lines only through `trips.txt` (`route_id`, `shape_id`). Simplified at about 11 m, all 514 shapes weigh 132 KB compressed ([ideas/network-on-map.md](../ideas/network-on-map.md)).
+- TBM static GTFS of 2026-10-17: `shapes.txt` is 19.6 MB, 514 shapes, 435,442 points, for 129 lines; shapes are tied to lines only through `trips.txt` (`route_id`, `shape_id`). Simplified at about 11 m, all 514 shapes weigh 132 KB compressed ([story 011](../stories/011-network-shapes.md#study)).
 - The archive is rebuilt every night, and the daily import already skips an unchanged archive (`ETag`). Shapes themselves change rarely (service changes, works): a new archive does not mean new shapes.
 - Nothing queries the shapes: they are drawn, never filtered by area or distance.
 
