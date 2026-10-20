@@ -11,6 +11,7 @@ See E1.3c in [prd.md](../prd.md).
 
 - [x] PRD: E1.3c split in two, so that releases and version upkeep, which need no server, come before the server (E1.3d, E1.3e); the weekly raise reworded to fit the archive rule of ADR-0019 (both approved by the maintainer)
 - [x] GitHub App `balise-release` created and installed by the maintainer (contents, pull requests and workflows: read and write; workflows because a raise edits `.github/workflows/ci.yml`); its private key as the secret `RELEASE_APP_PRIVATE_KEY`, its client id as the variable `RELEASE_APP_CLIENT_ID` (`create-github-app-token` v3 deprecates the app id)
+- [x] Second ruleset `review` (one approval, bypassed only by the admin role, in pull requests): the App cannot merge its own pull requests, while `main`'s checks still bind everyone (ADR-0004 point 1)
 - [ ] release-please: workflow on pushes to `main` (`.github/workflows/release.yml`), `simple` release type (`version.txt`, `CHANGELOG.md`), first version 0.1.0 from the manifest's 0.0.0, release pull request titled `chore: release x.y.z`; proven once merged by the first release pull request
 - [ ] Weekly raise: a script reads `versions.yaml`, asks the sources (Docker Hub tags of the official images, Node release schedule) and rewrites the files named by `scripts/check-versions.php`; a workflow opens or updates one pull request per raise
 - [ ] Tests of the raise rules on recorded answers (newer PHP, PostgreSQL or Redis image, newer Node LTS, nothing to raise)

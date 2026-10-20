@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-14
 - **Amended:** 2026-10-16: hosting moved to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); deploys run from GitHub Actions
+- **Amended:** 2026-10-21: point 1 gains a second ruleset, `review`, so that the release App cannot merge its own pull requests
 - **Amended:** 2026-10-21: point 5 deploys Docker images on a server prepared by Ansible (ADR-0020)
 
 ## Context
@@ -14,7 +15,7 @@
 
 ## Decision
 
-1. **`main` is protected by a ruleset:** pull request required, required status check `ci`, linear history, no force push, no deletion, no bypass actors (the maintainer included). Required approvals: 0, since GitHub forbids approving one's own pull request; the review is the maintainer reading the diff.
+1. **`main` is protected by a ruleset:** pull request required, required status check `ci`, linear history, no force push, no deletion, no bypass actors (the maintainer included). Required approvals: 0, since GitHub forbids approving one's own pull request; the review is the maintainer reading the diff. Since the release App (point 4), a second ruleset `review` requires one approval, and only the repository admin role may bypass it, in pull requests only: the maintainer merges their own pull requests by bypassing it, with the checks of `main` still required, and approves the App's; a stolen App key cannot merge into `main`.
 2. **Squash merge only**, with head branches deleted after merge. The pull request title becomes the commit message and is checked against Conventional Commits in CI.
 3. **Only the maintainer merges.** On a personal account this holds as long as no collaborator is added; co-maintainers would require moving the repository to an organisation.
 4. **Versions and changelog by release-please.** It keeps a release pull request up to date from the Conventional Commits; merging it creates the tag and the GitHub release. It runs with a token from a dedicated GitHub App, because pull requests opened with the default `GITHUB_TOKEN` do not trigger CI and would be blocked by the required check.
