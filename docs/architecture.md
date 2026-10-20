@@ -40,6 +40,7 @@
 | Local environment | `compose.yaml`, PHP and nginx on Ubuntu 26.04 like the server, versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md) |
 | Responsible design | RGAA 4.1.2 AA, RGESN 2024 self-assessment | Decided, [ADR-0006](adr/0006-responsible-design.md) |
 | Delivery | Protected `main`, squash merge, release-please, Ansible deploy on release | Decided, [ADR-0004](adr/0004-delivery-workflow.md) |
+| Server configuration | Ansible in a container; packages from the Ubuntu archive; releases side by side behind `/var/www/balise`; systemd workers; server-local secrets generated on the server | Decided, [ADR-0019](adr/0019-server-configuration.md) |
 
 ## Open questions
 

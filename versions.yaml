@@ -3,5 +3,5 @@
 ubuntu: "26.04"
 php: "8.5"
 postgresql: "18"
-redis: "7"
+redis: "8"
 node: "24"

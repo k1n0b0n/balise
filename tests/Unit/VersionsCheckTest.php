@@ -54,6 +54,6 @@ it('names the place that disagrees', function (string $file, string $search, str
     'another PHP in CI' => ['.github/workflows/ci.yml', "php-version: '8.5'", "php-version: '8.4'", '.github/workflows/ci.yml:%d: php 8.4, versions.yaml says 8.5'],
     'a newer PostgreSQL in compose' => ['compose.yaml', 'postgres:18', 'postgres:19', 'compose.yaml:%d: postgresql 19, versions.yaml says 18'],
     'the right Node only in a comment' => ['.github/workflows/ci.yml', 'node-version: 24', "node-version: '22'\n          # node-version: 24", '.github/workflows/ci.yml:%d: node 22, versions.yaml says 24'],
-    'a version raised in the file only' => ['versions.yaml', 'redis: "7"', 'redis: "8"', 'redis 7, versions.yaml says 8'],
+    'a version raised in the file only' => ['versions.yaml', 'redis: "8"', 'redis: "9"', 'redis 8, versions.yaml says 9'],
     'a place rewritten out of reach' => ['docker/nginx/Dockerfile', 'FROM ubuntu:', 'FROM debian:', 'docker/nginx/Dockerfile: ubuntu version not found'],
 ]);
