@@ -136,8 +136,8 @@
                             <ul class="mt-1 space-y-1">
                                 @foreach ($destination['vehicles'] as $position)
                                     <li>
-                                        {{ $position->name() }}{{ $position->isNamed() ? ", véhicule {$position->displayId()}" : '' }},
-                                        <time datetime="{{ $position->recorded_at->toIso8601String() }}" class="text-gray-700">relevé à {{ $position->recorded_at->setTimezone($timezone)->format('H:i:s') }}</time>
+                                        {{ $position->name() }}{{ $position->isNamed() ? ", véhicule {$position->displayId()}" : '' }}<span class="sr-only">,</span>
+                                        <time datetime="{{ $position->recorded_at->toIso8601String() }}" class="block text-sm text-gray-700">relevé à {{ $position->recorded_at->setTimezone($timezone)->format('H:i:s') }}</time>
                                     </li>
                                 @endforeach
                             </ul>
@@ -163,8 +163,9 @@
             </template>
             <template data-vehicle-template>
                 <li>
-                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open><span data-name></span><span class="sr-only">, <span data-detail></span>, afficher sur la carte</span></button>,
-                    <time class="text-gray-700" data-age></time>
+                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open><span data-name></span><span class="sr-only">, <span data-detail></span>, afficher sur la carte</span></button><span class="sr-only">,</span>
+                    {{-- On its own line; the comma stays for screen readers, which read the row as one sentence. --}}
+                    <time class="block text-sm text-gray-700" data-age></time>
                 </li>
             </template>
             <template data-empty-template>
