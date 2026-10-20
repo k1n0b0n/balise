@@ -10,7 +10,7 @@ See E1.3c in [prd.md](../prd.md).
 ## Tasks
 
 - [x] PRD: E1.3c split in two, so that releases and version upkeep, which need no server, come before Oracle (E1.3d); the weekly raise reworded to fit the archive rule of ADR-0019 (both approved by the maintainer)
-- [ ] GitHub App `balise-release` created and installed by the maintainer (contents and pull requests: read and write); its id and private key as repository secrets
+- [ ] GitHub App `balise-release` created and installed by the maintainer (contents, pull requests and workflows: read and write; workflows because a raise edits `.github/workflows/ci.yml`); its id and private key as repository secrets
 - [ ] release-please: workflow on pushes to `main`, `simple` release type, first version 0.1.0, changelog from the Conventional Commits
 - [ ] Weekly raise: a script reads `versions.yaml`, asks the sources (Node release schedule, Ubuntu's LTS releases, the new release's archive) and rewrites the files named by `scripts/check-versions.php`; a workflow opens or updates one pull request per raise
 - [ ] Tests of the raise rules on recorded answers (newer Node LTS, newer Ubuntu LTS, nothing to raise)
