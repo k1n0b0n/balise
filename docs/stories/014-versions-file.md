@@ -21,4 +21,5 @@ See E1.3a in [prd.md](../prd.md).
 - **The check found one disagreement at once:** the `test` image installed `nodejs` from the Ubuntu 26.04 archive, which is Node 22, while Vite and CI run Node 24. The image now copies Node from the official `node:24-slim` image; Playwright's Chromium is unchanged.
 - **Flat `key: "value"` YAML:** Ansible reads it as variables, and the check parses it with one regular expression, so CI runs it with the runner's own PHP before installing anything.
 - **Every pattern must match at least once:** a rewritten file (say `FROM debian:`) fails the check instead of escaping it.
+- **Comment lines are ignored** (CodeRabbit): a pin left in a comment no longer passes for the real one, and quoted values (`node-version: '24'`) are read. This dropped `docker/nginx/upstream-docker.conf`, which names PHP only in a comment; the server's real upstream will come from Ansible (E1.3b), which reads `versions.yaml`.
 - **Not checked:** the runner image of CI (`ubuntu-24.04`, GitHub's choice; PHP and Node there come from `setup-php` and `setup-node`, which are checked), and the versions written in the docs (`AGENTS.md`, ADRs).

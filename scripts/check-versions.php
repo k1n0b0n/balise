@@ -11,7 +11,7 @@ $root = rtrim($argv[1] ?? dirname(__DIR__), '/');
 
 /*
  * Where each version is named: file => list of patterns whose first group is the version. Every pattern must match
- * at least once, so that a rewritten file cannot silently escape the check.
+ * at least once outside comment lines, so that a rewritten or commented-out place cannot silently escape the check.
  */
 $places = [
     'ubuntu' => [
@@ -21,8 +21,7 @@ $places = [
     'php' => [
         'docker/php/Dockerfile' => ['#/etc/php/([\d.]+)/#', '/php-fpm([\d.]+)/'],
         'docker/php/packages.txt' => ['/^php([\d.]+)-/m'],
-        'docker/nginx/upstream-docker.conf' => ['/php([\d.]+)-fpm\.sock/'],
-        '.github/workflows/ci.yml' => ["/php-version: '([\\d.]+)'/"],
+        '.github/workflows/ci.yml' => ["/php-version: ['\"]?([\\d.]+)/"],
     ],
     'postgresql' => [
         'compose.yaml' => ['/image: postgres:(\d+)/'],
@@ -34,7 +33,7 @@ $places = [
     'node' => [
         'compose.yaml' => ['/image: node:(\d+)/'],
         'docker/php/Dockerfile' => ['/--from=node:(\d+)/'],
-        '.github/workflows/ci.yml' => ['/node-version: (\d+)/'],
+        '.github/workflows/ci.yml' => ["/node-version: ['\"]?(\\d+)/"],
     ],
 ];
 
@@ -66,6 +65,9 @@ foreach ($places as $name => $files) {
 
             continue;
         }
+
+        // Blank out comment lines (# in YAML, Dockerfiles and nginx), keeping line numbers.
+        $contents = (string) preg_replace('/^[ \t]*#.*$/m', '', $contents);
 
         foreach ($patterns as $pattern) {
             if (preg_match_all($pattern, $contents, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) === 0) {
