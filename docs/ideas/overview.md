@@ -44,6 +44,6 @@
 
 ## Against this order
 
-- Deployment (E1.3, E1.4, E1.5) is still open, and the audience reads the repository, not a running service: a deployed MVP may matter more than any of these features.
+- Deployment (E1.3b, E1.3c, E1.4, E1.5) is still open (E1.3a, one versions file, done in story 014), and the audience reads the repository, not a running service: a deployed MVP may matter more than any of these features.
 - Each foundation adds to what a reviewer reads in ten minutes; two of them (C extension, trip updates port) change ADRs.
 - Next departures is the idea riders would value most, and this order puts it last.
