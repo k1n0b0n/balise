@@ -10,17 +10,26 @@ See E1.3b in [prd.md](../prd.md). Decisions in [ADR-0019](../adr/0019-server-con
 ## Tasks
 
 - [x] ADR-0019 accepted by the maintainer (Redis installed now, systemd over Supervisor, server-local secrets generated on it); PRD E1.3b criteria completed
-- [ ] `versions.yaml` and `compose.yaml`: Redis 8, the version of the Ubuntu 26.04 archive
-- [ ] `ansible` service in `compose.yaml` (profile `ops`): `python:3-alpine`, `ansible-core` and collections pinned in `ansible/`
-- [ ] `ansible/cloud-init.yaml`: admin user `ubuntu` with the deploy SSH key, the same file Oracle receives in E1.3c
-- [ ] Local machine: OrbStack Ubuntu 26.04 arm64, isolated, 4 GB, created from that file; command in `AGENTS.md`
-- [ ] Server playbook (`ansible/server.yml`): packages from `packages.txt`, nginx with `docker/nginx/site.conf`, `php.ini`, shared `fpm-pool.conf` on a Unix socket, PostgreSQL 18 with the application's database and user, Redis 8, `APP_KEY` and database password generated once, user `balise`, systemd units for the queue and the scheduler, firewall (SSH, HTTP, HTTPS), unattended upgrades
-- [ ] The second run of the server playbook changes nothing, and check mode reports no drift
-- [ ] `scripts/build-release.sh`: archive of a build (no dev packages, built assets, generated classes), made in the `test` image
-- [ ] Deploy playbook (`ansible/deploy.yml`): upload, `shared/.env` and `storage`, migrate, switch `current`, reload php-fpm, restart the units, keep three releases; the site answers 200 afterwards
-- [ ] On the machine: `network:import tbm` runs, the scheduler polls, the map shows live vehicles; one TBM poll timed (E2.3's open criterion, re-measured on Oracle in E1.3c)
-- [ ] Closing: story notes, *Current state*, ideas review (step 5)
+- [x] `versions.yaml` and `compose.yaml`: Redis 8, the version of the Ubuntu 26.04 archive
+- [x] `ansible` service in `compose.yaml` (profile `ops`): `python:3.14-alpine`, `ansible-core` 2.21.5 and two collections pinned in `ansible/`
+- [x] Local machine: `scripts/local-server.sh`, an OrbStack Ubuntu 26.04 arm64 machine, isolated, 4 GB, with its own SSH key in `ansible/local/` (ignored by Git)
+- [x] Server playbook (`ansible/server.yml`): packages from `packages.txt`, nginx with `docker/nginx/site.conf`, `php.ini`, the pool run as `balise`, PostgreSQL 18 with the application's database and user, Redis 8, `APP_KEY` and database password generated once, systemd units for the queue and the scheduler, firewall (SSH, HTTP, HTTPS), unattended upgrades; versions checked against `versions.yaml`
+- [x] The second run of the server playbook changes nothing, and check mode reports no drift (`changed=0` both, also after deploys)
+- [x] `scripts/build-release.sh`: archive of the committed HEAD (no dev packages, built assets, generated classes), made in the `test` image: 9 MB
+- [x] Deploy playbook (`ansible/deploy.yml`): upload, `shared/.env` and `storage`, migrate, `optimize`, switch the link, reload php-fpm, restart the units, keep three releases; checks that the site answers 200
+- [x] Rollback (`ansible/rollback.yml`) tried once, then the same release deployed again
+- [x] On the machine: `network:import tbm` runs, the scheduler polls, the text view shows live vehicles; one TBM poll timed; everything comes back after the machine restarts
+- [ ] The map checked by the maintainer in a browser (headless Firefox has no WebGL: the map is blank there, locally too)
+- [x] Closing: *Current state*, ideas review (step 5)
 
 ## Notes
 
 - Ubuntu 26.04's archive has Redis 8.0, not 7 (`apt-cache policy` in `ubuntu:26.04`, 2026-10-20); the application uses no Redis yet (cache, queue and sessions on the database), but the server installs it now, like `compose.yaml` (ADR-0019 point 2).
+- **Bug found on the machine: positions two hours old.** OrbStack gives the machine the Mac's zone (Europe/Paris), and PostgreSQL takes the machine's zone at install. Laravel writes timestamps without an offset, so PostgreSQL read UTC times as Paris times: every position looked two hours old and the endpoint returned none. The `pgsql` connection now sets its session to UTC (`config/database.php`), like `app.timezone`; a test sets the test database to Europe/Paris and fails without it. Docker's PostgreSQL runs in UTC, which hid it. Oracle's image is in UTC too, but the application no longer depends on it.
+- **Build directory permissions:** the archive's root carried `mktemp`'s 0700, which kept nginx (`www-data`) out of the release: "Primary script unknown". The build script opens it to 0755.
+- **Workers wait for the first release:** their units have `ConditionPathExists=/var/www/balise/artisan`, so the server playbook only enables them and the deploy starts them; asking for "started" reported a change on every run.
+- **After a restart, `schedule:work` waits for the next minute** before its 20 s task: a deploy skips up to three polls.
+- **One TBM poll on the machine (M-series Mac): 0.30 to 0.32 s**, PHP start and download included, 445 positions changed (E2.3's open criterion; to measure again on Oracle's A1 in E1.3c).
+- **Releases on disk:** `/srv/balise/releases/<build>`; `/var/www/balise` is the link to the live one, so `site.conf`, `compose.yaml` and the units name the same path everywhere.
+- **Ideas review:** no idea is implemented here; every *Exploring* idea keeps its verdict. The overview's case for deployment first now has a server ready for E1.3c.
+- **Not proven here** (the machine shares the Mac's kernel): the firewall's effect from outside, kernel settings. To check on Oracle (E1.3c).

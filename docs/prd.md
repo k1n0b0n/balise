@@ -40,13 +40,13 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E1.3a Platform versions in one file
   - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
 - E1.3b Server configured by Ansible from the repository, proven on a local Ubuntu virtual machine
-  - [ ] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007), with the versions of E1.3a
-  - [ ] A deploy playbook installs a build: upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
-  - [ ] Ansible runs in a container with pinned versions; nothing to install on the host but Docker (ADR-0019)
-  - [ ] A second run of the server playbook changes nothing, and check mode reports no drift
-  - [ ] The build is an archive made outside the server; the server has no Node, Composer or Git (ADR-0004)
-  - [ ] The previous release stays on disk: a rollback is one symlink switch, tried once
-  - [ ] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
+  - [x] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007), with the versions of E1.3a
+  - [x] A deploy playbook installs a build: upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
+  - [x] Ansible runs in a container with pinned versions; nothing to install on the host but Docker (ADR-0019)
+  - [x] A second run of the server playbook changes nothing, and check mode reports no drift
+  - [x] The build is an archive made outside the server; the server has no Node, Composer or Git (ADR-0004)
+  - [x] The previous release stays on disk: a rollback is one symlink switch, tried once
+  - [x] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
   - [ ] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
 - E1.3c Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
   - [ ] `tofu apply` creates the instance, network and firewall; state is stored remotely and encrypted
