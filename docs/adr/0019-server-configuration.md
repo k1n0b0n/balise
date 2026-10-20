@@ -1,6 +1,7 @@
 # ADR-0019: Server configuration and deploys with Ansible
 
 - **Status:** Accepted
+- **Amended:** 2026-10-21 by ADR-0020: the application runs in Docker images on the host; points 1, 2 (for the images) and 6 stay, points 3, 4, 5, 7 and the playbooks `server.yml`, `deploy.yml` and `rollback.yml` give way in E1.3d
 - **Date:** 2026-10-20
 
 ## Context

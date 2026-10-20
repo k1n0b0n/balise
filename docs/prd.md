@@ -36,9 +36,9 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Dependabot opens weekly, grouped updates for Composer, npm and GitHub Actions, with Conventional Commits titles; Docker images follow the server instead (E1.3)
   - [x] Workflows use least-privilege `permissions` and actions pinned to a commit SHA
   - [x] The ruleset requires both checks; a pull request with a failing test cannot be merged, shown once on a throwaway pull request
-- E1.3 Server provisioned as code (Oracle Cloud, OpenTofu, Ansible), deploy on GitHub release created by release-please (ADR-0004, ADR-0012); split in three so that what needs no cloud account comes first
+- E1.3 Server prepared from the repository, deploy on GitHub release created by release-please (ADR-0004, ADR-0020); split so that what needs no server comes first
 - E1.3a Platform versions in one file
-  - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
+  - [x] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
 - E1.3b Server configured by Ansible from the repository, proven on a local Ubuntu virtual machine
   - [x] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007), with the versions of E1.3a
   - [x] A deploy playbook installs a build: upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
@@ -49,15 +49,20 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
   - [x] The server's own concerns are configured too: a firewall letting only SSH, HTTP and HTTPS in, and security updates installed daily by unattended upgrades
   - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
-- E1.3c Releases and version upkeep, without a server (Oracle sign-up still pending)
+- E1.3c Releases and version upkeep, without a server
   - [ ] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
   - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the same App token: Node when a newer LTS line starts; Ubuntu when a newer LTS is out, raising PHP, PostgreSQL and Redis to that release's archive in the same pull request (ADR-0019 point 2: within one Ubuntu release, the archive's versions do not move)
   - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
-- E1.3d Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
-  - [ ] OpenTofu creates the instance, network and firewall (ADR-0012); the inventory of E1.3b points at it
-  - [ ] Publishing a release created by release-please runs the deploy playbook of E1.3b from the runner (ADR-0004)
-  - [ ] A weekly workflow runs the playbook in check mode against the server and opens or updates a drift issue; it never blocks pull requests
-  - [ ] The server is destroyed and rebuilt once from the repository, data reloaded by the GTFS import and the seeders; the time it takes is recorded
+- E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
+  - [ ] Publishing a release builds the `app` and `web` images and pushes them to the GitHub Container Registry of the repository's owner
+  - [ ] A bootstrap playbook prepares a host from templates in the repository: Docker, nginx and certbot from the distribution's archive when missing, one nginx site with its certificate, a deploy user restricted to the deploy command, the production `compose.yaml` and secrets generated on the host; an installed Docker, nginx and their other sites are left untouched; a second run changes nothing
+  - [ ] The release workflow deploys over SSH: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
+  - [ ] Going back to the previous release is one command, tried once
+  - [ ] `docs/deploy.md` takes a fork from nothing to a deployed release; no host name, address, port or credential is in the repository
+  - [ ] Proven on three local machines: Debian 13 and Ubuntu 26.04 freshly installed, and a Debian 13 already running Docker and nginx with another site
+- E1.3e Live on the maintainer's server
+  - [ ] Bootstrap run, secrets and variables set, a release deployed by the workflow; the public URL answers 200 over HTTPS
+  - [ ] Memory used by the stack measured on the server
   - [ ] One TBM poll timed on the server (E2.3)
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)

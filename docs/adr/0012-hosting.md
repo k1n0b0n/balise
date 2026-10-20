@@ -1,6 +1,6 @@
 # ADR-0012: Hosting, Oracle Cloud Always Free provisioned as code
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0020 (2026-10-21: the Oracle sign-up failed)
 - **Date:** 2026-10-16
 
 ## Context
@@ -17,7 +17,7 @@
 |---|---|---|
 | **Oracle Cloud Always Free**, Ampere A1 (arm64), home region Paris | 2 OCPU, 12 GB in total since June 2026 | €0 |
 | OVHcloud VPS-1 + Forge Hobby | 2 vCores, 4 GB | about €17 |
-| Scaleway Dedibox VPS-PRO-2-S (existing Online.net account) | 2 vCPU, 4 GB | €10.49, plus Forge if used |
+| Scaleway Dedibox VPS-PRO-2-S | 2 vCPU, 4 GB | €10.49, plus Forge if used |
 | Hetzner CX23 | 2 vCPU, 4 GB | €5.49 plus IPv4, out of stock since September 2026 |
 | Laravel VPS (through Forge) | 1 vCPU, 1 GB at the entry size | from $6, plus Forge |
 | Render, Koyeb, Railway free tiers | Sleeping services, expiring databases or credits | €0, but cannot keep a live demo with Reverb and a queue |
@@ -38,12 +38,12 @@
 | Option | Why not |
 |---|---|
 | OVHcloud VPS-1 + Forge Hobby | The previous choice: Forge shows the skill the posting names, but about €17 per month for a demo |
-| Scaleway Dedibox VPS (existing account) | No new account, but paid, and twice the price of OVH for 4 GB |
+| Scaleway Dedibox VPS | Paid, and twice the price of OVH for 4 GB |
 | Hetzner | Good value and a native Forge provider, but paid and the 4 GB plans are out of stock |
 | Laravel VPS | Paid on top of Forge, entry size too small |
 | Free PaaS tiers (Render, Koyeb, Railway) | Services sleep, free databases expire, credits run out |
 | Kamal, Coolify, Dokploy | Need a production Docker image (excluded by ADR-0007) or add a heavy layer on a small machine |
-| The maintainer's existing server | Runs personal mail on Debian: shared risk and no Ubuntu parity |
+| The maintainer's existing server | Shared with other services, and no Ubuntu parity for a native install |
 
 ## Consequences
 

@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-14
 - **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); deploys run from GitHub Actions
+- **Amended:** 2026-10-21: point 5 deploys Docker images on a server prepared by Ansible (ADR-0020)
 
 ## Context
 
@@ -17,7 +18,7 @@
 2. **Squash merge only**, with head branches deleted after merge. The pull request title becomes the commit message and is checked against Conventional Commits in CI.
 3. **Only the maintainer merges.** On a personal account this holds as long as no collaborator is added; co-maintainers would require moving the repository to an organisation.
 4. **Versions and changelog by release-please.** It keeps a release pull request up to date from the Conventional Commits; merging it creates the tag and the GitHub release. It runs with a token from a dedicated GitHub App, because pull requests opened with the default `GITHUB_TOKEN` do not trigger CI and would be blocked by the required check.
-5. **Deploy on release only.** A workflow on `release: published` checks out the release tag, builds it on the runner (`composer install --no-dev`, `npm run build`), and runs an Ansible playbook that uploads the archive to a new release directory, runs migrations and switches a `current` symlink, then reloads php-fpm and restarts the workers. The SSH key is a repository secret. The server needs no Node and no Git checkout.
+5. **Deploy on release only.** Since ADR-0020: a workflow on `release: published` builds the `app` and `web` images, pushes them to the GitHub Container Registry, then calls the server's deploy command over SSH with a key restricted to it (pull, migrate, restart, import, health check). Before it: a workflow on `release: published` checks out the release tag, builds it on the runner (`composer install --no-dev`, `npm run build`), and runs an Ansible playbook that uploads the archive to a new release directory, runs migrations and switches a `current` symlink, then reloads php-fpm and restarts the workers. The SSH key is a repository secret. The server needs no Node and no Git checkout.
 
 ## Alternatives considered
 
