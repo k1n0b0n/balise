@@ -1,7 +1,7 @@
 # Story 015: Server configured and deployed by Ansible, on a local machine
 
 - **PRD:** E1.3b
-- **Status:** In progress
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -19,7 +19,7 @@ See E1.3b in [prd.md](../prd.md). Decisions in [ADR-0019](../adr/0019-server-con
 - [x] Deploy playbook (`ansible/deploy.yml`): upload, `shared/.env` and `storage`, migrate, `optimize`, switch the link, reload php-fpm, restart the units, keep three releases; checks that the site answers 200
 - [x] Rollback (`ansible/rollback.yml`) tried once, then the same release deployed again
 - [x] On the machine: `network:import tbm` runs, the scheduler polls, the text view shows live vehicles; one TBM poll timed; everything comes back after the machine restarts
-- [ ] The map checked by the maintainer in a browser (headless Firefox has no WebGL: the map is blank there, locally too)
+- [x] The map checked by the maintainer in a browser: vehicles move (headless Firefox has no WebGL, so the map is blank there, locally too)
 - [x] Closing: *Current state*, ideas review (step 5)
 
 ## Notes
@@ -32,4 +32,5 @@ See E1.3b in [prd.md](../prd.md). Decisions in [ADR-0019](../adr/0019-server-con
 - **One TBM poll on the machine (M-series Mac): 0.30 to 0.32 s**, PHP start and download included, 445 positions changed (E2.3's open criterion; to measure again on Oracle's A1 in E1.3c).
 - **Releases on disk:** `/srv/balise/releases/<build>`; `/var/www/balise` is the link to the live one, so `site.conf`, `compose.yaml` and the units name the same path everywhere.
 - **Ideas review:** no idea is implemented here; every *Exploring* idea keeps its verdict. The overview's case for deployment first now has a server ready for E1.3c.
+- **A browser may lack macOS's Local Network permission:** Firefox could not reach `balise-server.orb.local` nor the machine's IP until it was granted; OrbStack also forwards the machine's port 80 to `http://localhost/`.
 - **Not proven here** (the machine shares the Mac's kernel): the firewall's effect from outside, kernel settings. To check on Oracle (E1.3c).
