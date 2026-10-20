@@ -34,7 +34,7 @@ One variant per line and direction would likely be two to three times smaller; n
 2. **The selected line's shape** under its vehicles, highlighted in the whole-network file (E3.4, after E3.8).
 3. **One server-rendered page per line** (`/lignes/{line}`) with its stops in order for each direction, from one representative trip per direction (E7.2). Better for RGAA than listing 5,000 stops in the map's text view.
 4. **Whole-network shapes:** decided 2026-10-18, a static GeoJSON file generated at import only when shapes change, every line faint and the selected one less transparent (E3.8, ADR-0016); vector tiles when a second network needs them.
-5. **Next departures at a stop:** static stop times corrected by TripUpdates, behind the trip updates port anticipated by ADR-0001.
+5. **Next departures at a stop:** static stop times corrected by TripUpdates, behind the trip updates port anticipated by ADR-0001; studied in [next-departures.md](next-departures.md), where trip updates alone may be enough.
 
 ## Open questions
 

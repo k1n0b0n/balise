@@ -33,7 +33,7 @@ Update this section at the end of every working session.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0017 accepted (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
   1. E3.7 (vehicles grouped by line then destination, named "Tram F - DESTINATION"): ADR-0017 accepted; story next, with the coverage of trip updates measured over a day.
-  2. Discuss the open question of [ideas/network-on-map.md](ideas/network-on-map.md): storage of stop times.
+  2. Next departures and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): decide the brief's scope (timetables are out of the MVP); trip updates may make the storage of stop times ([ideas/network-on-map.md](ideas/network-on-map.md)) unnecessary.
   3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
   4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
   5. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).
