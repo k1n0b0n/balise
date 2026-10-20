@@ -57,7 +57,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; `versions.yaml` no longer names Ubuntu; every quality gate passes on them
   - [ ] Publishing a release builds the `app` and `web` images and pushes them to the GitHub Container Registry of the repository's owner
   - [ ] A bootstrap playbook prepares a host from templates in the repository: Docker, nginx and certbot from the distribution's archive when missing, one nginx site with its certificate, a deploy user restricted to the deploy command, the production `compose.yaml` and secrets generated on the host; an installed Docker, nginx and their other sites are left untouched; a second run changes nothing
-  - [ ] The release workflow deploys over SSH: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
+  - [ ] The release workflow deploys over SSH, from a GitHub environment that waits for the maintainer's approval: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
   - [ ] Going back to the previous release is one command, tried once
   - [ ] `docs/deploy.md` takes a fork from nothing to a deployed release; no host name, address, port or credential is in the repository
   - [ ] Proven on three local machines: Debian 13 and Ubuntu 26.04 freshly installed, and a Debian 13 already running Docker and nginx with another site
