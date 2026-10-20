@@ -1,0 +1,94 @@
+# Installs a release archive of scripts/build-release.sh (E1.3b, ADR-0004, ADR-0019) on a server configured by server.yml.
+#   docker compose run --rm ansible ansible-playbook deploy.yml -e archive=../build/balise-<time>-<commit>.tar.gz
+- name: Deploy a release of balise
+  hosts: all
+  become: true
+  vars_files:
+    - ../versions.yaml
+  vars:
+    home: /srv/balise
+    release: "{{ home }}/releases/{{ archive | basename | regex_replace('\\.tar\\.gz$', '') }}"
+    # The path of compose.yaml and nginx's root, pointing at the live release.
+    current: /var/www/balise
+    kept_releases: 3
+
+  tasks:
+    - name: Check the archive
+      ansible.builtin.assert:
+        that: archive is defined and archive is file
+        fail_msg: "Pass the archive of scripts/build-release.sh: -e archive=../build/<name>.tar.gz"
+
+    - name: Create the release directory
+      ansible.builtin.file:
+        path: "{{ release }}"
+        state: directory
+        owner: balise
+        group: balise
+        mode: "0755"
+
+    - name: Upload and unpack the archive
+      ansible.builtin.unarchive:
+        src: "{{ archive }}"
+        dest: "{{ release }}"
+        owner: balise
+        group: balise
+        creates: "{{ release }}/artisan"
+
+    - name: Remove the release's own storage
+      ansible.builtin.file:
+        path: "{{ release }}/storage"
+        state: absent
+      when: (release ~ '/storage') is not link
+
+    - name: Link the shared environment file and storage
+      ansible.builtin.file:
+        path: "{{ release }}/{{ item }}"
+        src: "{{ home }}/shared/{{ item }}"
+        state: link
+        owner: balise
+        group: balise
+      loop: [.env, storage]
+
+    - name: Migrate the database and cache the configuration, routes, events and views
+      become_user: balise
+      ansible.builtin.command:
+        cmd: "php artisan {{ item }}"
+        chdir: "{{ release }}"
+      loop: [migrate --force, optimize]
+      changed_when: true
+
+    # The file module replaces a link by renaming a new one over it: requests see the old release or the new one.
+    - name: Switch to the new release
+      ansible.builtin.file:
+        path: "{{ current }}"
+        src: "{{ release }}"
+        state: link
+        force: true
+
+    - name: Reload php-fpm, which empties OPcache
+      ansible.builtin.systemd_service:
+        name: "php{{ php }}-fpm"
+        state: reloaded
+
+    - name: Restart the workers on the new release
+      ansible.builtin.systemd_service:
+        name: "balise-{{ item }}"
+        state: restarted
+      loop: [queue, scheduler]
+
+    - name: List the releases
+      ansible.builtin.find:
+        paths: "{{ home }}/releases"
+        file_type: directory
+      register: releases
+
+    - name: Remove all but the last releases
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ (releases.files | map(attribute='path') | sort)[:-kept_releases] }}"
+
+    - name: Check that the site answers
+      ansible.builtin.uri:
+        url: http://127.0.0.1/
+        status_code: 200
