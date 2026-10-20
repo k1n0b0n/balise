@@ -1,6 +1,6 @@
 # ADR-0017: Line and destination of a position from GTFS-Realtime trip updates
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-0018](0018-destination-from-vehicle-label.md)
 - **Date:** 2026-10-18
 
 ## Context

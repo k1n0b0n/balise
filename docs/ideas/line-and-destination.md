@@ -1,6 +1,6 @@
 # Idea: vehicles grouped by line and destination
 
-- **Status:** Planned → E3.7, decided in ADR-0017 (option 2)
+- **Status:** Planned → E3.7, decided in ADR-0017 (option 2), superseded by ADR-0018 (`vehicle.label`, after the midday sample of story 013)
 - **Related:** ADR-0001 (trip updates port), ADR-0013, E3.5
 
 ## Why
