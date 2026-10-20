@@ -135,7 +135,7 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
-- Next departures at a stop: static GTFS stop times corrected by GTFS-RT TripUpdates (TBM publishes them, checked 2026-10-18), behind the anticipated trip updates port (ADR-0001); needs the brief's scope changed (no timetables), storage of stop times to be discussed, after E7.2
+- Next departures at a stop and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): GTFS-RT TripUpdates, perhaps without static stop times (TBM's cover 9 h ahead, measured 2026-10-20), behind the anticipated trip updates port (ADR-0001); needs the brief's scope changed (no timetables), storage of stop times to be discussed, after E7.2
 - Vector tiles for line shapes (PostGIS or PMTiles), when a second network makes the GeoJSON files too heavy (ADR-0016)
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)

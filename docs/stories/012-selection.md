@@ -31,3 +31,7 @@ See E3.4 in [prd.md](../prd.md).
 - CodeRabbit reviewed the pull request on its own when it was marked ready: three findings, fixed. An unknown `?ligne=` fitted the map to the vehicles without a line; the recentring on a followed vehicle ran on every redraw and cancelled the zoom to a vehicle opened from the text view or the URL, and the fit to a line (it now runs on new positions only, for a vehicle followed before them); choosing another line kept a vehicle of the old line selected and followed (its popup now closes).
 - **Deselecting** (after the merge, maintainer's request): the selector's "Toutes les lignes" was the only way back. Closing the popup now ends the selection of the vehicle and of its line, and a × next to the selector, shown only with a selected line and named "Désélectionner la ligne A" for screen readers, deselects it; it is a link to the page without `?ligne=`, so it works without JavaScript. The focus then goes to the selector, since the × hides.
 - CodeRabbit reviewed the deselection pull request: three findings, fixed. The PRD called the × a button, though it is a link; an older note said closing the popup kept the line; a vehicle still waiting to open, from the URL or the text view, could undo a line chosen or cleared meanwhile (both pending openings are now cancelled).
+
+### Study
+
+Step 2 of `ideas/network-on-map.md`: the selected line's shape under its vehicles, highlighted in the whole-network file of E3.8 rather than fetched on its own.

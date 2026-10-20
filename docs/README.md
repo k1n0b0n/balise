@@ -10,7 +10,7 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 | 2 | Planning | `prd.md` | Every MVP story has testable acceptance criteria |
 | 3 | Solutioning | `architecture.md` + `adr/` | Every structuring decision has an accepted ADR |
 | 4 | Implementation | `stories/NNN-*.md` | Story loop below, one story at a time |
-| — | Ideas | `ideas/*.md` | Not a phase: studies that feed the PRD; status Exploring, Planned (→ PRD ids) or Dropped (with the reason) |
+| — | Ideas | `ideas/*.md`, indexed in `ideas/overview.md` | Not a phase: studies that feed the PRD; status Exploring, Planned (→ PRD ids) or Dropped (with the reason). Only open and dropped ideas stay in the folder (see step 5) |
 
 ## Story loop
 
@@ -18,6 +18,9 @@ A trimmed-down version of the [BMAD Method](https://github.com/bmad-code-org/BMA
 2. **Dev**: implement on a branch, tests first where it pays.
 3. **Review**: the pull request opens as a draft; quality gates green (tests, static analysis, architecture rules), then the maintainer reviews the diff. Once it is marked *Ready for review*, the AI review of the whole pull request is requested once with `@coderabbitai full review` (ADR-0014); valid findings are fixed before merging. A story is one pull request: its story file, the code, the closing of the story and the *Current state* update travel together. A separate `docs:` pull request, opened ready for review and reviewed by the maintainer only, is kept for planning work without code (ADR, PRD, ideas) and for a session that ends without a code pull request; one per session.
 4. **Done**: story file updated with what was learned, in the story's pull request before it is marked ready; the maintainer's review and the merge close it.
+5. **Ideas review**, in the same pull request:
+   - When the story is the last one an idea planned, the idea's study (measures, options rejected and why) moves into the story's notes under `### Study`, the idea file is deleted and its links point to the story. When it is one of several, only the part it implemented moves.
+   - Every *Exploring* idea of `ideas/overview.md` gets a verdict: a PRD story with its criteria, the next measure to take, or *Dropped* with the reason. The overview's table and the *Next* list of *Current state* follow.
 
 ## Rules
 
@@ -33,7 +36,7 @@ Update this section at the end of every working session.
 - **Done:** brief (draft), PRD epics and stories with acceptance criteria for E1.1, E1.2, E1.3 (most) and E2, ADR-0001 to ADR-0018 accepted (ADR-0017 superseded by ADR-0018) (summary in `architecture.md`), story 001: Laravel skeleton, Docker stack and `composer qa` (with `laravel/pao` for agents), `main` ruleset and squash-only merges enabled, agent instructions in `AGENTS.md` (shared across harnesses).
 - **Next:**
   1. E3.7, story 013 (vehicles grouped by line then destination, named "Tram A - La Gardette"): the midday sample disproved ADR-0017 (an update's last stop is not the terminus of a running vehicle); ADR-0018 takes the destination from `vehicle.label`. Code in draft PR #53 (destination, text view by line then destination, popup). Left: evening and morning samples, recorded raw outside the repository (`~/Code/k1n0b0n/balise-samples`), which decide whether trip updates are read for `nt_` trips; VoiceOver check of capitals.
-  2. Discuss the open question of [ideas/network-on-map.md](ideas/network-on-map.md): storage of stop times.
+  2. Next departures and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): decide the brief's scope (timetables are out of the MVP); trip updates may make the storage of stop times ([ideas/network-on-map.md](ideas/network-on-map.md)) unnecessary; shared foundations and an order in [ideas/overview.md](ideas/overview.md).
   3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
   4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
   5. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).
