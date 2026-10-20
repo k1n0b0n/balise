@@ -17,6 +17,7 @@ See E3.7 in [prd.md](../prd.md).
 - [x] Positions payload: the destination; compressed size measured before and after on the same snapshot
 - [ ] Text view: a heading per line (`h3`), then per destination (`h4`) sorted by name ignoring case with "Destination inconnue" last, then the vehicles named "Tram A - La Gardette", their number without a destination; each button keeps a distinct accessible name with the number; the server-rendered view and the module agree (done); capitals checked with VoiceOver (to do, by the maintainer)
 - [x] Popup: the vehicle's name, its destination and its number
+- [ ] Closing (workflow step 5, pull request #54): move the study of `ideas/line-and-destination.md` into the notes under `### Study` and delete it; close `ideas/vehicles-without-line.md` the same way from the samples; review `ideas/overview.md`
 - [ ] Tests: driver (label copied only when configured; if kept, trip updates: cache, once a minute, `ETag`, failure, `route_id` fallback), payload, text view headings, order and names; browser test with axe
 
 ## Notes
