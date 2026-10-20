@@ -30,6 +30,7 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Create the local stand-in for the server (OrbStack, on the host; ADR-0019) / remove it | `sh scripts/local-server.sh` / `orb delete -f balise-server` |
 | Configure the server (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook server.yml` |
 | Build a release archive of the committed HEAD into `build/` | `docker compose run --rm test sh scripts/build-release.sh` |
+| Release a version | Merge the pull request `chore: release x.y.z` that release-please keeps open on `main`: it tags `vx.y.z` and publishes the GitHub release |
 | Deploy a release / go back to the previous one | `docker compose run --rm ansible ansible-playbook deploy.yml -e archive=../build/<name>.tar.gz` / `… rollback.yml` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` or `docker compose run` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
