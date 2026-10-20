@@ -1,6 +1,6 @@
 # ADR-0020: Hosting with Docker on a server prepared by Ansible
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-21
 
 ## Context
