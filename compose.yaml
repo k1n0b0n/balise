@@ -1,4 +1,4 @@
-# Local development only (ADR-0007). Production runs without Docker, configured by Ansible (ADR-0012).
+# Local development and CI (ADR-0007, ADR-0020). Production runs the same images from its own compose file.
 name: balise
 
 # PHP image targets (docker/php/Dockerfile): runtime for the workers, dev for the app and tools, test for the browser tests.

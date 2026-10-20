@@ -18,7 +18,6 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose run --rm -e CLAUDECODE -e AI_AGENT test` |
 | Fast tests without a browser | `docker compose exec php vendor/bin/pest --testsuite=Unit,Feature` |
 | Fix code style | `docker compose exec php vendor/bin/pint` |
-| Check that Dockerfiles, `compose.yaml` and CI agree with `versions.yaml` | `docker compose exec php php scripts/check-versions.php` |
 | Browser tests (axe) need built assets first | `docker compose exec vite npm run build` |
 | Type-check the front end / check the map page JavaScript budget | `docker compose exec vite npm run typecheck` / `docker compose exec vite npm run budget` |
 | One test file / one test | `docker compose exec php vendor/bin/pest tests/Feature/HomeTest.php` / `--filter "renders the home page"` |

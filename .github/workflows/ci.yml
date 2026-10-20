@@ -1,5 +1,7 @@
 name: CI
 
+# Every check runs in the test image of docker/php/Dockerfile, with PostgreSQL from compose.yaml (ADR-0020):
+# what CI proves is what the stack runs, and each version is written in one place.
 on:
   pull_request:
   push:
@@ -13,110 +15,126 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Platform versions agree with versions.yaml (E1.3a); the runner's own PHP is enough, nothing is installed.
-  versions:
+  # Builds the image once and fills the cache the other jobs load it from.
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/php/Dockerfile
+          target: test
+          cache-from: type=gha,scope=test
+          cache-to: type=gha,scope=test,mode=max
+
+  style:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/run
+        with:
+          command: vendor/bin/pint --test
+
+  static:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/run
+        with:
+          command: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+  tests:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/run
+        with:
+          database: 'true'
+          command: vendor/bin/pest --testsuite=Unit,Feature
+
+  front:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          composer: 'false'
+          npm: 'true'
+      - uses: ./.github/actions/run
+        with:
+          command: npm run typecheck && npm run build && npm run budget
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build
+          path: public/build
+          retention-days: 1
+
+  # Browser tests (axe) need the built assets of the front job.
+  browser:
+    needs: front
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          npm: 'true'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: build
+          path: public/build
+      - uses: ./.github/actions/run
+        with:
+          database: 'true'
+          command: vendor/bin/pest --testsuite=Browser
+
+  audit:
+    needs: image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          composer: 'false'
+      - uses: ./.github/actions/run
+        with:
+          command: composer audit --locked && npm audit --audit-level=high
+
+  # The only required check: a job skipped or cancelled above fails it too.
+  ci:
+    needs: [style, static, tests, front, browser, audit]
+    if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 2
-
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - run: php scripts/check-versions.php
-
-  ci:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_USER: balise
-          POSTGRES_PASSWORD: balise
-          POSTGRES_DB: testing
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U balise"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
-    env:
-      DB_HOST: 127.0.0.1
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # Same PHP version and extensions as docker/php/packages.txt
-      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        with:
-          php-version: '8.5'
-          extensions: bcmath, curl, intl, mbstring, pgsql, pdo_pgsql, redis, xml, zip
-          coverage: none
-
-      - id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
-
-      - run: composer install --no-interaction --no-progress
-
-      # Generated classes are not committed (ADR-0015); the script pins protoc and checks its SHA-256.
-      - id: gtfs-realtime-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: generated
-          key: gtfs-realtime-${{ hashFiles('scripts/generate-gtfs-realtime.sh', 'proto/gtfs-realtime.proto') }}
-
-      - if: steps.gtfs-realtime-cache.outputs.cache-hit != 'true'
-        run: sh scripts/generate-gtfs-realtime.sh
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-
-      - run: npm ci
-
-      - name: Type-check the front end
-        run: npm run typecheck
-
-      - name: Dependency audit
-        run: |
-          composer audit
-          npm audit --audit-level=high
-
-      - name: Build front end
-        run: npm run build
-
-      - name: Map page JavaScript budget
-        run: npm run budget
-
-      # Browser tests (axe) need Chromium at the exact Playwright version of package.json.
-      - id: playwright-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ hashFiles('package-lock.json') }}
-
-      - if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-
-      - if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-
-      - name: Prepare environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate --no-interaction
-
-      - name: Quality gates
-        run: composer qa
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
