@@ -97,27 +97,31 @@ it('opens a vehicle popup on click and closes it with Escape', function (): void
         ->assertNoJavaScriptErrors();
 });
 
-it('lists vehicles by line in the text view and opens their popup from the keyboard', function (): void {
+it('lists vehicles by line and destination in the text view and opens their popup from the keyboard', function (): void {
     Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'long_name' => 'Le Haillan Rostand / Floirac Dravemont', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
 
-    foreach (['1234' => 'tbm:A', 'lineless' => null, 'stranger' => 'tbm:gone'] as $vehicle => $line) {
+    foreach (['1234' => ['tbm:A', 'La Gardette'], 'nameless' => ['tbm:A', null], 'lineless' => [null, null], 'stranger' => ['tbm:gone', 'CENON GARE']] as $vehicle => [$line, $destination]) {
         VehiclePosition::query()->create([
             'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
-            'line_id' => $line, 'recorded_at' => now()->subMinutes(3), 'received_at' => now(),
+            'line_id' => $line, 'destination' => $destination, 'recorded_at' => now()->subMinutes(3), 'received_at' => now(),
         ]);
     }
 
     visit('/')
-        ->assertPresent('[data-map][data-vehicle-count="3"]')
+        ->assertPresent('[data-map][data-vehicle-count="4"]')
         // A line the catalogue lacks shows like no line at all, in the last group.
         ->assertScript("[...document.querySelectorAll('#vue-texte h3')].map((heading) => heading.textContent).join(' | ')", 'Tram A – Le Haillan Rostand / Floirac Dravemont | Ligne inconnue')
+        ->assertScript("[...document.querySelectorAll('#vue-texte h4')].map((heading) => heading.textContent).join(' | ')", 'La Gardette | Destination inconnue | CENON GARE | Destination inconnue')
         ->assertSeeIn('[data-vehicle="tbm:stranger"]', 'il y a 3 min')
-        // Tab skips the headings: each button's accessible name, as computed for assistive technologies, says its line.
-        // Chromium puts a space before the visually hidden text, which is positioned: the pattern allows it.
-        ->assertPresent('[data-vehicle="tbm:1234"] >> internal:role=button[name=/^Véhicule 1234 ?, Tram A, afficher sur la carte$/]')
+        // Tab skips the headings: each button's accessible name, as computed for assistive technologies, says its line,
+        // and its number when other vehicles share its name. Chromium puts a space before the visually hidden text,
+        // which is positioned: the pattern allows it.
+        ->assertPresent('[data-vehicle="tbm:1234"] >> internal:role=button[name=/^Tram A - La Gardette ?, véhicule 1234, afficher sur la carte$/]')
+        ->assertPresent('[data-vehicle="tbm:nameless"] >> internal:role=button[name=/^Véhicule nameless ?, Tram A, afficher sur la carte$/]')
         ->assertPresent('[data-vehicle="tbm:stranger"] >> internal:role=button[name=/^Véhicule stranger ?, ligne inconnue, afficher sur la carte$/]')
         ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
-        ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
+        ->assertSeeIn('[role="dialog"][aria-label="Tram A - La Gardette, véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
+        ->assertSeeIn('[role="dialog"]', 'La Gardette')
         // The popup takes the focus, so that keyboard and screen reader users land on it.
         ->assertScript("document.activeElement.closest('[role=\"dialog\"]') !== null", true)
         ->assertNoAccessibilityIssues(level: 3)

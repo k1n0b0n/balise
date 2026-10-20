@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
  * @property float $longitude
  * @property ?string $line_id
  * @property ?string $trip_id
+ * @property ?string $destination
  * @property Carbon $recorded_at
  * @property Carbon $received_at
  * @property-read ?Line $line
@@ -50,6 +51,25 @@ final class VehiclePosition extends Model
     public function displayId(): string
     {
         return Str::after($this->vehicle_id, "{$this->network}:");
+    }
+
+    /**
+     * What the text view and the popup call the vehicle (ADR-0018): its line and destination, "Tram A - La Gardette",
+     * or its number when either is unknown.
+     */
+    public function name(): string
+    {
+        return $this->isNamed()
+            ? "{$this->line?->mode->label()} {$this->line?->short_name} - {$this->destination}"
+            : "Véhicule {$this->displayId()}";
+    }
+
+    /**
+     * Whether the name is a line and destination, which vehicles share: the number then has to be said too (RGAA).
+     */
+    public function isNamed(): bool
+    {
+        return $this->line !== null && $this->destination !== null;
     }
 
     protected function casts(): array

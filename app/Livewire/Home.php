@@ -8,6 +8,7 @@ use App\Enums\TransportMode;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
+use Collator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -39,19 +40,36 @@ final class Home extends Component
     }
 
     /**
-     * The text view (E3.5): the selected line first (E3.4), then lines in natural order of their short name, each with
-     * its vehicles, and the vehicles whose line is unknown last. The browser sorts the same way when it takes over.
+     * The text view (E3.5): the selected line first (E3.4), then lines in natural order of their short name, and the
+     * vehicles whose line is unknown last. Within a line, its destinations by name, the unknown one last (E3.7), each
+     * with its vehicles. The browser sorts the same way when it takes over.
      *
      * @param  Collection<int, VehiclePosition>  $positions
-     * @return Collection<int, array{line: ?Line, vehicles: Collection<int, VehiclePosition>}>
+     * @return Collection<int, array{line: ?Line, destinations: Collection<int, array{destination: ?string, vehicles: Collection<int, VehiclePosition>}>}>
      */
     private function groups(Collection $positions, ?Line $selectedLine): Collection
     {
+        // Like the browser's Intl.Collator: case, accents and digits compared as people read them.
+        $collator = new Collator('fr');
+        $collator->setAttribute(Collator::NUMERIC_COLLATION, Collator::ON);
+        $collator->setStrength(Collator::PRIMARY);
+
         return $positions
             ->groupBy(fn (VehiclePosition $position): string => $position->line->id ?? '')
             ->map(fn (Collection $vehicles): array => [
                 'line' => $vehicles->first()?->line,
-                'vehicles' => $vehicles->sort(fn (VehiclePosition $a, VehiclePosition $b): int => strnatcasecmp($a->displayId(), $b->displayId()))->values(),
+                'destinations' => $vehicles
+                    ->groupBy(fn (VehiclePosition $position): string => $position->destination ?? '')
+                    ->map(fn (Collection $vehicles, string $destination): array => [
+                        'destination' => $destination === '' ? null : $destination,
+                        'vehicles' => $vehicles->sort(fn (VehiclePosition $a, VehiclePosition $b): int => strnatcasecmp($a->displayId(), $b->displayId()))->values(),
+                    ])
+                    ->sort(fn (array $a, array $b): int => match (true) {
+                        $a['destination'] === null => 1,
+                        $b['destination'] === null => -1,
+                        default => (int) $collator->compare($a['destination'], $b['destination']),
+                    })
+                    ->values(),
             ])
             ->sort(fn (array $a, array $b): int => match (true) {
                 $a['line']?->is($selectedLine) === true => -1,

@@ -68,6 +68,7 @@ final readonly class RecordPositions
                     'longitude' => $position->longitude,
                     'line_id' => $position->lineId,
                     'trip_id' => $position->tripId,
+                    'destination' => $position->destination,
                     'recorded_at' => CarbonImmutable::instance($position->recordedAt),
                     'received_at' => $receivedAt,
                 ];
@@ -110,6 +111,7 @@ final readonly class RecordPositions
             || $stored->longitude !== $position->longitude
             || $stored->line_id !== $position->lineId
             || $stored->trip_id !== $position->tripId
+            || $stored->destination !== $position->destination
             || $stored->recorded_at->getTimestamp() !== $position->recordedAt->getTimestamp();
     }
 }

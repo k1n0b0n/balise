@@ -22,15 +22,16 @@ beforeEach(function (): void {
 });
 
 /**
- * Record a poll of the TBM feed, one position per vehicle id => line id.
+ * Record a poll of the TBM feed, one position per vehicle id => line id, with a destination per vehicle id if given.
  *
  * @param  array<string, ?string>  $vehicles
+ * @param  array<string, string>  $destinations
  */
-function poll(array $vehicles, float $latitude = 44.84): void
+function poll(array $vehicles, float $latitude = 44.84, array $destinations = []): void
 {
     $now = CarbonImmutable::now();
     $positions = array_map(
-        fn (string $vehicle, ?string $line): VehiclePosition => new VehiclePosition("tbm:{$vehicle}", $latitude, -0.57, $now->toDateTimeImmutable(), $line),
+        fn (string $vehicle, ?string $line): VehiclePosition => new VehiclePosition("tbm:{$vehicle}", $latitude, -0.57, $now->toDateTimeImmutable(), $line, destination: $destinations[$vehicle] ?? null),
         array_keys($vehicles),
         $vehicles,
     );
@@ -46,17 +47,17 @@ function vehicles(?int $since = null): TestResponse
     return test()->getJson(route('vehicles', ['network' => 'tbm', 'since' => $since]));
 }
 
-it('returns every vehicle with its position and line id only', function (): void {
-    poll(['yellow' => 'tbm:A', 'lineless' => null, 'unknown' => 'tbm:gone']);
+it('returns every vehicle with its position, line id and destination only', function (): void {
+    poll(['yellow' => 'tbm:A', 'lineless' => null, 'unknown' => 'tbm:gone'], destinations: ['yellow' => 'La Gardette']);
 
     $response = vehicles()->assertOk()->assertJsonPath('full', true)->assertJsonPath('removed', []);
 
     // What a line looks like comes from the line catalogue, once (E3.5, RGESN).
     expect(collect($response->json('vehicles'))->keyBy('id')->all())->toEqual([
-        'tbm:yellow' => ['id' => 'tbm:yellow', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:A'],
-        'tbm:lineless' => ['id' => 'tbm:lineless', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => null],
+        'tbm:yellow' => ['id' => 'tbm:yellow', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:A', 'destination' => 'La Gardette'],
+        'tbm:lineless' => ['id' => 'tbm:lineless', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => null, 'destination' => null],
         // A line the catalogue does not know is still sent: the browser refetches the catalogue once (E3.5).
-        'tbm:unknown' => ['id' => 'tbm:unknown', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:gone'],
+        'tbm:unknown' => ['id' => 'tbm:unknown', 'latitude' => 44.84, 'longitude' => -0.57, 'recordedAt' => '2026-10-16T12:00:00+00:00', 'lineId' => 'tbm:gone', 'destination' => null],
     ]);
 });
 

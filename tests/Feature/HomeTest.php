@@ -69,3 +69,23 @@ it('lists the line in the URL first, before JavaScript loads, and keeps the othe
     // A line the network does not have changes nothing.
     $this->get('/?ligne=nowhere')->assertSeeInOrder(['Véhicule on-10,', 'Véhicule on-A,']);
 });
+
+it('groups a line by destination, sorted by name ignoring case, the unknown one last (E3.7)', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'sync_id' => Str::uuid()]);
+
+    foreach (['2231' => 'Pin Galant', '2230' => 'LA GARDETTE', '2229' => 'Pin Galant', '2228' => null] as $vehicle => $destination) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => 'tbm:A', 'destination' => $destination, 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSeeInOrder([
+            '<h3', 'Tram A', '</h3>',
+            '<h4', 'LA GARDETTE', '</h4>', 'Tram A - LA GARDETTE, véhicule 2230,',
+            '<h4', 'Pin Galant', '</h4>', 'Tram A - Pin Galant, véhicule 2229,', 'Tram A - Pin Galant, véhicule 2231,',
+            '<h4', 'Destination inconnue', '</h4>', 'Véhicule 2228,',
+        ], escape: false);
+});

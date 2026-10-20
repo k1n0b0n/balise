@@ -25,6 +25,7 @@ final readonly class VehicleFeeds
                 $network,
                 Config::string("networks.{$network}.vehicles.url"),
                 array_values(array_filter(Config::array("networks.{$network}.vehicles.vehicle_id", GtfsRealtimeFeed::VEHICLE_ID_SOURCES), is_string(...))),
+                Config::boolean("networks.{$network}.vehicles.label_is_destination", false),
                 $this->http,
             ),
             default => throw new InvalidArgumentException("Unknown vehicle feed driver [{$driver}] for network [{$network}]."),
