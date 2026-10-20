@@ -13,7 +13,7 @@ runs:
     - shell: bash
       env:
         COMMAND: ${{ inputs.command }}
-        DEPS: ${{ inputs.database == 'true' && '' || '--no-deps' }}
+        DEPS: ${{ inputs.database != 'true' && '--no-deps' || '' }}
       run: >-
         docker compose run --rm $DEPS --user "$(id -u):$(id -g)"
         -e HOME=/tmp -e COMPOSER_CACHE_DIR=.cache/composer -e npm_config_cache=.cache/npm
