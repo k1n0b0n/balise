@@ -50,7 +50,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The server's own concerns are configured too: a firewall letting only SSH, HTTP and HTTPS in, and security updates installed daily by unattended upgrades
   - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
 - E1.3c Releases, without a server
-  - [ ] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
+  - [x] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
 - E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
   - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; every quality gate passes on them
   - [ ] CI runs the quality gates in the `test` image; each version is written in one place (PHP and Node in the Dockerfile, PostgreSQL and Redis in `compose.yaml`), so `versions.yaml`, its check and the required check `versions` are removed; CI's duration before and after is recorded
