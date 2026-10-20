@@ -3,8 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-10-15
 - **Amended:** 2026-10-15, during E1.1: logs on stderr, no process runner, `laravel/pao` for agents
-- **Amended:** 2026-10-16: Ubuntu 26.04, Forge's default for new servers since 2026-08-31; PHP from the Ubuntu archive
-- **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
+- **Amended:** 2026-10-16: Ubuntu 26.04, the current Ubuntu LTS; PHP from the Ubuntu archive
+- **Amended:** 2026-10-16: hosting moved to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); the server is configured from the same files
 - **Amended:** 2026-10-16, during E3.1: the PHP Dockerfile has three targets, `runtime` (353 MB, queue and scheduler), `dev` (461 MB, adds Composer and tools) and `test` (2.3 GB, adds Node and a Chromium pinned to the Playwright version of `package.json`, built only for the on-demand `test` service)
 - **Amended:** 2026-10-21: production runs Docker images built from `runtime` (ADR-0020); point 6 is decided
 

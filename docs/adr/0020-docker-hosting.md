@@ -47,7 +47,7 @@
 | The native install of E1.3b on the host | Needs the Ubuntu 26.04 archive (a Debian 13 host has PHP 8.4 and PostgreSQL 17), and puts PHP, PostgreSQL and system users on a machine that serves other things |
 | Incus system container on the host, running the E1.3b playbooks | Keeps E1.3b, but adds Incus to the host and a network bridge to set up; Docker is already there |
 | Oracle Cloud (ADR-0012) | Sign-up failed |
-| A paid VPS, with or without Forge | The maintainer does not want to pay; Forge also needs a fresh server of its own |
+| A paid VPS | The maintainer does not want to pay |
 | Deploy by a timer on the host that polls for releases | No key reaches the host, but the deploy result is not shown in Actions and starts minutes late |
 | vhost and `compose.yaml` taken from the release | Gives root on the host to whoever can merge (decision point 4) |
 | Docker from docker.com's repository | A third-party repository (ADR-0019 point 2); the archive's versions run compose files of this size |
@@ -62,5 +62,4 @@
 - ADR-0012 is superseded. Of ADR-0019, Ansible in a container, the archive rule and server-generated secrets stay; the host install (releases side by side, the `balise` user, systemd units, the build archive) gives way to the images, and `server.yml`, `deploy.yml` and `rollback.yml` are removed in E1.3d. ADR-0007 no longer says "no Docker in production".
 - Production images are the project's to maintain; the archive rule now applies to the images only, which already follow it.
 - The host is amd64 while local images run arm64: the images are built on CI's amd64 runner, and an arm64 host would add a platform to the build.
-- Laravel Forge is still not shown by the demo; the posting's "hosting and deploying" is covered by the images, the automated deploy and the bootstrap playbook.
 - The stack shares the host's memory: measured on the server in E1.3e, with limits in the production `compose.yaml` if needed.

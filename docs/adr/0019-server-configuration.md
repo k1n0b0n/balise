@@ -31,7 +31,7 @@ Measured on 2026-10-20 in `ubuntu:26.04`: the archive has nginx 1.28, PHP 8.5.4,
 | Redis installed only when a story uses it | Nothing idle, but the server would differ from `compose.yaml` until then |
 | Ansible Vault for secrets | The repository is public: the encrypted file can be attacked offline without limit, and a leak stays in the history for ever; the vault password is one more secret; rotating means re-encrypting and committing |
 | Every secret as a GitHub secret, passed to the playbook | The database password and `APP_KEY` would leave the only machine that uses them, and need a copy outside Git for local runs |
-| Supervisor for the workers | Familiar to Laravel readers (Laravel's documentation, Forge), but a second supervisor started by systemd, with its own logs; systemd already restarts units, orders them after PostgreSQL, limits their memory and sandboxes them |
+| Supervisor for the workers | Familiar to Laravel readers (Laravel's documentation), but a second supervisor started by systemd, with its own logs; systemd already restarts units, orders them after PostgreSQL, limits their memory and sandboxes them |
 | Cron `schedule:run` every minute | Differs from `compose.yaml` (`schedule:work`), and ADR-0007 wants identical daemon commands |
 | A Vagrant or Multipass virtual machine | Slower to boot; OrbStack already runs the Docker engine here; the playbook does not depend on it |
 | Ansible Galaxy roles (geerlingguy.php, nginx…) | Hide what is installed behind many variables; the configuration is small enough to read in a few tasks |

@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-14
-- **Amended:** 2026-10-16: hosting moved off Forge to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); deploys run from GitHub Actions
+- **Amended:** 2026-10-16: hosting moved to an Oracle Cloud server provisioned with OpenTofu and Ansible (ADR-0012); deploys run from GitHub Actions
 - **Amended:** 2026-10-21: point 5 deploys Docker images on a server prepared by Ansible (ADR-0020)
 
 ## Context
