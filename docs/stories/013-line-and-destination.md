@@ -1,7 +1,7 @@
 # Story 013: Group vehicles by line and destination
 
 - **PRD:** E3.7
-- **Status:** Draft
+- **Status:** In progress, waiting for the evening and morning samples (resumed 2026-10-21)
 
 ## Acceptance criteria
 
