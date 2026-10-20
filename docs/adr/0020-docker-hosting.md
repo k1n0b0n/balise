@@ -22,7 +22,7 @@
 4. **One bootstrap playbook, `ansible/host.yml`, run by a person with root** from the `ansible` service (ADR-0019 point 1). It installs, from the templates in `ansible/`:
    - Docker and its compose plugin from the distribution's archive when missing; an installed Docker is left as it is.
    - nginx and certbot from the archive when missing, then one file in nginx's `conf.d/`, a proxy to the `web` container, with its certificate obtained by webroot. `nginx.conf` and other sites are never touched.
-   - A deploy user whose SSH key is restricted to one command (`command="sudo /usr/local/sbin/balise-deploy",restrict`), and the one sudoers line that allows it.
+   - A deploy user whose SSH key is restricted to one command, `command="sudo /usr/local/sbin/balise-deploy \"$SSH_ORIGINAL_COMMAND\"",restrict`: sshd ignores the command the client sends, runs this one instead and puts the client's in `SSH_ORIGINAL_COMMAND`, which the deploy user's shell expands into a single argument before `sudo`, so sudo's cleared environment loses nothing. The one sudoers line allows that script with any argument; the script itself accepts only a version or `rollback` (point 6).
    - `/srv/balise`: the production `compose.yaml`, a root-only `.env` whose `APP_KEY` and database password are generated there once (ADR-0019 point 6), and the deploy script.
    - Optionally the firewall (SSH, HTTP, HTTPS) and unattended upgrades: on by default, off for a host that already manages them.
    Containers publish their ports on `127.0.0.1` only: Docker's published ports bypass the host firewall.
