@@ -1,0 +1,7 @@
+# Platform versions, in one place (E1.3a). Ansible installs these on the server (E1.3b); scripts/check-versions.php
+# fails CI when the Dockerfiles, compose.yaml or the CI workflow name another one. Flat "key: value" pairs only.
+ubuntu: "26.04"
+php: "8.5"
+postgresql: "18"
+redis: "7"
+node: "24"

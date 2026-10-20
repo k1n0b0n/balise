@@ -44,11 +44,16 @@ FROM dev AS test
 
 USER root
 
+# Node from its official image: the Ubuntu archive has an older major than Vite and CI (versions.yaml).
+COPY --from=node:24-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:24-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
 # Chromium must match the exact Playwright version of package.json: rebuild this target when it changes.
 COPY package.json /tmp/package.json
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nodejs npm \
     && npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps chromium \
     && chmod -R a+rX /opt/playwright \
     && rm -rf /var/lib/apt/lists/* /tmp/package.json /root/.npm

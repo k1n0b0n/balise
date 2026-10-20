@@ -36,13 +36,18 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Dependabot opens weekly, grouped updates for Composer, npm and GitHub Actions, with Conventional Commits titles; Docker images follow the server instead (E1.3)
   - [x] Workflows use least-privilege `permissions` and actions pinned to a commit SHA
   - [x] The ruleset requires both checks; a pull request with a failing test cannot be merged, shown once on a throwaway pull request
-- E1.3 Server provisioned as code (Oracle Cloud, OpenTofu, Ansible), deploy on GitHub release created by release-please (ADR-0004, ADR-0012)
+- E1.3 Server provisioned as code (Oracle Cloud, OpenTofu, Ansible), deploy on GitHub release created by release-please (ADR-0004, ADR-0012); split in three so that what needs no cloud account comes first
+- E1.3a Platform versions in one file
+  - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
+- E1.3b Server configured by Ansible from the repository, proven on a local Ubuntu virtual machine
+  - [ ] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007), with the versions of E1.3a
+  - [ ] A deploy playbook installs a build: upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
+  - [ ] Other criteria to be written
+- E1.3c Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
   - [ ] `tofu apply` creates the instance, network and firewall; state is stored remotely and encrypted
-  - [ ] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007)
-  - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; Ansible installs those versions, and a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
-  - [ ] Publishing a release deploys it: build on the runner, upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
+  - [ ] Publishing a release created by release-please runs the deploy playbook of E1.3b from the runner (ADR-0004)
   - [ ] A weekly workflow runs the playbook in check mode against the server and opens or updates a drift issue; it never blocks pull requests
-  - [ ] A weekly workflow opens a pull request raising one version by one step when a newer supported one exists (Ubuntu LTS, PHP, PostgreSQL, Redis, Node LTS)
+  - [ ] A weekly workflow opens a pull request raising one version of E1.3a by one step when a newer supported one exists (Ubuntu LTS, PHP, PostgreSQL, Redis, Node LTS); it uses the GitHub App token of release-please, so that CI runs on it
   - [ ] The server is destroyed and rebuilt once from the repository, data reloaded by the GTFS import and the seeders; the time it takes is recorded
   - [ ] Other criteria to be written
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)

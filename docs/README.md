@@ -38,5 +38,5 @@ Update this section at the end of every working session.
   1. E3.7 (vehicles grouped by line then destination, named "Tram F - DESTINATION"): ADR-0017 accepted; story next, with the coverage of trip updates measured over a day.
   2. Next departures and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): decide the brief's scope (timetables are out of the MVP); trip updates may make the storage of stop times ([ideas/network-on-map.md](ideas/network-on-map.md)) unnecessary.
   3. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
-  4. Choose a domain name (needed by E1.3 and E1.4); provision only once something runs locally.
+  4. E1.3 split in three: E1.3a (versions file and check) in story 014; E1.3b (Ansible on a local virtual machine) next; E1.3c (Oracle Cloud) waits for the account. Choose a domain name (needed by E1.4).
   5. Oracle Cloud account: sign-up failed after identity check, support ticket open (2026-10-16); fallback Scaleway or OVH (ADR-0012).
