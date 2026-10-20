@@ -34,11 +34,17 @@
         group: balise
         creates: "{{ release }}/artisan"
 
+    # Path tests (is link) would look at the controller: stat looks at the server.
+    - name: Look at the release's storage
+      ansible.builtin.stat:
+        path: "{{ release }}/storage"
+      register: release_storage
+
     - name: Remove the release's own storage
       ansible.builtin.file:
         path: "{{ release }}/storage"
         state: absent
-      when: (release ~ '/storage') is not link
+      when: release_storage.stat.exists and not release_storage.stat.islnk
 
     - name: Link the shared environment file and storage
       ansible.builtin.file:

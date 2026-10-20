@@ -47,6 +47,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The build is an archive made outside the server; the server has no Node, Composer or Git (ADR-0004)
   - [x] The previous release stays on disk: a rollback is one symlink switch, tried once
   - [x] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
+  - [x] The server's own concerns are configured too: a firewall letting only SSH, HTTP and HTTPS in, and security updates installed daily by unattended upgrades
   - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
 - E1.3c Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
   - [ ] `tofu apply` creates the instance, network and firewall; state is stored remotely and encrypted
