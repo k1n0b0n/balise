@@ -51,9 +51,10 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
 - E1.3c Releases and version upkeep, without a server
   - [ ] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
-  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the same App token: Node when a newer LTS line starts; Ubuntu when a newer LTS is out, raising PHP, PostgreSQL and Redis to that release's archive in the same pull request (ADR-0019 point 2: within one Ubuntu release, the archive's versions do not move)
+  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the same App token: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone (ADR-0020)
   - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
 - E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
+  - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; `versions.yaml` no longer names Ubuntu; every quality gate passes on them
   - [ ] Publishing a release builds the `app` and `web` images and pushes them to the GitHub Container Registry of the repository's owner
   - [ ] A bootstrap playbook prepares a host from templates in the repository: Docker, nginx and certbot from the distribution's archive when missing, one nginx site with its certificate, a deploy user restricted to the deploy command, the production `compose.yaml` and secrets generated on the host; an installed Docker, nginx and their other sites are left untouched; a second run changes nothing
   - [ ] The release workflow deploys over SSH: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
