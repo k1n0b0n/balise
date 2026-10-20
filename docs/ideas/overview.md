@@ -2,16 +2,15 @@
 
 - **Status:** Exploring
 - **Date:** 2026-10-20
-- **Covers:** every file of `docs/ideas/`, the PRD's E5 to E7 and *Later*
+- **Covers:** every file of `docs/ideas/`, the PRD's E5 to E7 and *Later*; reviewed at the closing of every story (workflow step 5). Done ideas live in their stories: line catalogue in [story 009](../stories/009-text-view.md#study)
 
 ## Where each idea stands
 
 | Idea | State | Waits for |
 |---|---|---|
-| [line-catalogue.md](line-catalogue.md) | Done (E3.5) | — |
 | [line-and-destination.md](line-and-destination.md) | Code in pull request #53 (E3.7, ADR-0018) | Evening and morning samples |
 | [vehicles-without-line.md](vehicles-without-line.md) | Exploring | The same samples: they count `nt_` trips over a day |
-| [network-on-map.md](network-on-map.md) | E7.1 stations, E7.2 line pages, no criteria yet | Trips and stop order imported |
+| [network-on-map.md](network-on-map.md) | E7.1 stations, E7.2 line pages, no criteria yet; shapes and selection done and moved to stories 011 and 012 | Trips and stop order imported |
 | [next-departures.md](next-departures.md) | Exploring | The brief's scope, a trip updates port |
 | PRD *Later* | History stages 2 and 3, PostGIS, bearing arrows, second network (E6) | — |
 

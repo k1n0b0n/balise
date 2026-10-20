@@ -28,3 +28,23 @@ See E3.8 in [prd.md](../prd.md).
 - JavaScript budget: 501.8 KB compressed (+0.4 KB).
 - CodeRabbit reviewed the pull request on its own when it was marked ready: one finding, fixed. The archive's ETag was saved before the shapes step, so a failed step, or the first import after deploying this story, left the map without lines until the next archive. The ETag is now saved with the fingerprint, and an import without a fingerprint downloads the archive again.
 - **Straight long steps are kept** (after the merge, at the maintainer's review): the 500 m rule also cut true stretches drawn with few points, leaving gaps in line 39 (steps of 535 and 677 m on a straight road). A long step is now cut only when the path turns by more than 30° as it enters or leaves it, the direction being taken over at least 30 m. On TBM: 71 of 170 long steps cut, all 29 of line G's zigzags among them; lines 39, D, E and F stay whole.
+
+### Study
+
+Whole-network shapes, step 4 of `ideas/network-on-map.md`, studied before the story (data: TBM static GTFS of 2026-10-17, `shapes.txt` 19.6 MB, 514 shapes, 435,442 points, 129 lines).
+
+#### Weights (gzip, all 514 shapes)
+
+| Simplification | Points | Size |
+|---|---|---|
+| ~2 m | 94,875 | 472 KB |
+| ~6 m | 55,892 | 276 KB |
+| ~11 m | 36,718 | 132 KB |
+| Stations only | 2,189 | 36 KB |
+
+One variant per line and direction would likely be two to three times smaller; not measured. MapLibre alone is ~430 KB.
+
+#### Choices
+
+- Decided 2026-10-18: a static GeoJSON file generated at import only when shapes change, every line faint and the selected one less transparent (ADR-0016); vector tiles when a second network needs them (PRD *Later*).
+- The simplification tolerance was left to user-experience tests at street and city zoom levels: 11 m, see above.
