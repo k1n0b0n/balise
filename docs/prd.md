@@ -49,13 +49,16 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
   - [x] The server's own concerns are configured too: a firewall letting only SSH, HTTP and HTTPS in, and security updates installed daily by unattended upgrades
   - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
-- E1.3c Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
-  - [ ] `tofu apply` creates the instance, network and firewall; state is stored remotely and encrypted
+- E1.3c Releases and version upkeep, without a server (Oracle sign-up still pending)
+  - [ ] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
+  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the same App token: Node when a newer LTS line starts; Ubuntu when a newer LTS is out, raising PHP, PostgreSQL and Redis to that release's archive in the same pull request (ADR-0019 point 2: within one Ubuntu release, the archive's versions do not move)
+  - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
+- E1.3d Server on Oracle Cloud, deployed on release (needs the Oracle account, or the fallback of ADR-0012)
+  - [ ] OpenTofu creates the instance, network and firewall (ADR-0012); the inventory of E1.3b points at it
   - [ ] Publishing a release created by release-please runs the deploy playbook of E1.3b from the runner (ADR-0004)
   - [ ] A weekly workflow runs the playbook in check mode against the server and opens or updates a drift issue; it never blocks pull requests
-  - [ ] A weekly workflow opens a pull request raising one version of E1.3a by one step when a newer supported one exists (Ubuntu LTS, PHP, PostgreSQL, Redis, Node LTS); it uses the GitHub App token of release-please, so that CI runs on it
   - [ ] The server is destroyed and rebuilt once from the repository, data reloaded by the GTFS import and the seeders; the time it takes is recorded
-  - [ ] Other criteria to be written
+  - [ ] One TBM poll timed on the server (E2.3)
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
 
