@@ -37,7 +37,7 @@
 | Edge | Cloudflare (free plan): DNS, proxy, TLS, cache rules | To decide in E1.4 (the free plan needs the whole DNS zone) |
 | Quality gates | Pint (`laravel` preset), Larastan (level max), Pest with `arch`, behind `composer qa` | Decided, [ADR-0005](adr/0005-quality-tooling.md) |
 | AI review | CodeRabbit, advisory only, configured in `.coderabbit.yaml` | Decided, [ADR-0014](adr/0014-ai-review-bot.md) |
-| Local environment | `compose.yaml` with the images production runs (official `php:8.5-fpm-trixie` and `nginx:alpine` from E1.3d, Ubuntu 26.04 until then), versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md), amended by ADR-0020 |
+| Local environment | `compose.yaml` with the images production runs (official `php:8.5-fpm-alpine` and `nginx:alpine`; the browser tests on `php:8.5-cli-trixie`, ADR-0020 point 2), versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md), amended by ADR-0020 |
 | Responsible design | RGAA 4.1.2 AA, RGESN 2024 self-assessment | Decided, [ADR-0006](adr/0006-responsible-design.md) |
 | Delivery | Protected `main`, squash merge, release-please, images deployed on release by a restricted SSH command | Decided, [ADR-0004](adr/0004-delivery-workflow.md) |
 | Server configuration | Ansible in a container; packages from the distribution's archive; server-local secrets generated on the server | Decided, [ADR-0019](adr/0019-server-configuration.md), amended by ADR-0020 |

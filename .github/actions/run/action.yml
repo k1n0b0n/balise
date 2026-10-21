@@ -1,20 +1,27 @@
-name: Run in the test image
-description: Runs a command in the compose service `test`, as the runner's user so that files written to the checkout stay its own.
+name: Run in a compose service
+description: Runs a command in a service of compose.yaml, as the runner's user so that files written to the checkout stay its own.
 inputs:
   command:
     description: Shell command
     required: true
+  service:
+    description: php (Alpine, the dev image), test (Debian, with Node and Chromium) or vite (Node)
+    default: php
   database:
     description: Start PostgreSQL from compose.yaml first
     default: 'false'
 runs:
   using: composite
   steps:
+    - if: inputs.database == 'true'
+      shell: bash
+      run: docker compose up -d --wait postgres
+
     - shell: bash
       env:
         COMMAND: ${{ inputs.command }}
-        DEPS: ${{ inputs.database != 'true' && '--no-deps' || '' }}
+        SERVICE: ${{ inputs.service }}
       run: >-
-        docker compose run --rm $DEPS --user "$(id -u):$(id -g)"
+        docker compose run --rm --no-deps --user "$(id -u):$(id -g)"
         -e HOME=/tmp -e COMPOSER_CACHE_DIR=.cache/composer -e npm_config_cache=.cache/npm
-        test sh -c "$COMMAND"
+        "$SERVICE" sh -c "$COMMAND"

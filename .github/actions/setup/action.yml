@@ -1,11 +1,14 @@
-name: Set up the test image
-description: Loads the test image from the cache the `image` job filled, then installs dependencies in it.
+name: Set up an image
+description: Loads an image of docker/php/Dockerfile from the cache the `image` job filled, then installs dependencies.
 inputs:
+  target:
+    description: dev (Alpine, run as the php service) or test (Debian with Node and Chromium, run as the test service)
+    default: dev
   composer:
     description: Install Composer packages, generate the GTFS-Realtime classes and create .env
     default: 'true'
   npm:
-    description: Install npm packages
+    description: Install npm packages, with the vite service's Node for dev
     default: 'false'
 runs:
   using: composite
@@ -16,10 +19,10 @@ runs:
       with:
         context: .
         file: docker/php/Dockerfile
-        target: test
-        tags: balise-php:test
+        target: ${{ inputs.target }}
+        tags: balise-php:${{ inputs.target }}
         load: true
-        cache-from: type=gha,scope=test
+        cache-from: type=gha,scope=${{ inputs.target }}
 
     - if: inputs.composer == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -31,6 +34,7 @@ runs:
     - if: inputs.composer == 'true'
       uses: ./.github/actions/run
       with:
+        service: ${{ inputs.target == 'test' && 'test' || 'php' }}
         command: composer install --no-interaction --no-progress
 
     # Generated classes are not committed (ADR-0015); the script pins protoc and checks its SHA-256.
@@ -44,11 +48,13 @@ runs:
     - if: inputs.composer == 'true' && steps.gtfs-realtime-cache.outputs.cache-hit != 'true'
       uses: ./.github/actions/run
       with:
+        service: ${{ inputs.target == 'test' && 'test' || 'php' }}
         command: sh scripts/generate-gtfs-realtime.sh
 
     - if: inputs.composer == 'true'
       uses: ./.github/actions/run
       with:
+        service: ${{ inputs.target == 'test' && 'test' || 'php' }}
         command: cp .env.example .env && php artisan key:generate --no-interaction
 
     - if: inputs.npm == 'true'
@@ -61,4 +67,5 @@ runs:
     - if: inputs.npm == 'true'
       uses: ./.github/actions/run
       with:
+        service: ${{ inputs.target == 'test' && 'test' || 'vite' }}
         command: npm ci

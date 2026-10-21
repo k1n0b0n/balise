@@ -9,8 +9,8 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 
 ## Tasks
 
-- [x] Official base images: every target of `docker/php/Dockerfile` from `php:8.5-fpm-trixie` with the missing extensions, `docker/nginx/Dockerfile` from `nginx:alpine`; the local stack starts and every quality gate passes on them
-- [x] CI in the image: one job builds the `test` image, then style, static analysis, tests, browser tests (after the front-end build), front end and audit run in parallel in it; a final job `ci` needs them all; CI's duration before (2 min 31 s on #57) and after recorded
+- [x] Official base images: `runtime` and `dev` from `php:8.5-fpm-alpine`, `test` from `php:8.5-cli-trixie`, the missing extensions built by one script, `docker/nginx/Dockerfile` from `nginx:alpine`; the local stack starts and every quality gate passes on them
+- [x] CI in the images: one job per image (`dev`, `test`), then style, static analysis, tests, front end and audit run on `dev` or the vite service's Node, the browser tests on `test` after the front-end build; a final job `ci` needs them all; CI's duration before (2 min 31 s on #57) and after recorded
 - [x] Each version in one place: PHP and Node in the Dockerfile, PostgreSQL and Redis in `compose.yaml`; `versions.yaml`, `scripts/check-versions.php`, its test and the `versions` job removed (`docker/php/packages.txt` too, replaced by the Dockerfile's extension list); the maintainer drops `versions` from the ruleset's required checks
 - [ ] Production images: a `production` target (code, Composer without dev packages, built assets, generated classes, `optimize` at start) and the `web` image with `public/`; PostgreSQL's and Redis's versions as labels of `app`
 - [ ] Bootstrap `ansible/host.yml` with its templates: Docker, nginx and certbot from the archive when missing, one nginx site and its certificate, the deploy user restricted to the deploy command, `/srv/balise` with the production `compose.yaml`, generated secrets and the deploy script; firewall and unattended upgrades optional; an example inventory, the real one ignored by Git
@@ -23,7 +23,9 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 
 ## Notes
 
-- **Image sizes** (uncompressed, arm64): `runtime` 773 MB instead of 353 MB on Ubuntu, `dev` 837 MB, `test` 2.5 GB, then 1.9 GB with only Chromium's headless shell, `web` 102 MB. The official Debian image keeps its compilers (`php:8.5-fpm-trixie` alone is 721 MB); the Alpine variant is 171 MB but ruled out by Playwright (ADR-0020 point 2).
+- **Image sizes** (uncompressed, arm64), first on `php:8.5-fpm-trixie` for every target: `runtime` 773 MB instead of 353 MB on Ubuntu, `dev` 837 MB, `test` 2.5 GB. The Debian image keeps its compilers (721 MB alone), and Playwright installed the full Chromium beside its headless shell (400 MB), Mesa and LLVM for a libgbm the shell only links (180 MB) and fonts for every script (87 MB). After moving `runtime` and `dev` to Alpine (ADR-0020 point 2 amended) and slimming `test`: `runtime` 176 MB (50 MB compressed), `dev` 194 MB, `test` 1.04 GB (268 MB compressed), `web` 102 MB.
+- **`test` is flattened:** built in a `test-build` stage that purges the compilers, then copied into `FROM scratch`, so the base image's layers do not keep them; its `ENV` is declared again. Mesa goes with `dpkg --force-depends`, and the map's WebGL tests pass on the shell's SwiftShader.
+- **busybox's `sha256sum` has no `--quiet`:** the GTFS-Realtime script checks protoc with `-c -` and discards the output; the protoc release runs on musl.
 - **phpredis from GitHub, not PECL:** `pecl install` failed on a 504 from pecl.php.net during the first build; the release archive is fetched from GitHub and checked by SHA-256, then built with `docker-php-ext-install` like the bundled extensions.
 - **`sockets` is needed:** Ubuntu's PHP had it built in; `pestphp/pest-plugin-browser` requires it, so the Dockerfile builds it.
 - **nginx's official image compresses nothing** (`#gzip on;` in its `nginx.conf`): `site.conf` now turns gzip on itself.

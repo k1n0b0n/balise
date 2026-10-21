@@ -15,7 +15,11 @@
 ## Decision
 
 1. **The host is any Debian 13 or Ubuntu 26.04 machine reachable by SSH**, freshly installed or already running other services. The demo runs on the maintainer's server; its name, address, SSH port and domain live in GitHub secrets and variables and in a local inventory ignored by Git, never in the repository.
-2. **Official base images instead of Ubuntu** (ADR-0007 amended): `php:8.5-fpm-trixie` for every target of `docker/php/Dockerfile`, with the extensions the image lacks (bcmath, intl, pdo_pgsql, zip by `docker-php-ext-install`, redis by `pecl`), and `nginx:alpine` for `web`. Not Alpine for PHP: Playwright does not run on musl, and the `test` target is built on `runtime`, so tests run on the same libc as production. PHP, PostgreSQL, Redis and Node each move alone, by their image tags.
+2. **Official base images instead of Ubuntu** (ADR-0007 amended), as small as each use allows (amended in E1.3d, when the first images measured `runtime` 773 MB and `test` 2.5 GB):
+   - `runtime`, and `dev` built on it, from `php:8.5-fpm-alpine`, with the extensions the image lacks (bcmath, intl, pdo_pgsql, pgsql, redis, sockets, zip) built by one script, `docker/php/install-extensions.sh`. Production, the local stack, style, static analysis and the unit and feature tests run on it.
+   - `test`, for the browser tests only, from `php:8.5-cli-trixie` with the same script, Node and Chromium's headless shell, flattened into one layer once the compilers are gone. Playwright's browsers need glibc, and Pest starts Playwright and the application in its own container, so the browser cannot live in an image of its own. The PHP of the browser tests thus runs on glibc and production's on musl; the unit and feature tests cover production's libc.
+   - `web` from `nginx:alpine`.
+   PHP, PostgreSQL, Redis and Node each move alone, by their image tags.
 3. **Each version is written in one place, so `versions.yaml` and `scripts/check-versions.php` go.** CI runs the quality gates in the `test` image instead of installing PHP with `setup-php`, so it also proves the Dockerfile: PHP and Node are named only in `docker/php/Dockerfile`, PostgreSQL and Redis only in `compose.yaml` (the Vite service's Node excepted, until it builds from the same Dockerfile). The release build reads PostgreSQL's and Redis's versions from `compose.yaml` and stores them as labels of the `app` image (`balise.postgresql`, `balise.redis`); the deploy reads the labels of the image it pulled, accepts digits only, and writes them to the host's versions file that the production `compose.yaml` interpolates. The cost is a slower CI, measured in E1.3d against the `setup-php` job.
 4. **Two production images, built on release** by GitHub Actions for `linux/amd64` and pushed, public, to the GitHub Container Registry of the repository's owner (`ghcr.io/<owner>/balise-app`, `…/balise-web`), tagged with the release version:
    - `app`: a `production` target of `docker/php/Dockerfile` built from `runtime`, with what `scripts/build-release.sh` puts in the archive (code, Composer without dev packages, built assets, generated GTFS-Realtime classes). php-fpm, the queue worker, the scheduler and one-off commands run it; each container runs `php artisan optimize` at start, since `.env` only exists on the host.
@@ -53,7 +57,8 @@
 | Deploy by a timer on the host that polls for releases | No key reaches the host, but the deploy result is not shown in Actions and starts minutes late |
 | vhost and `compose.yaml` taken from the release | Gives root on the host to whoever can merge (decision point 6) |
 | Keep `ubuntu:26.04` with the archive's PHP | PHP waits for the next Ubuntu LTS, and the parity it bought is gone |
-| `php:8.5-fpm-alpine` | Smaller, but Playwright needs glibc: tests would run on another libc than production |
+| Every PHP target on `php:8.5-fpm-trixie`, so that the browser tests share production's libc | Measured in E1.3d: 773 MB for production, against 176 MB on Alpine, since the Debian image keeps its compilers; every deploy and CI job paid for it |
+| A separate browser image beside a PHP image without Node | Pest launches Playwright itself and serves the application on `127.0.0.1` in its own container; it has no option to reach a remote browser |
 | Docker from docker.com's repository | A third-party repository (ADR-0019 point 2); the archive's versions run compose files of this size |
 | Kamal | Its proxy wants ports 80 and 443, which a host's own nginx already serves |
 | Coolify, Dokploy | A control panel and its database on the host, for one application |
@@ -68,6 +73,7 @@
 - Anyone can deploy from the code: fork, fill the example inventory, run the bootstrap, set the secrets, publish a release (`docs/deploy.md`, E1.3d).
 - `versions.yaml`, `scripts/check-versions.php`, their test and the required check `versions` are removed in E1.3d; the ruleset's required checks follow.
 - ADR-0012 is superseded. Of ADR-0019, Ansible in a container, the archive rule and server-generated secrets stay; the host install (releases side by side, the `balise` user, systemd units, the build archive) gives way to the images, and `server.yml`, `deploy.yml` and `rollback.yml` are removed in E1.3d. ADR-0007 no longer says "no Docker in production".
+- The extension list is written once, in `docker/php/install-extensions.sh`, which knows both package managers.
 - Production images are the project's to maintain; the archive rule of ADR-0019 now applies only to what the bootstrap installs on the host (Docker, nginx, certbot).
 - The host is amd64 while local images run arm64: the images are built on CI's amd64 runner, and an arm64 host would add a platform to the build.
 - The stack shares the host's memory: measured on the server in E1.3e, with limits in the production `compose.yaml` if needed.

@@ -52,7 +52,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E1.3c Releases, without a server
   - [x] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
 - E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
-  - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; every quality gate passes on them
+  - [ ] The images start from the official `php:8.5-fpm-alpine` and `nginx:alpine` instead of `ubuntu:26.04`, the browser tests' from `php:8.5-cli-trixie`; every quality gate passes on them
   - [ ] CI runs the quality gates in the `test` image; each version is written in one place (PHP and Node in the Dockerfile, PostgreSQL and Redis in `compose.yaml`), so `versions.yaml`, its check and the required check `versions` are removed; CI's duration before and after is recorded
   - [ ] CI is split into jobs that run in parallel in that image (style, static analysis, tests, browser tests, front end, audit), the browser tests after the front-end build; one final job `ci` needs them all and stays the only required check
   - [ ] The `app` image carries PostgreSQL's and Redis's versions as labels, and the deploy writes them on the host for the production `compose.yaml`; a new PostgreSQL major is moved by dump and restore, tried once from 17 to 18 on a local machine

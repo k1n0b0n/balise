@@ -1,27 +1,13 @@
-# One Dockerfile, three targets (ADR-0007, ADR-0020):
-#   runtime  PHP 8.5 and the project's PHP configuration: queue, scheduler, and the base of production
+# One Dockerfile, three targets (ADR-0007, ADR-0020 point 2):
+#   runtime  PHP 8.5 on Alpine and the project's PHP configuration: queue, scheduler, and the base of production
 #   dev      runtime + Composer and the tools of the setup scripts
-#   test     dev + Node and Chromium for the browser tests and CI
-FROM php:8.5-fpm-trixie AS runtime
+#   test     PHP 8.5 on Debian + Composer, Node and Chromium, for the browser tests: Playwright's browsers need glibc
+FROM php:8.5-fpm-alpine AS runtime
 
-# Extensions the official image lacks. Its compilers stay (Debian variant), only the headers go once built.
-# phpredis from its GitHub release, checked by SHA-256: PECL's downloads time out too often for a build.
-ARG PHPREDIS_VERSION=6.3.0
-ARG PHPREDIS_SHA256=cb8f81df1a275599e4f8ddcfec7e1f65ed1953e6f5673649149fd680ebff4cad
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libicu76 libpq5 libzip5 libicu-dev libpq-dev libzip-dev \
-    && curl -fsSL -o /tmp/phpredis.tar.gz "https://github.com/phpredis/phpredis/archive/refs/tags/${PHPREDIS_VERSION}.tar.gz" \
-    && echo "${PHPREDIS_SHA256}  /tmp/phpredis.tar.gz" | sha256sum -c - \
-    && docker-php-source extract \
-    && mkdir /usr/src/php/ext/redis \
-    && tar -xzf /tmp/phpredis.tar.gz -C /usr/src/php/ext/redis --strip-components=1 \
-    && docker-php-ext-install -j"$(nproc)" bcmath intl pdo_pgsql pgsql redis sockets zip \
-    && docker-php-source delete \
-    && rm /tmp/phpredis.tar.gz \
-    && apt-get purge -y --auto-remove libicu-dev libpq-dev libzip-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && useradd --create-home --uid 1000 balise
+COPY docker/php/install-extensions.sh /tmp/install-extensions.sh
+RUN sh /tmp/install-extensions.sh \
+    && rm /tmp/install-extensions.sh \
+    && adduser -D -u 1000 balise
 
 COPY docker/php/php.ini "$PHP_INI_DIR/conf.d/99-balise.ini"
 COPY docker/php/fpm-docker.conf /usr/local/etc/php-fpm.d/zz-balise.conf
@@ -35,18 +21,23 @@ FROM runtime AS dev
 
 USER root
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends unzip git \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache git unzip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 USER balise
 
 
-FROM dev AS test
+# Built in one stage, then flattened: the compilers the Debian image keeps would stay in its layers otherwise.
+FROM php:8.5-cli-trixie AS test-build
 
-USER root
+COPY docker/php/install-extensions.sh /tmp/install-extensions.sh
+RUN sh /tmp/install-extensions.sh \
+    && rm /tmp/install-extensions.sh \
+    && useradd --create-home --uid 1000 balise
+
+COPY docker/php/php.ini "$PHP_INI_DIR/conf.d/99-balise.ini"
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Node from its official image, on the same Debian release as PHP's.
 COPY --from=node:24-trixie-slim /usr/local/bin/node /usr/local/bin/node
@@ -56,12 +47,28 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 
 # Chromium must match the exact Playwright version of package.json: rebuild this target when it changes.
 # Only the headless shell: tests never open a window, and the full Chromium would add 400 MB.
+# One font is enough for a French page in system fonts (ADR-0008); Playwright installs scripts from CJK to Thai.
+# The shell links libgbm, whose package pulls Mesa and LLVM (180 MB), but it draws with its own SwiftShader:
+# Mesa goes, by dpkg since apt would take libgbm with it. No apt runs after this stage.
 COPY package.json /tmp/package.json
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 RUN apt-get update \
-    && npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps --only-shell chromium \
+    && apt-get install -y --no-install-recommends unzip \
+    && PLAYWRIGHT_BROWSERS_PATH=/opt/playwright npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps --only-shell chromium \
     && chmod -R a+rX /opt/playwright \
-    && rm -rf /var/lib/apt/lists/* /tmp/package.json /root/.npm
+    && apt-get purge -y --auto-remove $PHPIZE_DEPS libc6-dev fonts-freefont-ttf fonts-ipafont-gothic fonts-noto-color-emoji fonts-tlwg-loma-otf fonts-unifont fonts-wqy-zenhei \
+    && dpkg --remove --force-depends $(dpkg-query -Wf '${Package}\n' 'libgl1-mesa-dri' 'libglx-mesa0' 'mesa-libgallium' 'libllvm*' 'libz3-*' 2>/dev/null) \
+    && rm -rf /var/lib/apt/lists/* /usr/src/* /tmp/package.json /root/.npm
+
+
+FROM scratch AS test
+
+COPY --from=test-build / /
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    PHP_INI_DIR=/usr/local/etc/php \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
+
+WORKDIR /var/www/balise
 
 USER balise
 
