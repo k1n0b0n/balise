@@ -71,6 +71,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
+  - [ ] A self-audit of the 106 RGAA 4.1.2 criteria on a sample of pages (the map page with and without a selected line, both statements), kept as a data file: each criterion conformant, not conformant or not applicable on each page, with what was checked and how; a test fails when a criterion or a page is missing
+  - [ ] `/accessibilite`: the accessibility statement on the model of the RGAA, in French: conformance status and rate computed from the audit (said to be a self-audit, not an independent one), non-conformant criteria and the content not accessible, with the alternatives offered (text view, pause), the technologies, tools and test environments, the date, the contact and the means of redress
+  - [ ] A self-assessment of the 78 RGESN 2024 criteria, kept as a data file: each criterion satisfied, not satisfied or not applicable, with its justification; a test fails when a criterion is missing
+  - [ ] `/ecoconception`: the ecodesign statement in French, from that file: score, criteria by status, the commitments of ADR-0006 and their measures (map page weight and JavaScript budget, bodyless `304`s, only changed positions), and what is planned for the criteria not satisfied
+  - [ ] Both linked from every page, rendered by the server without JavaScript, and checked by axe; contact through the repository's GitHub issues, no address in the repository
 
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
