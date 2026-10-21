@@ -1,0 +1,104 @@
+name: Deploy
+
+# A published release builds the production images, pushes them to GHCR, then deploys them once the maintainer approves
+# the `production` environment (ADR-0020 points 4 and 8). The host's name, port and key are secrets of that environment.
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  images:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.versions.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # PostgreSQL's and Redis's majors are written once, in compose.yaml; the app image carries them as labels.
+      - id: versions
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          postgresql=$(sed -n 's/^    image: postgres:\([0-9]*\)-alpine$/\1/p' compose.yaml)
+          redis=$(sed -n 's/^    image: redis:\([0-9]*\)-alpine$/\1/p' compose.yaml)
+          [[ $postgresql =~ ^[0-9]+$ && $redis =~ ^[0-9]+$ ]] || { echo "No major in compose.yaml" >&2; exit 1; }
+          echo "PostgreSQL $postgresql, Redis $redis"
+          {
+            echo "version=$VERSION"
+            echo "postgresql=$postgresql"
+            echo "redis=$redis"
+            echo "images=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/balise"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/php/Dockerfile
+          target: production
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.versions.outputs.images }}-app:${{ steps.versions.outputs.version }}
+          build-args: |
+            POSTGRESQL_VERSION=${{ steps.versions.outputs.postgresql }}
+            REDIS_VERSION=${{ steps.versions.outputs.redis }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.versions.outputs.version }}
+
+      # public/ comes from the app image just pushed, so that both serve the same built assets.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/nginx/Dockerfile
+          target: production
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.versions.outputs.images }}-web:${{ steps.versions.outputs.version }}
+          build-args: |
+            APP_IMAGE=${{ steps.versions.outputs.images }}-app:${{ steps.versions.outputs.version }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.versions.outputs.version }}
+
+  # Waits for the maintainer's approval: the environment, not this workflow, decides who may deploy.
+  deploy:
+    needs: images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    permissions: {}
+    steps:
+      # The key can only run balise-deploy with the version as its argument (ADR-0020 point 5).
+      - env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          VERSION: ${{ needs.images.outputs.version }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy
+          ssh -i ~/.ssh/deploy -p "$DEPLOY_PORT" -o StrictHostKeyChecking=yes -o BatchMode=yes "balise-deploy@$DEPLOY_HOST" "$VERSION"
