@@ -119,11 +119,12 @@ jobs:
         with:
           name: build
           path: public/build
+      # One process per file of tests/Browser, each with its own browser and database: the map's WebGL is drawn by the CPU.
       - uses: ./.github/actions/run
         with:
           service: test
           database: 'true'
-          command: vendor/bin/pest --testsuite=Browser
+          command: vendor/bin/pest --testsuite=Browser --parallel
 
   audit:
     needs: image
