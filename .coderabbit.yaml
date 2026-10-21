@@ -42,7 +42,7 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
-    # The open-source plan allows about one review per hour: one review per pull request, on request (ADR-0014).
+    # The open-source plan allows about one review per hour: one review per pull request, when it is marked ready (ADR-0014).
     auto_incremental_review: false
     # Documentation pull requests are reviewed by the maintainer only (ADR-0014).
     ignore_title_keywords:
