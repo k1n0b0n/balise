@@ -119,12 +119,13 @@ jobs:
         with:
           name: build
           path: public/build
-      # One process per file of tests/Browser, each with its own browser and database: the map's WebGL is drawn by the CPU.
+      # One after the other: the map's WebGL is drawn by the CPU, and browsers in parallel on the runner's four vCPUs
+      # either made Playwright calls exceed their 5 s limit (four processes) or saved nothing (two).
       - uses: ./.github/actions/run
         with:
           service: test
           database: 'true'
-          command: vendor/bin/pest --testsuite=Browser --parallel
+          command: vendor/bin/pest --testsuite=Browser
 
   audit:
     needs: image
