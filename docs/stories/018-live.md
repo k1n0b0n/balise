@@ -1,7 +1,7 @@
 # Story 018: Live on the maintainer's server
 
 - **PRD:** E1.3e
-- **Status:** In progress
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -17,7 +17,7 @@ repository: it stays in the ignored inventory and the `production` environment's
 - [x] Deploy key and the `production` environment's secrets set by the maintainer
 - [x] A release through the workflow: images pushed to GHCR, packages made public, deploy approved; the public URL answers 200 over HTTPS
 - [x] Memory used by the stack and one TBM poll measured on the server
-- [ ] Closing: story notes, *Current state*, ideas review
+- [x] Closing: story notes, *Current state*, ideas review
 
 ## Notes
 
@@ -30,3 +30,5 @@ repository: it stays in the ignored inventory and the `production` environment's
 - **The packages were public without being changed:** an anonymous pull of both `v0.3.0` manifests answered 200 before the deploy. `docs/deploy.md` said to change their visibility by hand; it now says to check.
 - **Memory on the server:** 216 MiB for the six containers a few minutes after the deploy (scheduler 75, postgres 47, php 45, queue 37, redis 8, web 4), on a host with 3.8 GiB already running a mail server.
 - **One TBM poll on the server** (E2.3; about 460 vehicles read, 430 changed): `network:poll tbm` takes 1.34 s (median of five, 1.29 to 2.48). Timed piece by piece in one process, three times: booting Laravel 0.48 to 0.59 s, downloading the 59 KB feed 0.22 s, decoding the protobuf 0.28 to 0.31 s, `RecordPositions` 0.54 s. So about 0.8 s of processing, against 0.35 s for the whole run locally, on two vCPUs shared with the mail server's antivirus. Each scheduled run is a new PHP process, and the CLI runs without OPcache: with `opcache.enable_cli` and a file cache, tried in the container without deploying it, `artisan --version` went from 0.71 s to about 0.35 s once the cache was filled, and the boot of the timed script from 0.5 s to 0.15 s; decoding and recording do not change. `RecordPositions` loads every stored position as a model, upserts the changed ones and loads them again for the event. All of it is well inside the 20 s between polls.
+- **E2.3's criterion is ticked on the processing** (about 0.8 s), not on the whole command (1.34 s); OPcache for the CLI and a lighter `RecordPositions` go to the PRD's *Later*. The protobuf C extension would save about 0.3 s a poll, not enough for its ADR, build stage and hand-kept version before the trip updates port, where it saves 1.2 s and 330 MB a read.
+- **Ideas review:** no idea planned this story. *Next departures* stays Exploring; the overview's argument for deploying first now reads that the MVP is live. The PRD's *Later* item for a Docker deployment option, done by E1.3d, is removed.

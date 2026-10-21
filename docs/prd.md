@@ -63,9 +63,9 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] `docs/deploy.md` takes a fork from nothing to a deployed release; no host name, address, port or credential is in the repository
   - [x] Proven on three local machines: Debian 13 and Ubuntu 26.04 freshly installed, and a Debian 13 already running Docker and nginx with another site
 - E1.3e Live on the maintainer's server
-  - [ ] Bootstrap run, secrets and variables set, a release deployed by the workflow; the public URL answers 200 over HTTPS
-  - [ ] Memory used by the stack measured on the server
-  - [ ] One TBM poll timed on the server (E2.3)
+  - [x] Bootstrap run, secrets and variables set, a release deployed by the workflow; the public URL answers 200 over HTTPS
+  - [x] Memory used by the stack measured on the server
+  - [x] One TBM poll timed on the server (E2.3)
 - E1.3f Version upkeep, once the images start from the official ones (E1.3d)
   - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
   - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
@@ -91,7 +91,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Positions more than 5 min older than their reception, or more than 2 min ahead of it, are dropped; both limits are per-network settings, and the number dropped is logged per run
   - [x] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing
   - [x] A vehicle whose last position is older than the limit leaves the current state
-  - [ ] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured (locally: 0.35 s for a whole scheduled run, to re-measure on the server in E1.3)
+  - [x] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured (locally: 0.35 s for a whole scheduled run; on the server, story 018: about 0.8 s of decoding and recording for 430 changed positions, 1.34 s for the whole command with Laravel's boot and the download)
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
@@ -164,5 +164,6 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - Line of a position without a `route_id` from its trip update, with the trip updates port: TBM `nt_` trips are the only cause, 283 positions of 908,605 (0.03 %) over 2026-10-20 and 21, all filled by trip updates ([story 013](stories/013-line-and-destination.md#study))
-- Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
+- OPcache for the CLI in the production image, with a file cache: each scheduled poll is a new PHP process, and booting Laravel took about 0.35 s less on the server with it (story 018)
+- `RecordPositions` without loading every stored position as a model and the changed ones again for the event: the largest part of a poll's 0.8 s on the server (story 018)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

@@ -41,6 +41,6 @@
 
 ## Against this order
 
-- Deployment is proven on local machines (E1.3a to E1.3d, stories 014 to 017) but not live yet (E1.3e), and E1.4 and E1.5 are open; the audience reads the repository, not a running service, yet a deployed MVP may matter more than any of these features.
+- The MVP is live (E1.3a to E1.3e, stories 014 to 018); E1.3f, E1.4 and E1.5 are open. Each feature now reaches riders, not only reviewers of the repository.
 - Each foundation adds to what a reviewer reads in ten minutes; two of them (C extension, trip updates port) change ADRs.
 - Next departures is the idea riders would value most, and this order puts it last.
