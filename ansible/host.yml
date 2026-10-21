@@ -80,48 +80,58 @@
         - { path: "{{ home }}/dumps", mode: "0700" }
         - { path: "{{ acme_root }}", mode: "0755" }
 
-    # Generated once on the host and never sent anywhere (ADR-0019 point 6); a rebuilt host gets new ones.
-    - name: Generate the application key and the database password
-      ansible.builtin.shell:
-        cmd: "umask 077 && {{ item.command }} > {{ item.name }}"
-        chdir: "{{ home }}/secrets"
-        creates: "{{ item.name }}"
-      loop:
-        - { name: app_key, command: "printf 'base64:%s' \"$(openssl rand -base64 32)\"" }
-        - { name: db_password, command: "openssl rand -hex 24" }
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: Read the secrets
-      ansible.builtin.slurp:
-        src: "{{ home }}/secrets/{{ item }}"
+    - name: Look for the secrets
+      ansible.builtin.stat:
+        path: "{{ home }}/secrets/{{ item }}"
       loop: [app_key, db_password]
-      register: secrets
-      no_log: true
+      register: secret_files
 
-    - name: Write the environment files of the containers
-      ansible.builtin.template:
-        src: "templates/{{ item.template }}"
-        dest: "{{ home }}/{{ item.file }}"
-        owner: root
-        group: root
-        mode: "0600"
-      loop:
-        - { template: env.j2, file: app.env }
-        - { template: postgres.env.j2, file: postgres.env }
-      vars:
-        app_key: "{{ secrets.results[0].content | b64decode | trim }}"
-        db_password: "{{ secrets.results[1].content | b64decode | trim }}"
-        app_url: "{{ 'https' if tls else 'http' }}://{{ domain }}"
-      no_log: true
+    # A check creates no secret, so where one is missing there is nothing yet to read or write with it.
+    - name: Write the application's files
+      when: not ansible_check_mode or secret_files.results | map(attribute='stat.exists') is all
+      block:
+        # Generated once on the host and never sent anywhere (ADR-0019 point 6); a rebuilt host gets new ones.
+        - name: Generate the application key and the database password
+          ansible.builtin.shell:
+            cmd: "umask 077 && {{ item.command }} > {{ item.name }}"
+            chdir: "{{ home }}/secrets"
+            creates: "{{ item.name }}"
+          loop:
+            - { name: app_key, command: "printf 'base64:%s' \"$(openssl rand -base64 32)\"" }
+            - { name: db_password, command: "openssl rand -hex 24" }
+          loop_control:
+            label: "{{ item.name }}"
 
-    - name: Write the production compose file
-      ansible.builtin.template:
-        src: templates/compose.yaml.j2
-        dest: "{{ home }}/compose.yaml"
-        owner: root
-        group: root
-        mode: "0644"
+        - name: Read the secrets
+          ansible.builtin.slurp:
+            src: "{{ home }}/secrets/{{ item }}"
+          loop: [app_key, db_password]
+          register: secrets
+          no_log: true
+
+        - name: Write the environment files of the containers
+          ansible.builtin.template:
+            src: "templates/{{ item.template }}"
+            dest: "{{ home }}/{{ item.file }}"
+            owner: root
+            group: root
+            mode: "0600"
+          loop:
+            - { template: env.j2, file: app.env }
+            - { template: postgres.env.j2, file: postgres.env }
+          vars:
+            app_key: "{{ secrets.results[0].content | b64decode | trim }}"
+            db_password: "{{ secrets.results[1].content | b64decode | trim }}"
+            app_url: "{{ 'https' if tls else 'http' }}://{{ domain }}"
+          no_log: true
+
+        - name: Write the production compose file
+          ansible.builtin.template:
+            src: templates/compose.yaml.j2
+            dest: "{{ home }}/compose.yaml"
+            owner: root
+            group: root
+            mode: "0644"
 
     - name: Look for the certificate
       ansible.builtin.stat:

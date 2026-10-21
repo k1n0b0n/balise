@@ -36,8 +36,11 @@ cp ansible/inventory/example.yml ansible/local/inventory.yml
 Fill in `ansible/local/inventory.yml`, which Git ignores: host and SSH user, `domain`, `certbot_email`, the content of
 `~/.ssh/balise-deploy.pub` as `deploy_public_key`, `image_repository` (`ghcr.io/<your GitHub name>/balise`), a free
 local `web_port`, and whether the bootstrap manages the firewall and unattended upgrades. The Ansible container only
-sees the repository: put the admin user's SSH key under `ansible/local/` too, and name it in
-`ansible_ssh_private_key_file`.
+sees the repository. With OrbStack or Docker Desktop, it can use your SSH agent instead of a key file: add
+`-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock`
+after `run --rm` in the commands below. Otherwise put the admin user's SSH key under `ansible/local/` and name it in
+`ansible_ssh_private_key_file`. Copy the host's line of your `known_hosts` there too (`ssh-keygen -F`), and point
+`ansible_ssh_common_args` at it with `-o UserKnownHostsFile=/var/www/balise/ansible/local/known_hosts`.
 
 ## 3. Prepare the host
 
@@ -88,8 +91,10 @@ The host then has Docker, nginx and certbot (installed from the distribution's a
 Merge the pull request `chore: release x.y.z` that release-please keeps open. The tag and the GitHub release start the
 **Deploy** workflow: it builds both images for `linux/amd64`, pushes them to GHCR, then waits for your approval.
 
-The first time only, make both packages public before approving (*your profile → Packages → balise-app and balise-web →
-Package settings → Change visibility*): the host pulls them without credentials.
+The host pulls both images without credentials, so they must be public. Pushed from a public repository with its
+`org.opencontainers.image.source` label, they were public from the first release here; check before approving that
+`docker pull ghcr.io/<your GitHub name>/balise-app:vX.Y.Z` and the same for `balise-web` work logged out, and otherwise change their visibility
+(*your profile → Packages → balise-app and balise-web → Package settings → Change visibility*).
 
 Approve, and the job runs `balise-deploy vX.Y.Z` on the host:
 
