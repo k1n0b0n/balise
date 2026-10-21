@@ -23,7 +23,7 @@ it('opens a vehicle popup on click and closes it with Escape', function (): void
     visit('/')
         ->assertPresent('[data-map][data-vehicle-count="1"]')
         ->click('[data-map] canvas')
-        ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
+        ->assertSeeIn('[role="dialog"][aria-label="Véhicule 1234"]', 'A - Le Haillan Rostand / Floirac Dravemont')
         // Minutes, not seconds: the age stays the same however slow the browser is to open the popup.
         ->assertSeeIn('[role="dialog"]', 'il y a 3 min')
         ->assertNoAccessibilityIssues(level: 3)

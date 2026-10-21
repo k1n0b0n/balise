@@ -189,7 +189,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             return 'Ligne inconnue';
         }
 
-        return `${line.modeName} ${line.shortName}${line.longName === null ? '' : ` – ${line.longName}`}`;
+        return `${line.modeName} ${line.shortName}${line.longName === null ? '' : ` - ${line.longName}`}`;
     }
 
     function lineNameOf(key: string): string {

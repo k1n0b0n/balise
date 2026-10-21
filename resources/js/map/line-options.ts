@@ -39,7 +39,7 @@ export function showLineOptions(select: HTMLSelectElement, lines: LineCatalogue)
                 group.label = line.modeName;
                 groups.set(line.modeName, group);
             }
-            group.append(new Option(line.longName === null ? line.shortName : `${line.shortName} – ${line.longName}`, line.shortName));
+            group.append(new Option(line.longName === null ? line.shortName : `${line.shortName} - ${line.longName}`, line.shortName));
         }
 
         select.replaceChildren(...(all === null ? [] : [all]), ...groups.values());
