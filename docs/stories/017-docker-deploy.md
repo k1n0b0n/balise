@@ -23,7 +23,7 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 
 ## Notes
 
-- **Image sizes** (uncompressed, arm64): `runtime` 773 MB instead of 353 MB on Ubuntu, `dev` 837 MB, `test` 2.5 GB, `web` 102 MB. The official Debian image keeps its compilers (`php:8.5-fpm-trixie` alone is 721 MB); the Alpine variant is 171 MB but ruled out by Playwright (ADR-0020 point 2).
+- **Image sizes** (uncompressed, arm64): `runtime` 773 MB instead of 353 MB on Ubuntu, `dev` 837 MB, `test` 2.5 GB, then 1.9 GB with only Chromium's headless shell, `web` 102 MB. The official Debian image keeps its compilers (`php:8.5-fpm-trixie` alone is 721 MB); the Alpine variant is 171 MB but ruled out by Playwright (ADR-0020 point 2).
 - **phpredis from GitHub, not PECL:** `pecl install` failed on a 504 from pecl.php.net during the first build; the release archive is fetched from GitHub and checked by SHA-256, then built with `docker-php-ext-install` like the bundled extensions.
 - **`sockets` is needed:** Ubuntu's PHP had it built in; `pestphp/pest-plugin-browser` requires it, so the Dockerfile builds it.
 - **nginx's official image compresses nothing** (`#gzip on;` in its `nginx.conf`): `site.conf` now turns gzip on itself.

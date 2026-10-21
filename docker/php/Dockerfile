@@ -55,10 +55,11 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Chromium must match the exact Playwright version of package.json: rebuild this target when it changes.
+# Only the headless shell: tests never open a window, and the full Chromium would add 400 MB.
 COPY package.json /tmp/package.json
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 RUN apt-get update \
-    && npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps chromium \
+    && npx -y "playwright@$(node -p "require('/tmp/package.json').devDependencies.playwright")" install --with-deps --only-shell chromium \
     && chmod -R a+rX /opt/playwright \
     && rm -rf /var/lib/apt/lists/* /tmp/package.json /root/.npm
 
