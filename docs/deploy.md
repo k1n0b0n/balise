@@ -93,7 +93,7 @@ Merge the pull request `chore: release x.y.z` that release-please keeps open. Th
 
 The host pulls both images without credentials, so they must be public. Pushed from a public repository with its
 `org.opencontainers.image.source` label, they were public from the first release here; check before approving that
-`docker pull ghcr.io/<your GitHub name>/balise-app:vX.Y.Z` works logged out, and otherwise change their visibility
+`docker pull ghcr.io/<your GitHub name>/balise-app:vX.Y.Z` and the same for `balise-web` work logged out, and otherwise change their visibility
 (*your profile → Packages → balise-app and balise-web → Package settings → Change visibility*).
 
 Approve, and the job runs `balise-deploy vX.Y.Z` on the host:
