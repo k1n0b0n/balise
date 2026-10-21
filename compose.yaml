@@ -1,4 +1,4 @@
-# Local development only (ADR-0007). Production runs without Docker, configured by Ansible (ADR-0012).
+# Local development and CI (ADR-0007, ADR-0020). Production runs the same images from its own compose file.
 name: balise
 
 # PHP image targets (docker/php/Dockerfile): runtime for the workers, dev for the app and tools, test for the browser tests.
@@ -65,7 +65,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Server playbooks (ADR-0019), on demand: `docker compose run --rm ansible ansible-playbook server.yml`.
+  # The host bootstrap (ADR-0020), on demand: `docker compose run --rm ansible ansible-playbook host.yml`.
   ansible:
     build:
       context: .
@@ -79,6 +79,7 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
+      target: dev
     image: balise-nginx:dev
     ports:
       - "${APP_PORT:-8000}:80"

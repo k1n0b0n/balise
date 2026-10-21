@@ -1,0 +1,21 @@
+# A host of your own (docs/deploy.md): copy this file to ansible/local/inventory.yml, which Git ignores, and run
+#   docker compose run --rm ansible ansible-playbook -i local/inventory.yml host.yml
+all:
+  hosts:
+    # How you reach the host over SSH, as an admin user who can sudo.
+    server.example.org:
+      ansible_user: admin
+      ansible_port: 22
+      # The site's public name, pointed at the host by DNS before the first run: certbot checks it over HTTP.
+      domain: balise.example.org
+      # Let's Encrypt's notices about the certificate.
+      certbot_email: you@example.org
+      # The public half of the key the release workflow deploys with (docs/deploy.md).
+      deploy_public_key: ssh-ed25519 AAAA... balise-deploy
+      # Images of your fork: ghcr.io/<owner>/balise-app and ghcr.io/<owner>/balise-web.
+      image_repository: ghcr.io/your-github-name/balise
+      # A port free on the host's loopback for the web container; the host's nginx proxies to it.
+      web_port: 8080
+      # Leave the firewall and unattended upgrades alone when the host already manages them.
+      manage_firewall: true
+      manage_upgrades: true

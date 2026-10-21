@@ -55,6 +55,7 @@ Every choice that is costly to reverse has an [ADR](docs/adr/), from the [feed b
 | [docs/brief.md](docs/brief.md) | The problem, the audience, the MVP |
 | [docs/prd.md](docs/prd.md) | Epics and stories with acceptance criteria |
 | [docs/architecture.md](docs/architecture.md) | Stack and components, one line per decision |
+| [docs/deploy.md](docs/deploy.md) | From a fork to a release on a Debian or Ubuntu host of your own |
 | [docs/stories/](docs/stories/) | What each story did and what it taught |
 
 ## Next

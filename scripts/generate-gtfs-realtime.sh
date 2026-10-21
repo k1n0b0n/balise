@@ -31,7 +31,7 @@ out=$(mktemp -d generated.tmp.XXXXXX)
 trap 'rm -rf "$work" "$out"' EXIT
 
 curl -fsSL -o "$work/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${arch}.zip"
-echo "${sha256}  $work/protoc.zip" | sha256sum -c --quiet
+echo "${sha256}  $work/protoc.zip" | sha256sum -c - > /dev/null
 unzip -q "$work/protoc.zip" -d "$work/protoc"
 
 # protoc cannot generate PHP from proto2 required fields, so the pristine upstream file is

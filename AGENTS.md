@@ -18,7 +18,6 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Same, for an AI agent: compact JSON output through `laravel/pao` | `docker compose run --rm -e CLAUDECODE -e AI_AGENT test` |
 | Fast tests without a browser | `docker compose exec php vendor/bin/pest --testsuite=Unit,Feature` |
 | Fix code style | `docker compose exec php vendor/bin/pint` |
-| Check that Dockerfiles, `compose.yaml` and CI agree with `versions.yaml` | `docker compose exec php php scripts/check-versions.php` |
 | Browser tests (axe) need built assets first | `docker compose exec vite npm run build` |
 | Type-check the front end / check the map page JavaScript budget | `docker compose exec vite npm run typecheck` / `docker compose exec vite npm run budget` |
 | One test file / one test | `docker compose exec php vendor/bin/pest tests/Feature/HomeTest.php` / `--filter "renders the home page"` |
@@ -27,11 +26,11 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Read a network's live vehicle positions once (the scheduler does it every 20 s) | `docker compose exec php php artisan network:poll tbm` |
 | Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
-| Create the local stand-in for the server (OrbStack, on the host; ADR-0019) / remove it | `sh scripts/local-server.sh` / `orb delete -f balise-server` |
-| Configure the server (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook server.yml` |
-| Build a release archive of the committed HEAD into `build/` | `docker compose run --rm test sh scripts/build-release.sh` |
+| Create a local stand-in for a host (OrbStack, on the host; ADR-0020 point 9): fresh Debian 13, fresh Ubuntu 26.04, or Debian 13 with another site / remove it | `sh scripts/local-server.sh debian\|ubuntu\|shared` / `orb delete -f balise-debian` |
+| Prepare the local machines / a real host from its ignored inventory (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook host.yml` / `… -i local/inventory.yml host.yml` |
 | Release a version | Merge the pull request `chore: release x.y.z` that release-please keeps open on `main`: it tags `vx.y.z` and publishes the GitHub release |
-| Deploy a release / go back to the previous one | `docker compose run --rm ansible ansible-playbook deploy.yml -e archive=../build/<name>.tar.gz` / `… rollback.yml` |
+| Build the production images locally (`app`, then `web` from it) | `docker build -f docker/php/Dockerfile --target production --build-arg POSTGRESQL_VERSION=18 --build-arg REDIS_VERSION=8 -t balise-php:production .` / `docker build -f docker/nginx/Dockerfile --target production -t balise-nginx:production .` |
+| Deploy a release on a prepared host / go back to the previous one | `ssh balise-deploy@<host> v1.2.3` / `ssh balise-deploy@<host> rollback` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` or `docker compose run` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
 
@@ -58,7 +57,7 @@ The feed-format boundary rule (`tests/Unit/ArchitectureTest.php`) forbids `Googl
 - **Storage (ADR-0002, Accepted).** PostgreSQL; coordinates as plain `latitude`/`longitude` until the first spatial story brings PostGIS (own ADR, migration to `geography(Point, 4326)`). M1 keeps only the latest position per vehicle; latest positions are hot data for Redis/memory, the DB is the system of record. Local dev uses a PostgreSQL Alpine image.
 - **Replay** records raw feed payloads and plays them back through the real driver; it does not depend on position history.
 - **UI (ADR-0010).** Livewire + Alpine + MapLibre GL JS. The map, the live store and the Reverb subscription are a TypeScript module in `resources/js/map/` that never imports Livewire or Alpine; Livewire mounts it with `wire:ignore` and talks to it through events. RGAA AA and RGESN apply (ADR-0006): the map has an equivalent text view and a pause control, and only changed positions are pushed.
-- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images on Ubuntu 26.04, the base of the production images. The PHP Dockerfile has three targets: `runtime` (queue, scheduler; the base of the production images, ADR-0020), `dev` (php, setup: adds Composer and tools) and `test` (adds Node and Chromium, used only by the on-demand `test` service). Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and built into the images.
+- **Local environment (ADR-0007).** `compose.yaml`, one process per service; PHP and nginx images from the official Alpine images, the base of the production images (ADR-0020 point 2). The PHP Dockerfile has three targets: `runtime` (queue, scheduler; the base of the production images), `dev` (php, setup: adds Composer and tools) and `test` (PHP on Debian with Composer, Node and Chromium, since Playwright needs glibc; used only by the on-demand `test` service and CI's browser tests). The extensions are built by `docker/php/install-extensions.sh` for both. Application-facing config (nginx, `php.ini`, php-fpm pool) is versioned under `docker/` and built into the images.
 - **Hosting (ADR-0020).** Docker images `app` and `web` from GHCR on one Debian 13 or Ubuntu 26.04 server, prepared once by an Ansible bootstrap that only a person runs; the host's nginx proxies to them. Deploys run from GitHub Actions on release through an SSH key restricted to the deploy command (ADR-0004). The production server's name, address, port and domain never appear in the repository: they live in GitHub secrets and variables and in an ignored local inventory.
 
 ## Data facts

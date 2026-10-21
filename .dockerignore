@@ -1,0 +1,22 @@
+# Kept out of every build context: secrets, local state, and what the production build makes itself (ADR-0020 point 4).
+.git
+.env
+.env.*
+!.env.example
+.cache
+.claude
+.phpunit.cache
+ansible/local
+bootstrap/cache/*.php
+build
+generated
+generated.tmp.*
+node_modules
+public/build
+public/hot
+public/storage
+storage/**
+!storage/**/.gitignore
+tests/Browser/Screenshots
+vendor
+.serena

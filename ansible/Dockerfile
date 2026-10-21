@@ -1,4 +1,4 @@
-# Ansible for the server playbooks (ADR-0019), versions pinned in requirements.txt and requirements.yml.
+# Ansible for the host bootstrap (ADR-0019, ADR-0020), versions pinned in requirements.txt and requirements.yml.
 FROM python:3.14-alpine
 
 RUN apk add --no-cache openssh-client
