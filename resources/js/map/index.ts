@@ -2,6 +2,7 @@ import { Map, NavigationControl, setWorkerUrl, type LngLatBoundsLike } from 'map
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { displayId, followVehicles, type Vehicle } from './live';
+import { showLineOptions } from './line-options';
 import { LineCatalogue } from './lines';
 import { readSelection, writeSelection } from './selection';
 import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
@@ -87,6 +88,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         shapeLayer?.recolour();
     });
     lines.ensure([]);
+    const lineOptions = lineSelector === null ? null : showLineOptions(lineSelector, lines);
     const textView =
         controls.textView === null
             ? null
@@ -106,6 +108,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         const lineId = selectedLineId();
         layer?.update(vehicles);
         textView?.update(vehicles, lineId);
+        lineOptions?.update(vehicles, selection.line);
         highlight();
 
         // Before the first positions there is nothing to fit or to open.

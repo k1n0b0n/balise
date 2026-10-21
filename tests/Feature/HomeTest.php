@@ -70,6 +70,26 @@ it('lists the line in the URL first, before JavaScript loads, and keeps the othe
     $this->get('/?ligne=nowhere')->assertSeeInOrder(['Véhicule on-10', 'Véhicule on-A']);
 });
 
+it('lists in the selector only the lines that run, and the selected one in any case', function (): void {
+    foreach (['A', 'B', 'C'] as $name) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => $name, 'mode' => TransportMode::Tram, 'sync_id' => Str::uuid()]);
+    }
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    $this->get('/')
+        ->assertSee('<option value="A"', escape: false)
+        ->assertDontSee('<option value="B"', escape: false)
+        ->assertDontSee('<option value="C"', escape: false);
+
+    // A shared link to a line without vehicles still shows it selected.
+    $this->get('/?ligne=C')
+        ->assertSee('<option value="C" selected>', escape: false)
+        ->assertDontSee('<option value="B"', escape: false);
+});
+
 it('groups a line by destination, sorted by name ignoring case, the unknown one last (E3.7)', function (): void {
     Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'sync_id' => Str::uuid()]);
 

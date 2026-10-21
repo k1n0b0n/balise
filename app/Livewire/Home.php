@@ -32,7 +32,7 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
-            'lineOptions' => $lines->groupBy(fn (Line $line): string => $line->mode->label()),
+            'lineOptions' => $this->lineOptions($lines, $positions, $selectedLine),
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
@@ -82,7 +82,24 @@ final class Home extends Component
     }
 
     /**
-     * The lines of the selector: by mode in the order of the enum, trams first, then in natural order of their short name.
+     * The selector lists the lines that run now, and the selected one whatever its vehicles, so that a shared link keeps
+     * working; the browser keeps the list up to date (E3.4).
+     *
+     * @param  Collection<int, Line>  $lines
+     * @param  Collection<int, VehiclePosition>  $positions
+     * @return Collection<string, Collection<int, Line>>
+     */
+    private function lineOptions(Collection $lines, Collection $positions, ?Line $selectedLine): Collection
+    {
+        $running = $positions->pluck('line_id')->filter()->flip();
+
+        return $lines
+            ->filter(fn (Line $line): bool => $running->has($line->id) || $line->is($selectedLine))
+            ->groupBy(fn (Line $line): string => $line->mode->label());
+    }
+
+    /**
+     * The lines of the network: by mode in the order of the enum, trams first, then in natural order of their short name.
      *
      * @return Collection<int, Line>
      */
