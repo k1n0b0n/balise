@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 use Transit_realtime\FeedEntity;
 use Transit_realtime\FeedHeader;
@@ -14,7 +15,10 @@ use Transit_realtime\VehiclePosition as GtfsVehiclePosition;
 
 pest()->extend(TestCase::class)->in('Feature');
 pest()->use(RefreshDatabase::class)->in('Feature');
-pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Browser');
+pest()->extend(TestCase::class)->use(RefreshDatabase::class)
+    // Browser tests run against the built assets (`npm run build`), not the Vite dev server.
+    ->beforeEach(fn () => Vite::useHotFile(storage_path('framework/no-hot-file')))
+    ->in('Browser');
 
 // The basemap comes from OpenFreeMap over the network: allow it more than the default 5 s.
 pest()->browser()->timeout(20_000);
