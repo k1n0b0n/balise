@@ -1,7 +1,7 @@
 # Story 020: Weekly version upkeep
 
 - **PRD:** E1.3f
-- **Status:** Review
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -12,7 +12,7 @@ See E1.3f in [prd.md](../prd.md); the rule of one place per version is ADR-0020 
 - [x] `scripts/raise-versions.php`: the version each platform runs, read from its one place and checked against the places that mention it; the newer version whose official images are all published; the rewrite of those places
 - [x] Tests on recorded answers of Docker Hub and nodejs.org (`tests/fixtures/versions`): nothing to raise, PostgreSQL and Redis by majors, PHP once both its images exist, Node by LTS lines only, a place that no longer matches
 - [x] `.github/workflows/versions.yml`: every Monday, one pull request per platform with the release App's token; a branch that already raises to the version is left alone
-- [ ] First run by hand (`workflow_dispatch`) once merged: nothing to raise before 2026-10-28, then Node 26
+- [x] First run by hand (`workflow_dispatch`) once merged: green in 1 min, nothing to raise; Node 26's pull request is expected on the first Monday after 2026-10-28
 
 ## Notes
 
