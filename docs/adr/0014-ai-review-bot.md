@@ -35,5 +35,5 @@
 - Each pull request gets a summary and inline comments within minutes; some will be wrong, and replying in the thread tunes the bot (its learnings).
 - A third-party service has read access to the repository; removing the app undoes the decision.
 - The bot's settings are reviewed like code, in `.coderabbit.yaml`.
-- The open-source plan allows 1 to 10 reviews per hour depending on the repository's stars (likely 1 for now), 100 to 300 files per review, and, under 10 stars, reviews start only on request. Hence one review per code pull request, never on each commit.
+- The open-source plan allows 1 to 10 reviews per hour depending on the repository's stars (likely 1 for now), 100 to 300 files per review, and no review of each new commit (`auto_incremental_review` off). Hence one review per code pull request, started when it is marked ready, never on each commit.
 - A green CodeRabbit status does not mean a review ran: a rate-limited review reports success, even with `fail_commit_status` (tried and dropped, #28). The bot's "Review limit reached" comment is the signal to watch. The bot skips `docs:` pull requests.

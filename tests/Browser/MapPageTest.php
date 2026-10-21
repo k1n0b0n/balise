@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Actions\RecordPositions;
 use App\Enums\TransportMode;
+use App\Ingestion\VehiclePosition as IngestionPosition;
 use App\Models\CatalogImport;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Str;
@@ -159,6 +162,27 @@ it('keeps the text view in a side panel on a portrait screen', function (): void
         ->keys('[data-vehicle="tbm:1234"] button', 'Escape')
         ->assertMissing('#vue-texte')
         ->assertScript("document.activeElement.getAttribute('aria-controls')", 'vue-texte')
+        ->assertNoJavaScriptErrors();
+});
+
+it('renames the open popup when a poll changes the destination of its vehicle', function (): void {
+    config(['map.refresh_every_seconds' => 1]);
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    $record = fn (string $destination) => app(RecordPositions::class)->handle('tbm', [
+        new IngestionPosition('tbm:1234', 44.84, -0.57, now()->toDateTimeImmutable(), 'tbm:A', destination: $destination),
+    ], CarbonImmutable::now());
+    $record('La Gardette');
+
+    $page = visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
+        ->assertPresent('[role="dialog"][aria-label="Tram A - La Gardette, véhicule 1234"]');
+
+    $record('Pin Galant');
+
+    $page->wait(2)
+        ->assertPresent('[role="dialog"][aria-label="Tram A - Pin Galant, véhicule 1234"]')
+        ->assertSeeIn('[role="dialog"]', 'Pin Galant')
         ->assertNoJavaScriptErrors();
 });
 

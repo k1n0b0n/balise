@@ -83,6 +83,7 @@ export class VehiclePopup {
         } else {
             this.vehicle = vehicle;
             this.render();
+            this.label();
         }
     }
 
