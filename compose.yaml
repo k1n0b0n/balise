@@ -65,7 +65,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Server playbooks (ADR-0019), on demand: `docker compose run --rm ansible ansible-playbook server.yml`.
+  # The host bootstrap (ADR-0020), on demand: `docker compose run --rm ansible ansible-playbook host.yml`.
   ansible:
     build:
       context: .
