@@ -17,7 +17,7 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 - [x] Deploy script: version or `rollback` only, pull, migrations with the new image, restart, `network:import`, health check with automatic return, vhost rendered from the host's template, versions file from the labels, PostgreSQL major moved by dump and restore, three versions kept
 - [ ] Release workflow: on `release: published`, build and push both images, then deploy over SSH from the `production` environment, which waits for the maintainer's approval
 - [x] E1.3b's host install removed: `server.yml`, `deploy.yml`, `rollback.yml`, their templates and `scripts/build-release.sh`
-- [ ] `docs/deploy.md`: from a fork to a deployed release
+- [x] `docs/deploy.md`: from a fork to a deployed release
 - [ ] Proof on three OrbStack machines (fresh Debian 13, fresh Ubuntu 26.04, Debian 13 already running Docker and nginx with another site): bootstrap twice (`changed=0` the second time), two deploys, a rollback, a PostgreSQL move from 17 to 18; the other site and Docker left untouched
 - [ ] Closing: story notes, *Current state*, ideas review (step 5)
 
