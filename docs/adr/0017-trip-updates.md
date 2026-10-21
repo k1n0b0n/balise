@@ -5,7 +5,7 @@
 
 ## Context
 
-- E3.7 groups the vehicles of the text view by line, then by destination, and shows the destination in the popup ([ideas/line-and-destination.md](../ideas/line-and-destination.md)).
+- E3.7 groups the vehicles of the text view by line, then by destination, and shows the destination in the popup ([story 013](../stories/013-line-and-destination.md#study)).
 - TBM's vehicle positions carry no usable destination field, and up to 14 of 37 trams at midday have no line: their `nt_` trips (unplanned) have an empty `route_id` and are absent from the static GTFS (ADR-0013 shows them as "Ligne inconnue").
 - TBM publishes GTFS-Realtime trip updates (`/gtfsfeed/realtime/bordeaux`). Two samples, live:
 

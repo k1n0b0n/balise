@@ -99,9 +99,8 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E3.6 Pause and resume live updates (ADR-0006)
   - [x] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [x] Resuming catches up with one request, then the normal interval resumes
-- E3.7 Group vehicles by line and destination ([ideas/line-and-destination.md](ideas/line-and-destination.md))
+- E3.7 Group vehicles by line and destination ([story 013](stories/013-line-and-destination.md))
   - [ ] A vehicle's destination is its `vehicle.label`, as is, on a network whose configuration says the label is a destination (TBM, ADR-0018); elsewhere it has none
-  - [ ] A position without a line takes the `route_id` of its trip update (TBM `nt_` trips: 38 of 38 had one on 2026-10-18): the `gtfs-rt` driver reads trip updates only then, at most once a minute, with `ETag`, cached per trip; only the ingestion layer reads them; frequency and volume measured and recorded in the story file. Dropped if no position lacks a line over the day of sampling
   - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
   - [ ] A vehicle is named by its mode, line and destination ("Tram A - La Gardette", ADR-0018) in the text view and the popup, its number without a destination; the text view's buttons keep distinct accessible names with the number
   - [ ] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
@@ -140,6 +139,6 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
-- Vehicles without a line: check whether TBM `nt_` trips (absent from the static GTFS) are all of them or other causes exist, then decide how to show them ([ideas/vehicles-without-line.md](ideas/vehicles-without-line.md))
+- Line of a position without a `route_id` from its trip update, with the trip updates port: TBM `nt_` trips are the only cause, 283 positions of 908,605 (0.03 %) over 2026-10-20 and 21, all filled by trip updates ([story 013](stories/013-line-and-destination.md#study))
 - Docker deployment option: a `production` target built from the `runtime` stage, with code, `vendor` without dev packages and built assets (own ADR, ADR-0007)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
