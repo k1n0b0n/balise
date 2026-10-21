@@ -79,6 +79,7 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
+      target: dev
     image: balise-nginx:dev
     ports:
       - "${APP_PORT:-8000}:80"
