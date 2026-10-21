@@ -2,14 +2,12 @@
 
 - **Status:** Exploring
 - **Date:** 2026-10-20
-- **Covers:** every file of `docs/ideas/`, the PRD's E5 to E7 and *Later*; reviewed at the closing of every story (workflow step 5). Done ideas live in their stories: line catalogue in [story 009](../stories/009-text-view.md#study)
+- **Covers:** every file of `docs/ideas/`, the PRD's E5 to E7 and *Later*; reviewed at the closing of every story (workflow step 5). Done ideas live in their stories: line catalogue in [story 009](../stories/009-text-view.md#study), line and destination and vehicles without a line in [story 013](../stories/013-line-and-destination.md#study)
 
 ## Where each idea stands
 
 | Idea | State | Waits for |
 |---|---|---|
-| [line-and-destination.md](line-and-destination.md) | Code in pull request #53 (E3.7, ADR-0018) | Evening and morning samples |
-| [vehicles-without-line.md](vehicles-without-line.md) | Exploring | The same samples: they count `nt_` trips over a day |
 | [network-on-map.md](network-on-map.md) | E7.1 stations, E7.2 line pages, no criteria yet; shapes and selection done and moved to stories 011 and 012 | Trips and stop order imported |
 | [next-departures.md](next-departures.md) | Exploring | The brief's scope, a trip updates port |
 | PRD *Later* | History stages 2 and 3, PostGIS, bearing arrows, second network (E6) | — |
@@ -22,7 +20,7 @@
 | **Trips imported** (`trips.txt`, 6.8 MB a day: line, direction, headsign, shape) | Line of a position from its trip (ADR-0013 decision 6, vehicles without line), headsign of future departures, one representative trip per direction (E7.2) | One table rebuilt by the daily import | **Favourable**: small, three consumers |
 | **Stop order streamed, not stored** (`stop_times.txt` read once per import, only the representative trips kept) | Stops of a line in order (E7.2), next stops of a vehicle when the live feed has none | Reading 193 MB at import; storing a few thousand rows | **Favourable** against storing 2.6 million rows, which only full timetables would need |
 | **Stations** (`location_type=1`, 2,189 for TBM) | Stations on the map (E7.1), stop pages, departures grouped by station | One more catalogue entity, 36 KB gzipped to the browser | **Favourable**, after trips |
-| **Trip updates port** (ADR-0001's third port) | Next stops of a vehicle, next departures, line of `nt_` trips (E3.7, if the samples show any), delays per line (history stage 3) | A second feed of 2.7 MB a minute, a reading strategy, a cache | **Favourable once one consumer is in the PRD**: then the others come almost free |
+| **Trip updates port** (ADR-0001's third port) | Next stops of a vehicle, next departures, line of `nt_` trips (PRD *Later*: 0.03 % of positions, story 013), delays per line (history stage 3) | A second feed of 2.7 MB a minute, a reading strategy, a cache | **Favourable once one consumer is in the PRD**: then the others come almost free |
 | **C extension `protobuf`** | Decoding trip updates (1.2 s and 344 MB in pure PHP, 0.03 s and 11 MB with it), replay at speed, larger networks (E6) | A build stage in the image and on the server, a version kept in step with Composer by hand | **Favourable with the trip updates port, not before** |
 | **Reverb** (E4) | Positions pushed instead of polled, departures pushed | A process, a socket fallback (E4.2) | Independent of the ideas above; already planned |
 | **PostGIS** | Stops and vehicles around me, viewport filtering | An extension, a migration to `geography` (ADR-0002) | **Not needed yet**: 2,189 stations filter in the browser; only "around me" needs it |
@@ -36,11 +34,10 @@
 
 ## Proposed order
 
-1. Finish E3.7 (pull request #53) from the samples; close vehicles-without-line with the same analysis.
-2. E5.1, recording in the repository (from the prototype), then E5.2 replay.
-3. Trips import with the stop order of representative trips; then E7.2 line pages and E7.1 stations.
-4. Trip updates port with the C extension (one ADR superseding ADR-0015 point 1), first for the next stops of a vehicle, then for departures at a station once the brief's scope is opened.
-5. E4 and history when wanted; PostGIS with "around me".
+1. E5.1, recording in the repository (from the prototype), then E5.2 replay.
+2. Trips import with the stop order of representative trips; then E7.2 line pages and E7.1 stations.
+3. Trip updates port with the C extension (one ADR superseding ADR-0015 point 1), first for the next stops of a vehicle, then for departures at a station once the brief's scope is opened.
+4. E4 and history when wanted; PostGIS with "around me".
 
 ## Against this order
 

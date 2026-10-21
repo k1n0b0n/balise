@@ -32,7 +32,7 @@ it('renders the text view on the server, readable before JavaScript loads', func
     $this->get('/')
         ->assertOk()
         // Natural order of the short names, digits before letters; vehicles of unknown lines last, in one group.
-        ->assertSeeInOrder(['Bus 9', 'Bus 10 – Gare Saint-Jean / Mérignac', 'Véhicule 3,', 'Véhicule 20,', 'Tram B', 'Ligne inconnue', 'Véhicule lineless,', 'Véhicule tbm:odd,'])
+        ->assertSeeInOrder(['Bus 9', 'Bus 10 – Gare Saint-Jean / Mérignac', 'Véhicule 3', 'Véhicule 20', 'Tram B', 'Ligne inconnue', 'Véhicule lineless', 'Véhicule tbm:odd'])
         // Times in the network's timezone: without JavaScript nothing updates, so an age would turn false.
         ->assertSee('relevé à 13:59:35')
         ->assertSee('Mis à jour à 14:00');
@@ -55,17 +55,37 @@ it('lists the line in the URL first, before JavaScript loads, and keeps the othe
     }
 
     // Digits before letters, unless a line is selected.
-    $this->get('/')->assertSeeInOrder(['Véhicule on-10,', 'Véhicule on-A,']);
+    $this->get('/')->assertSeeInOrder(['Véhicule on-10', 'Véhicule on-A']);
 
     $this->get('/?ligne=A')
         ->assertOk()
         ->assertSee('<option value="A" selected>', escape: false)
         ->assertSee('Désélectionner la ligne <span data-line-clear-name>A</span>', escape: false)
-        ->assertSeeInOrder(['Véhicule on-A,', 'Véhicule on-10,']);
+        ->assertSeeInOrder(['Véhicule on-A', 'Véhicule on-10']);
 
     // Trams first in the selector, whatever the names.
     $this->get('/')->assertSeeInOrder(['<optgroup label="Tram">', '<optgroup label="Bus">'], escape: false);
 
     // A line the network does not have changes nothing.
-    $this->get('/?ligne=nowhere')->assertSeeInOrder(['Véhicule on-10,', 'Véhicule on-A,']);
+    $this->get('/?ligne=nowhere')->assertSeeInOrder(['Véhicule on-10', 'Véhicule on-A']);
+});
+
+it('groups a line by destination, sorted by name ignoring case, the unknown one last (E3.7)', function (): void {
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'sync_id' => Str::uuid()]);
+
+    foreach (['2231' => 'Pin Galant', '2230' => 'LA GARDETTE', '2229' => 'Pin Galant', '2228' => null] as $vehicle => $destination) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:{$vehicle}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => 'tbm:A', 'destination' => $destination, 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSeeInOrder([
+            '<h3', 'Tram A', '</h3>',
+            '<h4', 'LA GARDETTE', '</h4>', 'Tram A - LA GARDETTE, véhicule 2230',
+            '<h4', 'Pin Galant', '</h4>', 'Tram A - Pin Galant, véhicule 2229', 'Tram A - Pin Galant, véhicule 2231',
+            '<h4', 'Destination inconnue', '</h4>', 'Véhicule 2228',
+        ], escape: false);
 });

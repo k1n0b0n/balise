@@ -1,5 +1,5 @@
 import { displayId, type Vehicle } from './live';
-import type { LineCatalogue } from './lines';
+import { type Line, type LineCatalogue, vehicleName } from './lines';
 import { formatAge } from './popup';
 
 // Text view equivalent to the map (E3.5, ADR-0006): the server renders it, this module keeps it current with the same
@@ -7,8 +7,18 @@ import { formatAge } from './popup';
 
 const AGE_EVERY_SECONDS = 5;
 const UNKNOWN_LINE = '';
+const UNKNOWN_DESTINATION = '';
 
+// A line, with its destinations (E3.7).
 interface Group {
+    element: HTMLElement;
+    heading: HTMLElement;
+    destinations: HTMLElement;
+    subgroups: Map<string, Subgroup>;
+}
+
+// A destination of a line, with its vehicles.
+interface Subgroup {
     element: HTMLElement;
     heading: HTMLElement;
     list: HTMLElement;
@@ -16,7 +26,8 @@ interface Group {
 
 interface Row {
     element: HTMLLIElement;
-    lineName: HTMLElement;
+    name: HTMLElement;
+    detail: HTMLElement;
     age: HTMLTimeElement;
     vehicle: Vehicle;
 }
@@ -64,10 +75,13 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             rendered = true;
         }
 
-        const byGroup = new Map<string, Vehicle[]>();
+        const byGroup = new Map<string, Map<string, Vehicle[]>>();
         for (const vehicle of vehicles) {
             const key = lines.get(vehicle.lineId)?.id ?? UNKNOWN_LINE;
-            byGroup.set(key, [...(byGroup.get(key) ?? []), vehicle]);
+            const destinations = byGroup.get(key) ?? new Map<string, Vehicle[]>();
+            byGroup.set(key, destinations);
+            const destination = vehicle.destination ?? UNKNOWN_DESTINATION;
+            destinations.set(destination, [...(destinations.get(destination) ?? []), vehicle]);
         }
 
         const present = new Set(vehicles.map((vehicle) => vehicle.id));
@@ -93,17 +107,30 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             place(container, group.element, previousGroup);
             previousGroup = group.element;
 
-            let previousRow: Element | null = null;
-            for (const vehicle of (byGroup.get(key) ?? []).sort((a, b) => collator.compare(displayId(a), displayId(b)))) {
-                const row = rows.get(vehicle.id) ?? createRow(vehicle);
-                row.vehicle = vehicle;
-                // Keyboard users reach the buttons with Tab, past the headings: the button's name carries the line.
-                if (row.lineName.textContent !== lineName) {
-                    row.lineName.textContent = lineName;
+            const destinations = byGroup.get(key) ?? new Map<string, Vehicle[]>();
+            let previousSubgroup: Element | null = null;
+            for (const destination of [...destinations.keys()].sort(compareDestinations)) {
+                const subgroup = group.subgroups.get(destination) ?? createSubgroup(group, destination);
+                subgroup.heading.textContent = destination === UNKNOWN_DESTINATION ? 'Destination inconnue' : destination;
+                place(group.destinations, subgroup.element, previousSubgroup);
+                previousSubgroup = subgroup.element;
+
+                let previousRow: Element | null = null;
+                for (const vehicle of (destinations.get(destination) ?? []).sort((a, b) => collator.compare(displayId(a), displayId(b)))) {
+                    const row = rows.get(vehicle.id) ?? createRow(vehicle);
+                    row.vehicle = vehicle;
+                    renderName(row, lineName, lines.get(key));
+                    renderAge(row);
+                    place(subgroup.list, row.element, previousRow);
+                    previousRow = row.element;
                 }
-                renderAge(row);
-                place(group.list, row.element, previousRow);
-                previousRow = row.element;
+            }
+
+            for (const [destination, subgroup] of group.subgroups) {
+                if (!destinations.has(destination)) {
+                    remove(subgroup.element);
+                    group.subgroups.delete(destination);
+                }
             }
         }
 
@@ -147,6 +174,14 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
         return collator.compare(lines.get(a)?.shortName ?? '', lines.get(b)?.shortName ?? '');
     }
 
+    function compareDestinations(a: string, b: string): number {
+        if (a === UNKNOWN_DESTINATION || b === UNKNOWN_DESTINATION) {
+            return Number(a === UNKNOWN_DESTINATION) - Number(b === UNKNOWN_DESTINATION);
+        }
+
+        return collator.compare(a, b);
+    }
+
     function headingOf(key: string): string {
         const line = lines.get(key);
 
@@ -165,17 +200,30 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
 
     function createGroup(key: string): Group {
         const element = template(root, '[data-line-template]');
-        const group = { element, heading: required(element, '[data-heading]'), list: required(element, '[data-vehicles]') };
+        const group = { element, heading: required(element, '[data-heading]'), destinations: required(element, '[data-destinations]'), subgroups: new Map() };
         groups.set(key, group);
 
         return group;
     }
 
+    function createSubgroup(group: Group, destination: string): Subgroup {
+        const element = template(root, '[data-destination-template]');
+        const subgroup = { element, heading: required(element, '[data-heading]'), list: required(element, '[data-vehicles]') };
+        group.subgroups.set(destination, subgroup);
+
+        return subgroup;
+    }
+
     function createRow(vehicle: Vehicle): Row {
         const element = template(root, '[data-vehicle-template]') as HTMLLIElement;
         element.dataset.vehicle = vehicle.id;
-        required(element, '[data-name]').textContent = displayId(vehicle);
-        const row = { element, lineName: required(element, '[data-line-name]'), age: required(element, '[data-age]') as HTMLTimeElement, vehicle };
+        const row = {
+            element,
+            name: required(element, '[data-name]'),
+            detail: required(element, '[data-detail]'),
+            age: required(element, '[data-age]') as HTMLTimeElement,
+            vehicle,
+        };
         rows.set(vehicle.id, row);
 
         return row;
@@ -190,6 +238,22 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
     }
 
     return { update, updated, paused, resumed };
+}
+
+/**
+ * Keyboard users reach the buttons with Tab, past the headings: a button names its line and destination, and its number
+ * since other vehicles share them, or else its number and its line.
+ */
+function renderName(row: Row, lineName: string, line: Line | undefined): void {
+    const { name, named } = vehicleName(row.vehicle, line);
+    const detail = named ? `véhicule ${displayId(row.vehicle)}` : lineName;
+
+    if (row.name.textContent !== name) {
+        row.name.textContent = name;
+    }
+    if (row.detail.textContent !== detail) {
+        row.detail.textContent = detail;
+    }
 }
 
 function renderAge(row: Row): void {

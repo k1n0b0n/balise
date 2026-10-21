@@ -33,6 +33,8 @@ return [
             // Freshness limits relative to reception (ADR-0013).
             'max_age_seconds' => 300,
             'max_ahead_seconds' => 120,
+            // TBM puts the destination sign in `vehicle.label`; elsewhere it may be a fleet number (ADR-0018).
+            'label_is_destination' => true,
         ],
     ],
 

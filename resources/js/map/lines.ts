@@ -1,3 +1,5 @@
+import { displayId, type Vehicle } from './live';
+
 // Line catalogue: what each line looks like, fetched once instead of with every position (E3.5, RGESN).
 
 // A line still missing after a refetch is looked for again at most once an hour: the daily import may bring it.
@@ -10,6 +12,18 @@ export interface Line {
     mode: string;
     modeName: string;
     colour: string;
+}
+
+/**
+ * What the text view and the popup call a vehicle (ADR-0018): "Tram A - La Gardette", or its number when its line or
+ * destination is unknown. Vehicles share a line and destination, so a `named` vehicle needs its number said too (RGAA).
+ */
+export function vehicleName(vehicle: Vehicle, line: Line | undefined): { name: string; named: boolean } {
+    if (line === undefined || vehicle.destination === null) {
+        return { name: `Véhicule ${displayId(vehicle)}`, named: false };
+    }
+
+    return { name: `${line.modeName} ${line.shortName} - ${vehicle.destination}`, named: true };
 }
 
 export class LineCatalogue {

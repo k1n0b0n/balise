@@ -36,7 +36,8 @@ it('reads a recorded TBM payload into normalised positions', function (): void {
         ->and(round($bus->longitude, 5))->toBe(-0.68371)
         ->and($bus->recordedAt->getTimestamp())->toBe(1792145344)
         ->and($bus->lineId)->toBe('tbm:901')
-        ->and($bus->tripId)->toBe('tbm:b_268441185_16');
+        ->and($bus->tripId)->toBe('tbm:b_268441185_16')
+        ->and($bus->destination)->toBe('GARE ST-JEAN MECA');
 });
 
 it('applies the ADR-0013 fallbacks', function (): void {
@@ -63,6 +64,21 @@ it('applies the ADR-0013 fallbacks', function (): void {
         ->lineId->toBeNull()
         ->tripId->toBeNull();
 });
+
+it('takes the destination from the label only on a network whose label is one (ADR-0018)', function (bool $labelIsDestination, ?string $destination): void {
+    config(['networks.tbm.vehicles.label_is_destination' => $labelIsDestination]);
+
+    $positions = collect(fetchPositions(feedPayload([
+        feedEntity('e1', ['lat' => 44.8, 'lon' => -0.5, 'id' => 'bus-1', 'label' => 'GARE ST-JEAN MECA']),
+        feedEntity('e2', ['lat' => 44.8, 'lon' => -0.5, 'id' => 'bus-2']),
+    ])))->keyBy('vehicleId');
+
+    expect($positions['tbm:bus-1']->destination)->toBe($destination)
+        ->and($positions['tbm:bus-2']->destination)->toBeNull();
+})->with([
+    'a destination sign' => [true, 'GARE ST-JEAN MECA'],
+    'a fleet number' => [false, null],
+]);
 
 it('drops positions with impossible coordinates', function (): void {
     $positions = fetchPositions(feedPayload([

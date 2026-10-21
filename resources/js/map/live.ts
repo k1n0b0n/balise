@@ -6,6 +6,7 @@ export interface Vehicle {
     longitude: number;
     recordedAt: string;
     lineId: string | null;
+    destination: string | null;
 }
 
 /**

@@ -1,7 +1,7 @@
 # Idea: next departures at a stop, next stops of a vehicle
 
 - **Status:** Exploring
-- **Related:** ADR-0001 (trip updates port), ADR-0015 (protobuf), ADR-0018 (destination, in pull request #53), [network-on-map.md](network-on-map.md) step 5, E4, E7.1, E7.2
+- **Related:** ADR-0001 (trip updates port), ADR-0015 (protobuf), ADR-0018 (destination), [network-on-map.md](network-on-map.md) step 5, E4, E7.1, E7.2
 
 ## Why
 
