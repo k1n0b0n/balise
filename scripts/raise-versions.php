@@ -2,8 +2,8 @@
 
 /*
  * Weekly version raise (E1.3f, ADR-0020 point 3): which of PHP, PostgreSQL, Redis and Node has a newer version than
- * the repository names, and the rewrite of the places that name it. No dependency, so that the workflow runs it with
- * the runner's PHP (8.3 on ubuntu-24.04), before building anything:
+ * the repository names, and the rewrite of the places that name it. No dependency, so that the workflow runs it on the
+ * official PHP image, before building anything:
  *   php scripts/raise-versions.php                     the newer versions, one JSON object per line, none when up to date
  *   php scripts/raise-versions.php apply <key> <to>    rewrites the places that name one of them
  */
