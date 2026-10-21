@@ -67,8 +67,8 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Memory used by the stack measured on the server
   - [x] One TBM poll timed on the server (E2.3)
 - E1.3f Version upkeep, once the images start from the official ones (E1.3d)
-  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
-  - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
+  - [x] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
+  - [x] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
 

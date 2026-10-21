@@ -1,7 +1,7 @@
 # One Dockerfile, four targets (ADR-0007, ADR-0020 points 2 and 4):
-#   runtime     PHP 8.5 on Alpine and the project's PHP configuration: queue, scheduler, and the base of production
+#   runtime     PHP on Alpine and the project's PHP configuration: queue, scheduler, and the base of production
 #   dev         runtime + Composer and the tools of the setup scripts
-#   test        PHP 8.5 on Debian + Composer, Node and Chromium, for the browser tests: Playwright's browsers need glibc
+#   test        PHP on Debian + Composer, Node and Chromium, for the browser tests: Playwright's browsers need glibc
 #   production  runtime + the code of a release, without dev packages, with built assets and generated classes
 ARG NODE_VERSION=24
 

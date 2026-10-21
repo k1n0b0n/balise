@@ -1,0 +1,73 @@
+name: Versions
+
+# Weekly raise of PHP, PostgreSQL, Redis and Node (E1.3f, ADR-0020 point 3): one pull request per platform, opened or
+# updated by the release App, whose token, unlike GITHUB_TOKEN, lets the pull request run the required checks.
+# Nothing to raise is a success; a version source that fails fails the run.
+on:
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: versions
+  cancel-in-progress: false
+
+jobs:
+  raise:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      # The App's token stays in the checkout's Git config: the branches are pushed with it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      # The script runs on the official PHP image the Dockerfile names, the PHP its tests run on; it needs nothing else,
+      # so nothing is built.
+      - env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          image=$(sed -n 's/^FROM \(php:[^ ]*-fpm-alpine\) .*/\1/p' docker/php/Dockerfile)
+          raise() { docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" -w /repo "$image" php scripts/raise-versions.php "$@"; }
+
+          raise > "$RUNNER_TEMP/raises"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "$(gh api "/users/$APP_SLUG%5Bbot%5D" -q .id)+${APP_SLUG}[bot]@users.noreply.github.com"
+          base=$(git rev-parse HEAD)
+
+          while IFS= read -r raise; do
+            key=$(jq -r .key <<< "$raise")
+            name=$(jq -r .name <<< "$raise")
+            from=$(jq -r .from <<< "$raise")
+            to=$(jq -r .to <<< "$raise")
+            branch="versions/$key"
+            title="chore(deps): raise $name to $to"
+
+            # A branch that already raises to this version is left alone: the commits added to it stay, its checks do
+            # not run again, and a pull request closed without merging is not opened again.
+            if git fetch -q origin "$branch" 2> /dev/null && git log --format=%s "$base..FETCH_HEAD" | grep -qxF "$title"; then
+              echo "$name $to: already proposed"
+              continue
+            fi
+
+            git switch -q -C "$branch" "$base"
+            raise apply "$key" "$to"
+            git commit -q -a -m "$title"
+            git push -q --force origin "$branch"
+
+            body="$name $from to $to, the newest version whose official images are published. The places that name it are rewritten by \`scripts/raise-versions.php\`; anything else the version needs goes in a commit on this branch. A newer version replaces the branch."
+            if [ "$(gh pr view "$branch" --json state -q .state 2> /dev/null)" = OPEN ]; then
+              gh pr edit "$branch" --title "$title" --body "$body"
+            else
+              gh pr create --draft --head "$branch" --title "$title" --body "$body"
+            fi
+          done < "$RUNNER_TEMP/raises"

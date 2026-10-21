@@ -1,0 +1,22 @@
+[
+    {
+        "version": "v26.12.1",
+        "date": "2026-10-21",
+        "lts": false
+    },
+    {
+        "version": "v25.9.0",
+        "date": "2026-03-31",
+        "lts": false
+    },
+    {
+        "version": "v24.22.1",
+        "date": "2026-10-20",
+        "lts": "Krypton"
+    },
+    {
+        "version": "v23.11.1",
+        "date": "2025-05-14",
+        "lts": false
+    }
+]
