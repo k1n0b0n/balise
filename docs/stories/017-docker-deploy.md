@@ -1,7 +1,7 @@
 # Story 017: Docker deploy on any Debian or Ubuntu host, proven on local machines
 
 - **PRD:** E1.3d
-- **Status:** In progress
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -19,7 +19,7 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 - [x] E1.3b's host install removed: `server.yml`, `deploy.yml`, `rollback.yml`, their templates and `scripts/build-release.sh`
 - [x] `docs/deploy.md`: from a fork to a deployed release
 - [x] Proof on three OrbStack machines (fresh Debian 13, fresh Ubuntu 26.04, Debian 13 already running Docker and nginx with another site): bootstrap twice (`changed=0` the second time), two deploys, a rollback, a PostgreSQL move from 17 to 18; the other site and Docker left untouched
-- [ ] Closing: story notes, *Current state*, ideas review (step 5)
+- [x] Closing: story notes, *Current state*, ideas review (step 5)
 
 ## Notes
 
@@ -48,3 +48,4 @@ See E1.3d in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hos
 - **The host's name and port are environment secrets, not variables:** a public repository's Actions logs are public, and only secrets are masked there.
 - **GHCR packages start private:** the first published images must be made public by hand before the first deploy (`docs/deploy.md`).
 - **Proof from scratch, in one go** (after merging E3.7 into the branch): the three machines deleted and created again, test releases rebuilt from the branch's head. Bootstrap `changed=17` (Debian), `16` (Ubuntu), `12` (shared), then `changed=0` on all three. Then, on the three machines at once: `v0.1.0` runs every migration, E3.7's included, and imports 202 lines and 5,234 stops in about 30 s; `v0.2.0` moves PostgreSQL 17 to 18 in about 27 s; `v0.3.0` goes back to `v0.2.0` after 30 s; `rollback` returns to `v0.1.0` and PostgreSQL 17 in about 18 s, with the 5,234 stops at every step and one volume left. On the shared machine the other site's file, Docker's `daemon.json` and the other container (same id, same start time) were untouched. The other site listens on IPv4 only, so check it on `127.0.0.1`, not `localhost`.
+- **Ideas review:** no idea planned this story. *Next departures* stays Exploring, still waiting for the brief's scope and a trip updates port; the overview's argument for deploying first now reads "proven locally, not live yet" (E1.3e).
