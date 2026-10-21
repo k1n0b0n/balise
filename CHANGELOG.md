@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/k1n0b0n/balise/compare/v0.2.0...v0.3.0) (2026-10-21)
+
+
+### Features
+
+* Docker deploy on any Debian or Ubuntu host (E1.3d) ([#60](https://github.com/k1n0b0n/balise/issues/60)) ([12fbf30](https://github.com/k1n0b0n/balise/commit/12fbf30dcdd63f2c34841fba507dbd1d1d37b16a))
+
 ## [0.2.0](https://github.com/k1n0b0n/balise/compare/v0.1.0...v0.2.0) (2026-10-21)
 
 
