@@ -26,6 +26,14 @@ export function vehicleName(vehicle: Vehicle, line: Line | undefined): { name: s
     return { name: `${line.modeName} ${line.shortName} - ${vehicle.destination}`, named: true };
 }
 
+/**
+ * A line by its short name, then its long name in parentheses: "A (Le Haillan Rostand / Floirac Dravemont)". VoiceOver
+ * spells out the words after a dash in a selector's options; it reads them after a parenthesis.
+ */
+export function lineLabel(line: Line): string {
+    return line.longName === null ? line.shortName : `${line.shortName} (${line.longName})`;
+}
+
 export class LineCatalogue {
     private lines = new Map<string, Line>();
     private loaded = false;

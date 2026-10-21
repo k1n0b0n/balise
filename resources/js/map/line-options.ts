@@ -1,4 +1,4 @@
-import type { Line, LineCatalogue } from './lines';
+import { lineLabel, type Line, type LineCatalogue } from './lines';
 import type { Vehicle } from './live';
 
 // The selector lists the lines that run now, and the selected one whatever its vehicles (E3.4). The server renders the
@@ -39,7 +39,7 @@ export function showLineOptions(select: HTMLSelectElement, lines: LineCatalogue)
                 group.label = line.modeName;
                 groups.set(line.modeName, group);
             }
-            group.append(new Option(line.longName === null ? line.shortName : `${line.shortName} - ${line.longName}`, line.shortName));
+            group.append(new Option(lineLabel(line), line.shortName));
         }
 
         select.replaceChildren(...(all === null ? [] : [all]), ...groups.values());

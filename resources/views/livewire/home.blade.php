@@ -38,7 +38,7 @@
                 @foreach ($lineOptions as $mode => $modeLines)
                     <optgroup label="{{ $mode }}">
                         @foreach ($modeLines as $line)
-                            <option value="{{ $line->short_name }}" @selected($line->is($selectedLine))>{{ $line->short_name }}{{ $line->long_name === null ? '' : " - {$line->long_name}" }}</option>
+                            <option value="{{ $line->short_name }}" @selected($line->is($selectedLine))>{{ $line->short_name }}{{ $line->long_name === null ? '' : " ({$line->long_name})" }}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
@@ -128,7 +128,7 @@
                             @if ($group['line'] === null)
                                 Ligne inconnue
                             @else
-                                {{ $group['line']->mode->label() }} {{ $group['line']->short_name }}{{ $group['line']->long_name === null ? '' : " - {$group['line']->long_name}" }}
+                                {{ $group['line']->mode->label() }} {{ $group['line']->short_name }}{{ $group['line']->long_name === null ? '' : " ({$group['line']->long_name})" }}
                             @endif
                         </h3>
                         @foreach ($group['destinations'] as $destination)

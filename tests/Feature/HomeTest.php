@@ -32,7 +32,7 @@ it('renders the text view on the server, readable before JavaScript loads', func
     $this->get('/')
         ->assertOk()
         // Natural order of the short names, digits before letters; vehicles of unknown lines last, in one group.
-        ->assertSeeInOrder(['Bus 9', 'Bus 10 - Gare Saint-Jean / Mérignac', 'Véhicule 3', 'Véhicule 20', 'Tram B', 'Ligne inconnue', 'Véhicule lineless', 'Véhicule tbm:odd'])
+        ->assertSeeInOrder(['Bus 9', 'Bus 10 (Gare Saint-Jean / Mérignac)', 'Véhicule 3', 'Véhicule 20', 'Tram B', 'Ligne inconnue', 'Véhicule lineless', 'Véhicule tbm:odd'])
         // Times in the network's timezone: without JavaScript nothing updates, so an age would turn false.
         ->assertSee('relevé à 13:59:35')
         ->assertSee('Mis à jour à 14:00');
