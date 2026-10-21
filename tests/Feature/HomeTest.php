@@ -114,6 +114,10 @@ it('offers the modes that run, and narrows the lines to one mode without JavaScr
     // The selected line stays listed whatever the mode; an unknown mode narrows nothing.
     $this->get('/?mode=bus&ligne=A')->assertSee('<option value="A" selected>', escape: false);
     $this->get('/?mode=nowhere')->assertSee('<option value="A"', escape: false);
+
+    // A selected line without vehicles brings no mode; a mode asked for stays chosen while none of its lines runs.
+    $this->get('/?ligne=BAT')->assertDontSee('<option value="ferry"', escape: false);
+    $this->get('/?mode=ferry')->assertSee('<option value="ferry" selected>Bateau</option>', escape: false);
 });
 
 it('groups a line by destination, sorted by name ignoring case, the unknown one last (E3.7)', function (): void {

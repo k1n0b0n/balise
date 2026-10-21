@@ -74,14 +74,18 @@ export function showLineOptions(lineSelect: HTMLSelectElement, modeSelect: HTMLS
     }
 
     function refresh(): void {
+        // Until the catalogue loads, the options rendered by the server are the only ones known.
+        if (!lines.loaded) {
+            return;
+        }
         const running = new Set(vehicles.map((vehicle) => vehicle.lineId));
         const shown = [...lines.all()]
             .filter((line) => running.has(line.id) || line.shortName === selected)
             .sort((a, b) => MODES.indexOf(a.mode) - MODES.indexOf(b.mode) || collator.compare(a.shortName, b.shortName));
 
         if (modeSelect !== null) {
-            // The chosen mode stays listed while no line of it runs, as the selected line does.
-            const modes = new Map<string, string>(shown.map((line) => [line.mode, line.modeName]));
+            // The modes that run; the chosen one stays listed while no line of it runs.
+            const modes = new Map<string, string>(shown.filter((line) => running.has(line.id)).map((line) => [line.mode, line.modeName]));
             const current = modeSelect.selectedOptions[0];
             if (current !== undefined && current.value !== '' && !modes.has(current.value)) {
                 modes.set(current.value, current.text);

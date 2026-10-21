@@ -34,7 +34,8 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
-            'modeOptions' => $running->map(fn (Line $line): TransportMode => $line->mode)->unique()->values(),
+            // The modes that run, and the one asked for while none of its lines runs, so that the form keeps it.
+            'modeOptions' => collect(TransportMode::cases())->filter(fn (TransportMode $option): bool => $option === $mode || $positions->contains(fn (VehiclePosition $position): bool => $position->line?->mode === $option))->values(),
             'selectedMode' => $mode,
             // Without JavaScript, the mode chosen in the form narrows the lines; the browser does it at once (E3.4).
             'lineOptions' => $running

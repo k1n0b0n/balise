@@ -33,7 +33,8 @@ export function lineLabel(line: Line): string {
 
 export class LineCatalogue {
     private lines = new Map<string, Line>();
-    private loaded = false;
+    // True once a fetch has answered: a failed one leaves the catalogue empty.
+    loaded = false;
     // True once the first fetch has answered or failed: drawing earlier would show every vehicle without its line.
     settled = false;
     private loading = false;
