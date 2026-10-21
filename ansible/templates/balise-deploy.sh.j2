@@ -26,6 +26,21 @@ fail() {
     exit 1
 }
 
+# A cancelled release job closes the SSH session, and the next line written to it would kill the script halfway. So the
+# deploy runs as a transient systemd unit, which a second deploy cannot start twice, and this session follows its log.
+if [ -z "${BALISE_DEPLOY_UNIT:-}" ]; then
+    systemctl is-active -q balise-deploy && fail "Another deploy is running."
+    log_file=/var/log/balise-deploy.log
+    touch "$log_file"
+    start=$(($(stat -c %s "$log_file") + 1))
+    systemd-run --unit=balise-deploy --collect --quiet --wait -E BALISE_DEPLOY_UNIT=1 -E HOME=/root \
+        -p StandardOutput="append:$log_file" -p StandardError="append:$log_file" "$0" "$@" &
+    unit=$!
+    tail -c +"$start" -f --pid="$unit" "$log_file"
+    wait "$unit"
+    exit
+fi
+
 cd "$home"
 
 exec 9> /run/balise-deploy.lock
