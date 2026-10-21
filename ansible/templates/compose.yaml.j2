@@ -1,0 +1,55 @@
+# Written by ansible/host.yml (ADR-0020 points 5 and 6); a deploy never changes it. The versions come from .env
+# beside it, which balise-deploy writes from the labels of the release it deploys.
+name: balise
+
+x-app: &app
+  image: {{ image_repository }}-app:${BALISE_VERSION:?}
+  env_file: app.env
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  php:
+    <<: *app
+
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--tries=3"]
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+
+  web:
+    image: {{ image_repository }}-web:${BALISE_VERSION:?}
+    restart: unless-stopped
+    # Loopback only: Docker's published ports bypass the host's firewall.
+    ports:
+      - "127.0.0.1:{{ web_port }}:80"
+    depends_on:
+      php:
+        condition: service_started
+
+  postgres:
+    image: postgres:${POSTGRESQL_VERSION:?}-alpine
+    env_file: postgres.env
+    restart: unless-stopped
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "balise"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:${REDIS_VERSION:?}-alpine
+    restart: unless-stopped
+
+volumes:
+  # One volume per PostgreSQL major: a new major starts on a new volume, filled from a dump (ADR-0020 point 10).
+  postgres:
+    name: balise-postgres-${POSTGRESQL_VERSION:?}

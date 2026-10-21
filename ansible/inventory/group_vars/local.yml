@@ -1,0 +1,9 @@
+# The OrbStack machines of local.yml. In a file of their own: group values written in the inventory file would rank
+# below the defaults of ansible/group_vars/all.yml.
+ansible_user: admin
+ansible_ssh_private_key_file: local/id_ed25519
+# The machines get a new host key each time they are created.
+ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+# No certificate for a .orb.local name: the site is served over HTTP.
+tls: false
+deploy_public_key: "{{ lookup('ansible.builtin.file', 'local/id_ed25519.pub') }}"

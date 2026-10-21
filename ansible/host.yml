@@ -1,0 +1,214 @@
+# Prepares a Debian 13 or Ubuntu 26.04 host for the Docker images of balise (ADR-0020 point 5), once, run by a person
+# with root; a deploy never changes what this writes. A second run changes nothing.
+#   docker compose run --rm ansible ansible-playbook -i local/inventory.yml host.yml [--check --diff]
+- name: Prepare the host
+  hosts: all
+  become: true
+  vars:
+    home: /srv/balise
+    acme_root: /srv/balise/acme
+    docker_packages:
+      Debian: [docker.io, docker-compose]
+      Ubuntu: [docker.io, docker-compose-v2]
+
+  tasks:
+    - name: Check the distribution
+      ansible.builtin.assert:
+        that: >-
+          (ansible_facts.distribution == 'Debian' and ansible_facts.distribution_major_version == '13')
+          or (ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_version == '26.04')
+        fail_msg: "Debian 13 or Ubuntu 26.04 expected, found {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+
+    - name: Check the inventory
+      ansible.builtin.assert:
+        that:
+          - domain is defined
+          - deploy_public_key is defined
+          - not tls or certbot_email is defined
+        fail_msg: domain, deploy_public_key and, with TLS, certbot_email are required (ansible/inventory/example.yml)
+
+    # An installed Docker or nginx is left as it is, whatever its origin; only missing ones come from the archive.
+    - name: Look for Docker, nginx and certbot
+      ansible.builtin.shell: command -v {{ item }}
+      loop: [docker, nginx, certbot]
+      register: installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install Docker and its compose plugin from the archive
+      ansible.builtin.apt:
+        name: "{{ docker_packages[ansible_facts.distribution] }}"
+        update_cache: true
+        cache_valid_time: 3600
+      when: installed.results[0].rc != 0
+
+    - name: Install nginx and certbot from the archive
+      ansible.builtin.apt:
+        name: "{{ item.item }}"
+        update_cache: true
+        cache_valid_time: 3600
+      loop: "{{ installed.results[1:] }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.rc != 0 and (item.item != 'certbot' or tls)
+
+    - name: Check Docker Compose
+      ansible.builtin.command: docker compose version
+      changed_when: false
+
+    - name: Start Docker and nginx
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: [docker, nginx]
+
+    - name: Create the application directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ home }}", mode: "0755" }
+        - { path: "{{ home }}/secrets", mode: "0700" }
+        - { path: "{{ home }}/dumps", mode: "0700" }
+        - { path: "{{ acme_root }}", mode: "0755" }
+
+    # Generated once on the host and never sent anywhere (ADR-0019 point 6); a rebuilt host gets new ones.
+    - name: Generate the application key and the database password
+      ansible.builtin.shell:
+        cmd: "umask 077 && {{ item.command }} > {{ item.name }}"
+        chdir: "{{ home }}/secrets"
+        creates: "{{ item.name }}"
+      loop:
+        - { name: app_key, command: "printf 'base64:%s' \"$(openssl rand -base64 32)\"" }
+        - { name: db_password, command: "openssl rand -hex 24" }
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Read the secrets
+      ansible.builtin.slurp:
+        src: "{{ home }}/secrets/{{ item }}"
+      loop: [app_key, db_password]
+      register: secrets
+      no_log: true
+
+    - name: Write the environment files of the containers
+      ansible.builtin.template:
+        src: "templates/{{ item.template }}"
+        dest: "{{ home }}/{{ item.file }}"
+        owner: root
+        group: root
+        mode: "0600"
+      loop:
+        - { template: env.j2, file: app.env }
+        - { template: postgres.env.j2, file: postgres.env }
+      vars:
+        app_key: "{{ secrets.results[0].content | b64decode | trim }}"
+        db_password: "{{ secrets.results[1].content | b64decode | trim }}"
+        app_url: "{{ 'https' if tls else 'http' }}://{{ domain }}"
+      no_log: true
+
+    - name: Write the production compose file
+      ansible.builtin.template:
+        src: templates/compose.yaml.j2
+        dest: "{{ home }}/compose.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Look for the certificate
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+      register: certificate_file
+
+    - name: Write the nginx site
+      ansible.builtin.include_tasks: tasks/site.yml
+      vars:
+        certificate: "{{ certificate_file.stat.exists }}"
+
+    # By webroot through the site above; certbot's own timer renews it and reloads nginx.
+    - name: Obtain the certificate
+      ansible.builtin.command: >-
+        certbot certonly --webroot -w {{ acme_root }} -d {{ domain }}
+        --email {{ certbot_email }} --agree-tos --non-interactive
+        --deploy-hook "systemctl reload nginx"
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+      when: tls and not certificate_file.stat.exists
+
+    - name: Serve the site over HTTPS
+      ansible.builtin.include_tasks: tasks/site.yml
+      vars:
+        certificate: true
+      when: tls and not certificate_file.stat.exists
+
+    # The key can only run the deploy script, with the client's command as its one argument (ADR-0020 point 5).
+    - name: Create the deploy user
+      ansible.builtin.user:
+        name: balise-deploy
+        system: true
+        home: /var/lib/balise-deploy
+        shell: /bin/sh
+
+    - name: Create the deploy user's SSH directory
+      ansible.builtin.file:
+        path: /var/lib/balise-deploy/.ssh
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Restrict the deploy key to the deploy script
+      ansible.builtin.copy:
+        dest: /var/lib/balise-deploy/.ssh/authorized_keys
+        content: |
+          command="sudo /usr/local/sbin/balise-deploy \"$SSH_ORIGINAL_COMMAND\"",restrict {{ deploy_public_key }}
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Let the deploy user run the deploy script as root
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/balise-deploy
+        content: |
+          balise-deploy ALL=(root) NOPASSWD: /usr/local/sbin/balise-deploy *
+        owner: root
+        group: root
+        mode: "0440"
+        validate: visudo -cf %s
+
+    - name: Install the firewall
+      ansible.builtin.apt:
+        name: ufw
+      when: manage_firewall
+
+    - name: Allow SSH, HTTP and HTTPS through the firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: ["{{ ansible_port | default(22) }}", "80", "443"]
+      when: manage_firewall
+
+    - name: Deny everything else
+      community.general.ufw:
+        state: enabled
+        policy: deny
+      when: manage_firewall
+
+    - name: Install unattended upgrades
+      ansible.builtin.apt:
+        name: unattended-upgrades
+      when: manage_upgrades
+
+    - name: Install security updates every day
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        mode: "0644"
+      when: manage_upgrades

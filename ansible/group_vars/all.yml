@@ -1,0 +1,6 @@
+# Defaults of host.yml, below any inventory's values (ansible/inventory/example.yml lists them).
+image_repository: ghcr.io/k1n0b0n/balise
+web_port: 8080
+tls: true
+manage_firewall: true
+manage_upgrades: true

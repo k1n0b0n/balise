@@ -1,0 +1,21 @@
+# The site of host.yml, in nginx's conf.d: nginx.conf and other sites are never touched. Reloaded only once
+# `nginx -t` accepts the whole configuration.
+- name: Write the site
+  ansible.builtin.template:
+    src: templates/nginx-site.conf.j2
+    dest: /etc/nginx/conf.d/balise.conf
+    owner: root
+    group: root
+    mode: "0644"
+  register: site
+
+- name: Check nginx's configuration
+  ansible.builtin.command: nginx -t
+  when: site is changed
+  changed_when: false
+
+- name: Reload nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: reloaded
+  when: site is changed

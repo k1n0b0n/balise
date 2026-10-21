@@ -1,9 +1,14 @@
-# The OrbStack machine of scripts/local-server.sh (ADR-0019). Oracle's inventory comes with E1.3c.
+# The OrbStack machines of scripts/local-server.sh (ADR-0020 point 9), with group_vars/local.yml. A real host gets its
+# own inventory from example.yml, kept in ansible/local/, which Git ignores.
 all:
-  hosts:
-    balise-server.orb.local:
-      ansible_user: ubuntu
-      ansible_ssh_private_key_file: local/id_ed25519
-      # The machine gets a new host key each time it is created.
-      ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-      app_url: http://balise-server.orb.local
+  children:
+    local:
+      hosts:
+        balise-debian.orb.local:
+          domain: balise-debian.orb.local
+        balise-ubuntu.orb.local:
+          domain: balise-ubuntu.orb.local
+        # Already runs Docker, nginx, another site and another container, which the bootstrap must leave alone.
+        balise-shared.orb.local:
+          domain: balise-shared.orb.local
+          manage_firewall: false

@@ -26,8 +26,8 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Read a network's live vehicle positions once (the scheduler does it every 20 s) | `docker compose exec php php artisan network:poll tbm` |
 | Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
-| Create the local stand-in for the server (OrbStack, on the host; ADR-0019) / remove it | `sh scripts/local-server.sh` / `orb delete -f balise-server` |
-| Configure the server (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook server.yml` |
+| Create a local stand-in for a host (OrbStack, on the host; ADR-0020 point 9): fresh Debian 13, fresh Ubuntu 26.04, or Debian 13 with another site / remove it | `sh scripts/local-server.sh debian\|ubuntu\|shared` / `orb delete -f balise-debian` |
+| Prepare the local machines / a real host from its ignored inventory (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook host.yml` / `… -i local/inventory.yml host.yml` |
 | Build a release archive of the committed HEAD into `build/` | `docker compose run --rm test sh scripts/build-release.sh` |
 | Release a version | Merge the pull request `chore: release x.y.z` that release-please keeps open on `main`: it tags `vx.y.z` and publishes the GitHub release |
 | Deploy a release / go back to the previous one | `docker compose run --rm ansible ansible-playbook deploy.yml -e archive=../build/<name>.tar.gz` / `… rollback.yml` |
