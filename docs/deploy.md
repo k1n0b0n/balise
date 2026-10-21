@@ -117,7 +117,11 @@ As the admin user on the host:
 ```sh
 sudo docker compose -f /srv/balise/compose.yaml ps
 sudo docker compose -f /srv/balise/compose.yaml logs -f php queue scheduler
+sudo tail -n 50 /var/log/balise-deploy.log
 ```
+
+A deploy runs as the systemd unit `balise-deploy` and writes to `/var/log/balise-deploy.log`; the SSH session only
+follows it, so cancelling the workflow or losing the connection does not stop a deploy halfway.
 
 ## Moving PostgreSQL or Redis to a new major
 

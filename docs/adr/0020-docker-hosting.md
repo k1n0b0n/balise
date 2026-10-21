@@ -32,7 +32,7 @@
    - Optionally the firewall (SSH, HTTP, HTTPS) and unattended upgrades: on by default, off for a host that already manages them.
    Containers publish their ports on `127.0.0.1` only: Docker's published ports bypass the host firewall.
 6. **The repository holds the templates; only the bootstrap applies them.** A deploy never reads a host file from the repository or the image. nginx's master process runs as root and opens log files itself, so an `access_log` line in a vhost written by CI could create any file as root; a `compose.yaml` written by CI could mount the host's disk into a container. Whoever can merge changes the code in the containers; only whoever runs the bootstrap changes the host. A leaked deploy key can redeploy an existing tag of the configured image, nothing else.
-7. **A deploy is `balise-deploy <version>`**, called over SSH by the release workflow, or by hand. The script, one run at a time:
+7. **A deploy is `balise-deploy <version>`**, called over SSH by the release workflow, or by hand. It runs as a transient systemd unit and the SSH session only follows its log (`/var/log/balise-deploy.log`), so a cancelled job or a dropped connection cannot stop it halfway: tried once, a deploy cut off while moving PostgreSQL died on its next log line and left the site down. The script, one run at a time:
    1. accepts only a version (`v1.2.3`) or `rollback`, the version before the current one;
    2. pulls both images at that version while the site keeps running, and reads the PostgreSQL and Redis majors from the labels of `app`;
    3. stops the queue worker and the scheduler; moves PostgreSQL by dump and restore when the major changes (point 10); runs `migrate --force` with the new image;
