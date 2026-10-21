@@ -26,12 +26,9 @@ export function vehicleName(vehicle: Vehicle, line: Line | undefined): { name: s
     return { name: `${line.modeName} ${line.shortName} - ${vehicle.destination}`, named: true };
 }
 
-/**
- * A line by its short name, then its long name in parentheses: "A (Le Haillan Rostand / Floirac Dravemont)". VoiceOver
- * spells out the words after a dash in a selector's options; it reads them after a parenthesis.
- */
+// What people call the line, as `Line::label()` on the server: its long name, else its mode and short name.
 export function lineLabel(line: Line): string {
-    return line.longName === null ? line.shortName : `${line.shortName} (${line.longName})`;
+    return line.longName ?? `${line.modeName} ${line.shortName}`;
 }
 
 export class LineCatalogue {

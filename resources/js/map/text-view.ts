@@ -189,7 +189,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             return 'Ligne inconnue';
         }
 
-        return `${line.modeName} ${lineLabel(line)}`;
+        return lineLabel(line);
     }
 
     function lineNameOf(key: string): string {
