@@ -36,8 +36,11 @@ cp ansible/inventory/example.yml ansible/local/inventory.yml
 Fill in `ansible/local/inventory.yml`, which Git ignores: host and SSH user, `domain`, `certbot_email`, the content of
 `~/.ssh/balise-deploy.pub` as `deploy_public_key`, `image_repository` (`ghcr.io/<your GitHub name>/balise`), a free
 local `web_port`, and whether the bootstrap manages the firewall and unattended upgrades. The Ansible container only
-sees the repository: put the admin user's SSH key under `ansible/local/` too, and name it in
-`ansible_ssh_private_key_file`.
+sees the repository. With OrbStack or Docker Desktop, it can use your SSH agent instead of a key file: add
+`-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock`
+after `run --rm` in the commands below. Otherwise put the admin user's SSH key under `ansible/local/` and name it in
+`ansible_ssh_private_key_file`. Copy the host's line of your `known_hosts` there too (`ssh-keygen -F`), and point
+`ansible_ssh_common_args` at it with `-o UserKnownHostsFile=/var/www/balise/ansible/local/known_hosts`.
 
 ## 3. Prepare the host
 

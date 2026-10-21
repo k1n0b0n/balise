@@ -11,7 +11,7 @@ repository: it stays in the ignored inventory and the `production` environment's
 
 ## Tasks
 
-- [ ] A first `--check --diff` runs to the end on a host that already serves other things but was never prepared, as `docs/deploy.md` asks; proven on a fresh shared OrbStack machine
+- [x] A first `--check --diff` runs to the end on a host that already serves other things but was never prepared, as `docs/deploy.md` asks; proven on a fresh shared OrbStack machine
 - [ ] The server's inventory in `ansible/local/`, its DNS record, and a `--check --diff` on it read with the maintainer
 - [ ] Bootstrap run by the maintainer; a second run changes nothing; the server's other sites and containers left as they were
 - [ ] Deploy key and the `production` environment's secrets set by the maintainer
@@ -22,3 +22,5 @@ repository: it stays in the ignored inventory and the `production` environment's
 ## Notes
 
 - **A check on a host never prepared stopped halfway** (E1.3d proved the check only after a bootstrap): in check mode nothing is created, so the first task writing under `/srv/balise` failed. A host without `python3-apt` also refuses apt's check mode; Debian's standard install has it.
+- **The Ansible container reaches the server through the Mac's SSH agent** (`/run/host-services/ssh-auth.sock`, which OrbStack and Docker Desktop expose), so no admin key is copied into `ansible/local/`; the host's key comes from the maintainer's `known_hosts`.
+- **The first check on the server plans only additions:** the application directories, a new nginx site, its certificate, the deploy script, user, key and sudoers line. No package, firewall or upgrade change: Docker, nginx and certbot were there, and the inventory leaves the firewall and upgrades alone. Port 8080 was taken on the loopback, so the web container gets another one.
