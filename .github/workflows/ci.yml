@@ -13,6 +13,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Platform versions agree with versions.yaml (E1.3a); the runner's own PHP is enough, nothing is installed.
+  versions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - run: php scripts/check-versions.php
+
   ci:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

@@ -99,6 +99,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Timestamps are written without an offset: read them in the application's zone, not the server's.
+            'timezone' => 'UTC',
         ],
 
         'sqlsrv' => [

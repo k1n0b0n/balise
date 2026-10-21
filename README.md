@@ -1,41 +1,66 @@
 # balise
 
-Live map of public transport vehicles, fed by open GTFS-Realtime data. First network: TBM (Bordeaux).
+**Where is my tram, right now?** balise reads the live positions that transit networks publish as GTFS-Realtime, cleans them, and draws every bus and tram on a map, moving. First network: TBM, in Bordeaux.
 
-> Status: ingestion done (E2): static GTFS import, live polling every 20 s, latest position per vehicle in PostgreSQL. Map page with the basemap (E3.1); vehicles on the map come with E3.2.
+[![CI](https://github.com/k1n0b0n/balise/actions/workflows/ci.yml/badge.svg)](https://github.com/k1n0b0n/balise/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)
+![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![Livewire 4](https://img.shields.io/badge/Livewire-4-FB70A9?logo=livewire&logoColor=white)
+![MapLibre](https://img.shields.io/badge/MapLibre_GL_JS-396CB2?logo=maplibre&logoColor=white)
+![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
 
-## Run it
+## What you get
+
+- 🚋 **About 400 vehicles live at midday**, read from the feed every 20 seconds, coloured by line and shaped by mode.
+- 🗺️ **The whole network under them:** 202 lines drawn faintly on an open basemap, no API key.
+- 🎯 **Pick a line or a vehicle** and the map follows it; a popup tells its line and how old its position is.
+- ♿ **A text view equal to the map**, and a pause button: the map is not the only way in (RGAA AA).
+- 🌱 **A light page:** EcoIndex A (86/100), JavaScript budget checked in CI.
+
+## Run it in two commands
 
 ```sh
 docker compose up -d
+docker compose exec php php artisan network:import tbm
 ```
 
-Then open http://localhost:8000 for the map. Import TBM's lines and stops: `docker compose exec php php artisan network:import tbm`. Quality gates, browser tests included: `docker compose run --rm test`. More commands in [AGENTS.md](AGENTS.md#commands).
+Open http://localhost:8000. Nothing to install but Docker: PHP, Node, PostgreSQL and the scheduler that polls TBM all run in containers.
 
-## Weight of the map page
+Quality gates (Pint, Larastan at level max, Pest with browser and accessibility tests): `docker compose run --rm test`. Every other command is in [AGENTS.md](AGENTS.md#commands).
 
-| Measure | Value | Budget |
-|---|---|---|
-| JavaScript, compressed (MapLibre, its worker, Livewire), checked in CI | 495.8 KB | 600 KB |
-| [EcoIndex](https://www.ecoindex.fr/) (44 DOM nodes, 21 requests, 1,219 KB of which 713 KB of basemap tiles) | **A**, 86/100 | — |
+## How it works
 
-Measured on 2026-10-16 (story 006); the EcoIndex is measured locally and will change as vehicles and the text view arrive.
+```mermaid
+flowchart LR
+    TBM["TBM open data<br/>GTFS + GTFS-Realtime"] --> Ingestion
+    subgraph Laravel
+        Ingestion["Ingestion<br/>the only code that knows feed formats"] --> Record["RecordPositions<br/>one write path"]
+        Record --> DB[(PostgreSQL)]
+        Record --> Event(["PositionsUpdated"])
+    end
+    DB --> Map["Map and text view<br/>Livewire + MapLibre"]
+```
 
-## Documentation
+- **Feed formats stay at the edge.** Only `App\Ingestion` knows GTFS, GTFS-Realtime or protobuf; an architecture test fails the build otherwise. A new network is configuration, a new standard is one adapter.
+- **One way to write a position.** Every write goes through `RecordPositions`, which emits `PositionsUpdated`: live push (Reverb) and history plug in as listeners.
+- **Stale data is dropped, not shown.** Some TBM positions are hours old; anything older than 5 minutes is filtered out.
 
-| Document | Purpose |
+## Read the decisions, not only the code
+
+Every choice that is costly to reverse has an [ADR](docs/adr/), from the [feed boundary](docs/adr/0001-feed-ingestion-ports.md) to [hosting](docs/adr/0020-docker-hosting.md). The work runs one story at a time from a [PRD](docs/prd.md), with AI agents writing code and a human reviewing every diff ([how](docs/README.md)).
+
+| Document | What it holds |
 |---|---|
-| [docs/README.md](docs/README.md) | How this project is run (BMAD-lite workflow) |
-| [docs/brief.md](docs/brief.md) | Problem, audience, vision, MVP scope |
+| [docs/brief.md](docs/brief.md) | The problem, the audience, the MVP |
 | [docs/prd.md](docs/prd.md) | Epics and stories with acceptance criteria |
-| [docs/architecture.md](docs/architecture.md) | Stack, components, deployment |
-| [docs/adr/](docs/adr/) | Architecture Decision Records |
-| [docs/stories/](docs/stories/) | One file per story in progress or done |
+| [docs/architecture.md](docs/architecture.md) | Stack and components, one line per decision |
+| [docs/stories/](docs/stories/) | What each story did and what it taught |
 
-## License
+## Next
 
-Code under the [MIT license](LICENSE) ([ADR-0003](docs/adr/0003-license.md)). Data keeps its own license, below.
+Vehicles grouped by line and destination, releases deployed automatically to a public server, then live push over WebSockets with Laravel Reverb.
 
-## Data
+## License and data
 
-Bordeaux Métropole, *Réseau urbain et scolaire TBM*, published on [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/offres-de-services-bus-tram-et-scolaire-au-format-gtfs-netex-gtfs-rt-siri-lite) under the Licence Ouverte.
+Code under the [MIT license](LICENSE) ([ADR-0003](docs/adr/0003-license.md)). Data: Bordeaux Métropole, *Réseau urbain et scolaire TBM*, from [transport.data.gouv.fr](https://transport.data.gouv.fr/datasets/offres-de-services-bus-tram-et-scolaire-au-format-gtfs-netex-gtfs-rt-siri-lite), under the Licence Ouverte.

@@ -1,0 +1,232 @@
+# Configures the server from the repository (E1.3b, ADR-0019): packages, PHP, nginx, PostgreSQL, Redis, daemons.
+#   docker compose run --rm ansible ansible-playbook server.yml [--check --diff]
+- name: Configure the balise server
+  hosts: all
+  become: true
+  vars_files:
+    - ../versions.yaml
+  vars:
+    home: /srv/balise
+    shared: /srv/balise/shared
+
+  tasks:
+    - name: Check the distribution against versions.yaml
+      ansible.builtin.assert:
+        that: ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_version == ubuntu
+        fail_msg: "Ubuntu {{ ubuntu }} expected, found {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+
+    - name: Install packages from the Ubuntu archive
+      ansible.builtin.apt:
+        name: "{{ lookup('ansible.builtin.file', '../docker/php/packages.txt').splitlines() + server_packages }}"
+        update_cache: true
+        cache_valid_time: 3600
+      vars:
+        server_packages:
+          - nginx
+          - "postgresql-{{ postgresql }}"
+          - python3-psycopg2
+          - redis-server
+          - ufw
+          - unattended-upgrades
+
+    - name: Read the installed versions
+      ansible.builtin.package_facts:
+
+    - name: Check Redis against versions.yaml
+      ansible.builtin.assert:
+        that: ansible_facts.packages['redis-server'][0].version is search('^(\d+:)?' ~ redis ~ '\.')
+        fail_msg: "Redis {{ redis }} expected, the archive has {{ ansible_facts.packages['redis-server'][0].version }}"
+
+    - name: Create the application user
+      ansible.builtin.user:
+        name: balise
+        system: true
+        home: "{{ home }}"
+        create_home: false
+        shell: /usr/sbin/nologin
+
+    - name: Create the release directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: balise
+        group: balise
+        mode: "0755"
+      loop:
+        - "{{ home }}"
+        - "{{ home }}/releases"
+        - "{{ shared }}"
+
+    - name: Create the shared storage
+      ansible.builtin.file:
+        path: "{{ shared }}/storage/{{ item }}"
+        state: directory
+        owner: balise
+        group: balise
+        mode: "0750"
+      loop: [app/public, framework/cache/data, framework/sessions, framework/views, logs]
+
+    - name: Create the secrets directory
+      ansible.builtin.file:
+        path: "{{ shared }}/secrets"
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    # Generated once on the server and never sent anywhere (ADR-0019 point 6); a rebuild gets new ones.
+    - name: Generate the application key and the database password
+      ansible.builtin.shell:
+        cmd: "umask 077 && {{ item.command }} > {{ item.name }}"
+        chdir: "{{ shared }}/secrets"
+        creates: "{{ item.name }}"
+      loop:
+        - { name: app_key, command: "printf 'base64:%s' \"$(openssl rand -base64 32)\"" }
+        - { name: db_password, command: "openssl rand -hex 24" }
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Read the secrets
+      ansible.builtin.slurp:
+        src: "{{ shared }}/secrets/{{ item }}"
+      loop: [app_key, db_password]
+      register: secrets
+      no_log: true
+
+    - name: Write the environment file
+      ansible.builtin.template:
+        src: templates/env.j2
+        dest: "{{ shared }}/.env"
+        owner: balise
+        group: balise
+        mode: "0600"
+      vars:
+        app_key: "{{ secrets.results[0].content | b64decode | trim }}"
+        db_password: "{{ secrets.results[1].content | b64decode | trim }}"
+      notify: Refresh the application
+      no_log: true
+
+    - name: Create the database user
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: balise
+        password: "{{ secrets.results[1].content | b64decode | trim }}"
+      no_log: true
+
+    - name: Create the database
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: balise
+        owner: balise
+
+    - name: Install the project's php.ini
+      ansible.builtin.copy:
+        src: ../docker/php/php.ini
+        dest: "/etc/php/{{ php }}/{{ item }}/conf.d/99-balise.ini"
+        mode: "0644"
+      loop: [fpm, cli]
+      notify: Restart php-fpm
+
+    - name: Run the php-fpm pool as the application user
+      ansible.builtin.template:
+        src: templates/fpm-pool.conf.j2
+        dest: "/etc/php/{{ php }}/fpm/pool.d/zz-balise.conf"
+        mode: "0644"
+      notify: Restart php-fpm
+
+    - name: Install the nginx site
+      ansible.builtin.copy:
+        src: ../docker/nginx/site.conf
+        dest: /etc/nginx/sites-available/balise
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Point the site's upstream at php-fpm's socket
+      ansible.builtin.template:
+        src: templates/upstream.conf.j2
+        dest: /etc/nginx/conf.d/upstream.conf
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Enable the site in place of the default one
+      ansible.builtin.file:
+        path: "/etc/nginx/sites-enabled/{{ item.name }}"
+        state: "{{ item.state }}"
+        src: "{{ item.src | default(omit) }}"
+      loop:
+        - { name: balise, state: link, src: /etc/nginx/sites-available/balise }
+        - { name: default, state: absent }
+      notify: Reload nginx
+
+    - name: Install the queue and scheduler units
+      ansible.builtin.template:
+        src: templates/worker.service.j2
+        dest: "/etc/systemd/system/balise-{{ item.name }}.service"
+        mode: "0644"
+      loop:
+        - { name: queue, description: queue worker, command: "queue:work --tries=3" }
+        - { name: scheduler, description: scheduler, command: "schedule:work" }
+      loop_control:
+        label: "balise-{{ item.name }}"
+      notify: Restart the workers
+
+    - name: Start the services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      loop: ["php{{ php }}-fpm", nginx, postgresql, redis-server]
+
+    # Started by the deploy playbook: until a first release, their ConditionPathExists keeps them stopped.
+    - name: Enable the workers
+      ansible.builtin.systemd_service:
+        name: "balise-{{ item }}"
+        enabled: true
+        daemon_reload: true
+      loop: [queue, scheduler]
+
+    - name: Allow SSH, HTTP and HTTPS through the firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: ["22", "80", "443"]
+
+    - name: Deny everything else
+      community.general.ufw:
+        state: enabled
+        policy: deny
+
+    - name: Install security updates every day
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        mode: "0644"
+
+  handlers:
+    - name: Restart php-fpm
+      ansible.builtin.systemd_service:
+        name: "php{{ php }}-fpm"
+        state: restarted
+
+    - name: Reload nginx
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: reloaded
+
+    - name: Refresh the application
+      become_user: balise
+      ansible.builtin.command:
+        cmd: php artisan optimize
+        chdir: /var/www/balise
+        removes: /var/www/balise/artisan
+      notify: [Restart php-fpm, Restart the workers]
+
+    - name: Restart the workers
+      ansible.builtin.systemd_service:
+        name: "balise-{{ item }}"
+        state: restarted
+      loop: [queue, scheduler]

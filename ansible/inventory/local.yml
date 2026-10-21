@@ -1,0 +1,9 @@
+# The OrbStack machine of scripts/local-server.sh (ADR-0019). Oracle's inventory comes with E1.3c.
+all:
+  hosts:
+    balise-server.orb.local:
+      ansible_user: ubuntu
+      ansible_ssh_private_key_file: local/id_ed25519
+      # The machine gets a new host key each time it is created.
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+      app_url: http://balise-server.orb.local

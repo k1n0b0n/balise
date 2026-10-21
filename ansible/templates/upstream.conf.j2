@@ -1,0 +1,4 @@
+# Written by ansible/server.yml; in Docker, docker/nginx/upstream-docker.conf points at the php service instead.
+upstream php-fpm {
+    server unix:/run/php/php{{ php }}-fpm.sock;
+}

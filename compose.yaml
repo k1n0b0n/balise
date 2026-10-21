@@ -65,6 +65,16 @@ services:
       postgres:
         condition: service_healthy
 
+  # Server playbooks (ADR-0019), on demand: `docker compose run --rm ansible ansible-playbook server.yml`.
+  ansible:
+    build:
+      context: .
+      dockerfile: ansible/Dockerfile
+    image: balise-ansible
+    profiles: ["ops"]
+    volumes:
+      - .:/var/www/balise
+
   nginx:
     build:
       context: .
@@ -105,7 +115,7 @@ services:
       retries: 30
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
 
 volumes:
   postgres:

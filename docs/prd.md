@@ -36,15 +36,39 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Dependabot opens weekly, grouped updates for Composer, npm and GitHub Actions, with Conventional Commits titles; Docker images follow the server instead (E1.3)
   - [x] Workflows use least-privilege `permissions` and actions pinned to a commit SHA
   - [x] The ruleset requires both checks; a pull request with a failing test cannot be merged, shown once on a throwaway pull request
-- E1.3 Server provisioned as code (Oracle Cloud, OpenTofu, Ansible), deploy on GitHub release created by release-please (ADR-0004, ADR-0012)
-  - [ ] `tofu apply` creates the instance, network and firewall; state is stored remotely and encrypted
-  - [ ] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007)
-  - [ ] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; Ansible installs those versions, and a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
-  - [ ] Publishing a release deploys it: build on the runner, upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
-  - [ ] A weekly workflow runs the playbook in check mode against the server and opens or updates a drift issue; it never blocks pull requests
-  - [ ] A weekly workflow opens a pull request raising one version by one step when a newer supported one exists (Ubuntu LTS, PHP, PostgreSQL, Redis, Node LTS)
-  - [ ] The server is destroyed and rebuilt once from the repository, data reloaded by the GTFS import and the seeders; the time it takes is recorded
-  - [ ] Other criteria to be written
+- E1.3 Server prepared from the repository, deploy on GitHub release created by release-please (ADR-0004, ADR-0020); split so that what needs no server comes first
+- E1.3a Platform versions in one file
+  - [x] One file in the repository holds the versions of Ubuntu, PHP, PostgreSQL, Redis and Node; a required `versions` check fails a pull request when the Dockerfiles, `compose.yaml` or the CI workflow disagree with it
+- E1.3b Server configured by Ansible from the repository, proven on a local Ubuntu virtual machine
+  - [x] An Ansible playbook configures the server from the repository: nginx site, `php.ini`, php-fpm pool, PHP packages and daemon commands (ADR-0007), with the versions of E1.3a
+  - [x] A deploy playbook installs a build: upload, migrate, switch the `current` symlink, reload; the site answers 200 afterwards
+  - [x] Ansible runs in a container with pinned versions; nothing to install on the host but Docker (ADR-0019)
+  - [x] A second run of the server playbook changes nothing, and check mode reports no drift
+  - [x] The build is an archive made outside the server; the server has no Node, Composer or Git (ADR-0004)
+  - [x] The previous release stays on disk: a rollback is one symlink switch, tried once
+  - [x] `APP_KEY` and the database password are generated on the server once and never leave it; no secret is committed (ADR-0019)
+  - [x] The server's own concerns are configured too: a firewall letting only SSH, HTTP and HTTPS in, and security updates installed daily by unattended upgrades
+  - [x] On the local machine the scheduler polls TBM and the map shows live vehicles; one poll is timed
+- E1.3c Releases, without a server
+  - [x] Merging to `main` keeps a release pull request up to date with release-please; merging it creates the tag, the GitHub release and the changelog; it runs with the token of a dedicated GitHub App, so that CI runs on its pull requests (ADR-0004)
+- E1.3d Docker deploy on any Debian 13 or Ubuntu 26.04 host, proven on local machines (ADR-0020)
+  - [ ] The images start from the official `php:8.5-fpm-trixie` and `nginx:alpine` instead of `ubuntu:26.04`; every quality gate passes on them
+  - [ ] CI runs the quality gates in the `test` image; each version is written in one place (PHP and Node in the Dockerfile, PostgreSQL and Redis in `compose.yaml`), so `versions.yaml`, its check and the required check `versions` are removed; CI's duration before and after is recorded
+  - [ ] CI is split into jobs that run in parallel in that image (style, static analysis, tests, browser tests, front end, audit), the browser tests after the front-end build; one final job `ci` needs them all and stays the only required check
+  - [ ] The `app` image carries PostgreSQL's and Redis's versions as labels, and the deploy writes them on the host for the production `compose.yaml`; a new PostgreSQL major is moved by dump and restore, tried once from 17 to 18 on a local machine
+  - [ ] Publishing a release builds the `app` and `web` images and pushes them to the GitHub Container Registry of the repository's owner
+  - [ ] A bootstrap playbook prepares a host from templates in the repository: Docker, nginx and certbot from the distribution's archive when missing, one nginx site with its certificate, a deploy user restricted to the deploy command, the production `compose.yaml` and secrets generated on the host; an installed Docker, nginx and their other sites are left untouched; a second run changes nothing
+  - [ ] The release workflow deploys over SSH, from a GitHub environment that waits for the maintainer's approval: pull, migrations, restart, static GTFS imported when missing or changed, health check, automatic return to the previous version when it fails
+  - [ ] Going back to the previous release is one command, tried once
+  - [ ] `docs/deploy.md` takes a fork from nothing to a deployed release; no host name, address, port or credential is in the repository
+  - [ ] Proven on three local machines: Debian 13 and Ubuntu 26.04 freshly installed, and a Debian 13 already running Docker and nginx with another site
+- E1.3e Live on the maintainer's server
+  - [ ] Bootstrap run, secrets and variables set, a release deployed by the workflow; the public URL answers 200 over HTTPS
+  - [ ] Memory used by the stack measured on the server
+  - [ ] One TBM poll timed on the server (E2.3)
+- E1.3f Version upkeep, once the images start from the official ones (E1.3d)
+  - [ ] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
+  - [ ] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
 - E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
 
