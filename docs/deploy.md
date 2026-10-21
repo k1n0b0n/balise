@@ -91,8 +91,10 @@ The host then has Docker, nginx and certbot (installed from the distribution's a
 Merge the pull request `chore: release x.y.z` that release-please keeps open. The tag and the GitHub release start the
 **Deploy** workflow: it builds both images for `linux/amd64`, pushes them to GHCR, then waits for your approval.
 
-The first time only, make both packages public before approving (*your profile → Packages → balise-app and balise-web →
-Package settings → Change visibility*): the host pulls them without credentials.
+The host pulls both images without credentials, so they must be public. Pushed from a public repository with its
+`org.opencontainers.image.source` label, they were public from the first release here; check before approving that
+`docker pull ghcr.io/<your GitHub name>/balise-app:vX.Y.Z` works logged out, and otherwise change their visibility
+(*your profile → Packages → balise-app and balise-web → Package settings → Change visibility*).
 
 Approve, and the job runs `balise-deploy vX.Y.Z` on the host:
 
