@@ -1,7 +1,7 @@
 # Story 013: Group vehicles by line and destination
 
 - **PRD:** E3.7
-- **Status:** In progress, waiting for the VoiceOver check of capitals
+- **Status:** Done
 
 ## Acceptance criteria
 
@@ -15,10 +15,10 @@ See E3.7 in [prd.md](../prd.md).
 - [x] Normalised position (ADR-0013): optional `destination` (`vehicle.label` as is, when the network says so); `vehicle_positions` gets `destination`, and `RecordPositions` counts a change of it as a change
 - [x] ~~Trip updates for the line of positions without a `route_id`~~: deferred to the trip updates port (maintainer's decision, 2026-10-21, moved to the PRD's *Later*); the samples found 283 such positions in 20 h (0.03 %), still shown as "Ligne inconnue"
 - [x] Positions payload: the destination; compressed size measured before and after on the same snapshot
-- [ ] Text view: a heading per line (`h3`), then per destination (`h4`) sorted by name ignoring case with "Destination inconnue" last, then the vehicles named "Tram A - La Gardette", their number without a destination; each button keeps a distinct accessible name with the number; the server-rendered view and the module agree (done); capitals checked with VoiceOver (to do, by the maintainer)
+- [x] Text view: a heading per line (`h3`), then per destination (`h4`) sorted by name ignoring case with "Destination inconnue" last, then the vehicles named "Tram A - La Gardette", their number without a destination; each button keeps a distinct accessible name with the number; the server-rendered view and the module agree (done); capitals checked with VoiceOver by the maintainer on 2026-10-21: read as words, abbreviations included
 - [x] Popup: the vehicle's name, its destination and its number
 - [x] Closing (workflow step 5, pull request #54): the studies of `ideas/line-and-destination.md` and `ideas/vehicles-without-line.md` moved into the notes under `### Study`, both files deleted; `ideas/overview.md` reviewed
-- [ ] Tests: driver (label copied only when configured), payload, text view headings, order and names; browser test with axe
+- [x] Tests: driver (label copied only when configured), payload, text view headings, order and names; browser test with axe
 
 ## Notes
 
