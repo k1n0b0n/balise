@@ -29,14 +29,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
+          CHANGED: ${{ github.event.pull_request.changed_files }}
         run: |
           if [ -z "$PR" ]; then
             echo code=true >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # A file moved into docs/ counts by its old path too.
-          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[] | .filename, (.previous_filename // empty)')
-          if grep -qv '^docs/' <<< "$files"; then
+          # A file moved into docs/ counts by its old path too. The API lists 3,000 files at most: a list shorter than
+          # the pull request's count of changed files proves nothing, so everything runs.
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[] | "\(.filename)\t\(.previous_filename // "")"')
+          listed=$(grep -c . <<< "$files" || true)
+          if [ "$listed" -lt "$CHANGED" ] || tr '\t' '\n' <<< "$files" | grep . | grep -qv '^docs/'; then
             echo code=true >> "$GITHUB_OUTPUT"
           else
             echo code=false >> "$GITHUB_OUTPUT"
