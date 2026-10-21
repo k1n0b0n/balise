@@ -165,6 +165,15 @@
         home: /var/lib/balise-deploy
         shell: /bin/sh
 
+    # useradd's mode follows the host's HOME_MODE or UMASK; sshd's StrictModes rejects a writable home.
+    - name: Keep the deploy user's home writable by root only
+      ansible.builtin.file:
+        path: /var/lib/balise-deploy
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
     - name: Create the deploy user's SSH directory
       ansible.builtin.file:
         path: /var/lib/balise-deploy/.ssh
