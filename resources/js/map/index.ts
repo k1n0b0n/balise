@@ -81,6 +81,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
     let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
+    const modeSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="mode"]') ?? null;
     const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
 
     const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
@@ -88,7 +89,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         shapeLayer?.recolour();
     });
     lines.ensure([]);
-    const lineOptions = lineSelector === null ? null : showLineOptions(lineSelector, lines);
+    const lineOptions = lineSelector === null ? null : showLineOptions(lineSelector, modeSelector, lines);
     const textView =
         controls.textView === null
             ? null
@@ -266,7 +267,11 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
 
         lineFilter.addEventListener('submit', (event) => event.preventDefault());
-        lineFilter.addEventListener('change', () => {
+        lineFilter.addEventListener('change', (event) => {
+            // The mode selector only narrows the list of lines (line-options.ts).
+            if (event.target !== lineSelector) {
+                return;
+            }
             cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;

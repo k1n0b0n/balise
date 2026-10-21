@@ -23,6 +23,8 @@ final class Home extends Component
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
         $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
         $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
+        $mode = TransportMode::tryFrom(request()->string('mode')->toString());
+        $running = $this->lineOptions($lines, $positions, $selectedLine);
 
         return view('livewire.home', [
             'network' => $network,
@@ -32,7 +34,12 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
-            'lineOptions' => $this->lineOptions($lines, $positions, $selectedLine),
+            'modeOptions' => $running->map(fn (Line $line): TransportMode => $line->mode)->unique()->values(),
+            'selectedMode' => $mode,
+            // Without JavaScript, the mode chosen in the form narrows the lines; the browser does it at once (E3.4).
+            'lineOptions' => $running
+                ->filter(fn (Line $line): bool => $mode === null || $line->mode === $mode || $line->is($selectedLine))
+                ->groupBy(fn (Line $line): string => $line->mode->label()),
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
@@ -87,15 +94,13 @@ final class Home extends Component
      *
      * @param  Collection<int, Line>  $lines
      * @param  Collection<int, VehiclePosition>  $positions
-     * @return Collection<string, Collection<int, Line>>
+     * @return Collection<int, Line>
      */
     private function lineOptions(Collection $lines, Collection $positions, ?Line $selectedLine): Collection
     {
         $running = $positions->pluck('line_id')->filter()->flip();
 
-        return $lines
-            ->filter(fn (Line $line): bool => $running->has($line->id) || $line->is($selectedLine))
-            ->groupBy(fn (Line $line): string => $line->mode->label());
+        return $lines->filter(fn (Line $line): bool => $running->has($line->id) || $line->is($selectedLine))->values();
     }
 
     /**
