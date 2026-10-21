@@ -91,7 +91,8 @@ if [ -n "$current_postgresql" ] && [ "$current_postgresql" != "$postgresql" ]; t
     compose stop postgres || go_back
     write_env
     # Left over by a failed attempt, it would hold that attempt's data.
-    docker volume rm -f "balise-postgres-$postgresql" > /dev/null
+    compose rm -f postgres > /dev/null || go_back
+    docker volume rm -f "balise-postgres-$postgresql" > /dev/null || go_back
     compose up -d --wait postgres || go_back
     compose exec -T postgres psql -U balise -d balise -q -v ON_ERROR_STOP=1 < "$dump" > /dev/null || go_back
 else
