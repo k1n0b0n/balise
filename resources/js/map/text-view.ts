@@ -1,5 +1,5 @@
 import { displayId, type Vehicle } from './live';
-import { type Line, type LineCatalogue, vehicleName } from './lines';
+import { lineLabel, type Line, type LineCatalogue, vehicleName } from './lines';
 import { formatAge } from './popup';
 
 // Text view equivalent to the map (E3.5, ADR-0006): the server renders it, this module keeps it current with the same
@@ -189,7 +189,7 @@ export function showTextView(root: HTMLElement, lines: LineCatalogue, open: (id:
             return 'Ligne inconnue';
         }
 
-        return `${line.modeName} ${line.shortName}${line.longName === null ? '' : ` – ${line.longName}`}`;
+        return lineLabel(line);
     }
 
     function lineNameOf(key: string): string {

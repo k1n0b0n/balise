@@ -59,3 +59,42 @@ it('pauses and resumes live updates without a request while paused', function ()
         ->assertSeeIn('[data-status]', 'Mis à jour à')
         ->assertNoJavaScriptErrors();
 });
+
+it('keeps the line selector to the lines that run, without changing it under the focus', function (): void {
+    config(['map.refresh_every_seconds' => 1]);
+    foreach (['A' => TransportMode::Tram, 'B' => TransportMode::Tram, '5' => TransportMode::Bus] as $name => $mode) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => (string) $name, 'mode' => $mode, 'sync_id' => Str::uuid()]);
+    }
+    $run = fn (string $line) => app(RecordPositions::class)->handle('tbm', [
+        new IngestionPosition("tbm:on-{$line}", 44.84, -0.57, now()->toDateTimeImmutable(), "tbm:{$line}"),
+    ], CarbonImmutable::now());
+    $run('A');
+    $options = "[...document.querySelectorAll('#ligne option')].map((option) => option.value).join()";
+    $groups = "[...document.querySelectorAll('#ligne optgroup')].map((group) => group.label).join()";
+
+    $page = visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->assertScript($options, ',A');
+
+    // Lines that start running wait for the selector to lose the focus, then come in the server's order.
+    $page->script("document.querySelector('#ligne').focus()");
+    $run('5');
+    $run('B');
+    $page->assertPresent('[data-map][data-vehicle-count="3"]')
+        ->assertScript($options, ',A');
+    $page->script("document.querySelector('#ligne').blur()");
+    $page->assertScript($options, ',A,B,5')
+        ->assertScript($groups, 'Tram,Bus');
+
+    // A line that stops is taken out, unless it is the selected one.
+    $page->select('#ligne', 'B');
+    $page->script("document.querySelector('#ligne').blur()");
+    // They age out as on a real poll: too old, then left out of the next feed.
+    VehiclePosition::query()->whereIn('vehicle_id', ['tbm:on-B', 'tbm:on-5'])->update(['recorded_at' => now()->subHour()]);
+    $run('A');
+    $page->assertPresent('[data-map][data-vehicle-count="1"]')
+        ->assertScript($options, ',A,B')
+        ->assertScript("document.querySelector('#ligne').value", 'B')
+        ->assertNoAccessibilityIssues(level: 3)
+        ->assertNoJavaScriptErrors();
+});

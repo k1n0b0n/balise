@@ -31,14 +31,21 @@
             <p class="text-sm text-gray-700">Véhicules {{ $networkName }} en circulation</p>
         </div>
         {{-- A plain form, so that it works before JavaScript loads; the map module then applies it without reloading (E3.4). --}}
-        <form method="get" action="{{ route('home') }}" data-line-filter class="flex items-center gap-2">
+        <form method="get" action="{{ route('home') }}" data-line-filter class="flex flex-wrap items-center gap-2">
+            <label for="mode" class="text-sm">Mode</label>
+            <select id="mode" name="mode" class="rounded border border-gray-500 px-2 py-2 text-sm">
+                <option value="">Tous les modes</option>
+                @foreach ($modeOptions as $mode)
+                    <option value="{{ $mode->value }}" @selected($mode === $selectedMode)>{{ $mode->label() }}</option>
+                @endforeach
+            </select>
             <label for="ligne" class="text-sm">Ligne</label>
             <select id="ligne" name="ligne" class="max-w-48 rounded border border-gray-500 px-2 py-2 text-sm">
                 <option value="">Toutes les lignes</option>
                 @foreach ($lineOptions as $mode => $modeLines)
                     <optgroup label="{{ $mode }}">
                         @foreach ($modeLines as $line)
-                            <option value="{{ $line->short_name }}" @selected($line->is($selectedLine))>{{ $line->short_name }}{{ $line->long_name === null ? '' : " – {$line->long_name}" }}</option>
+                            <option value="{{ $line->short_name }}" @selected($line->is($selectedLine))>{{ $line->label() }}</option>
                         @endforeach
                     </optgroup>
                 @endforeach
@@ -128,7 +135,7 @@
                             @if ($group['line'] === null)
                                 Ligne inconnue
                             @else
-                                {{ $group['line']->mode->label() }} {{ $group['line']->short_name }}{{ $group['line']->long_name === null ? '' : " – {$group['line']->long_name}" }}
+                                {{ $group['line']->label() }}
                             @endif
                         </h3>
                         @foreach ($group['destinations'] as $destination)

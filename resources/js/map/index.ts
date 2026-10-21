@@ -2,6 +2,7 @@ import { Map, NavigationControl, setWorkerUrl, type LngLatBoundsLike } from 'map
 import 'maplibre-gl/dist/maplibre-gl.css';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { displayId, followVehicles, type Vehicle } from './live';
+import { showLineOptions } from './line-options';
 import { LineCatalogue } from './lines';
 import { readSelection, writeSelection } from './selection';
 import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
@@ -80,6 +81,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
     let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
+    const modeSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="mode"]') ?? null;
     const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
 
     const lines = new LineCatalogue(options.linesUrl, options.refreshSeconds, () => {
@@ -87,6 +89,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         shapeLayer?.recolour();
     });
     lines.ensure([]);
+    const lineOptions = lineSelector === null ? null : showLineOptions(lineSelector, modeSelector, lines);
     const textView =
         controls.textView === null
             ? null
@@ -106,6 +109,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         const lineId = selectedLineId();
         layer?.update(vehicles);
         textView?.update(vehicles, lineId);
+        lineOptions?.update(vehicles, selection.line);
         highlight();
 
         // Before the first positions there is nothing to fit or to open.
@@ -263,7 +267,11 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
 
         lineFilter.addEventListener('submit', (event) => event.preventDefault());
-        lineFilter.addEventListener('change', () => {
+        lineFilter.addEventListener('change', (event) => {
+            // The mode selector only narrows the list of lines (line-options.ts).
+            if (event.target !== lineSelector) {
+                return;
+            }
             cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;

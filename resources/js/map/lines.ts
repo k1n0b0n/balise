@@ -26,9 +26,15 @@ export function vehicleName(vehicle: Vehicle, line: Line | undefined): { name: s
     return { name: `${line.modeName} ${line.shortName} - ${vehicle.destination}`, named: true };
 }
 
+// What people call the line, as `Line::label()` on the server: its long name, else its mode and short name.
+export function lineLabel(line: Line): string {
+    return line.longName ?? `${line.modeName} ${line.shortName}`;
+}
+
 export class LineCatalogue {
     private lines = new Map<string, Line>();
-    private loaded = false;
+    // True once a fetch has answered: a failed one leaves the catalogue empty.
+    loaded = false;
     // True once the first fetch has answered or failed: drawing earlier would show every vehicle without its line.
     settled = false;
     private loading = false;

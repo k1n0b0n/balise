@@ -1,6 +1,6 @@
 import { type Map as MapLibreMap, Popup } from 'maplibre-gl';
 import { displayId, type Vehicle } from './live';
-import { type LineCatalogue, vehicleName } from './lines';
+import { lineLabel, type LineCatalogue, vehicleName } from './lines';
 
 /**
  * "il y a 25 s": how long ago a position was recorded; a position slightly in the future counts as now.
@@ -128,7 +128,7 @@ export class VehiclePopup {
         list.className = 'grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 pr-5 text-sm';
 
         for (const [term, value] of [
-            ['Ligne', line === undefined ? 'Ligne inconnue' : [line.shortName, line.longName].filter(Boolean).join(' – ')],
+            ['Ligne', line === undefined ? 'Ligne inconnue' : lineLabel(line)],
             ['Destination', this.vehicle.destination ?? 'Destination inconnue'],
             ['Véhicule', displayId(this.vehicle)],
             ['Position', formatAge(recordedAt)],

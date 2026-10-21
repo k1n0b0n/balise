@@ -32,7 +32,7 @@ it('renders the text view on the server, readable before JavaScript loads', func
     $this->get('/')
         ->assertOk()
         // Natural order of the short names, digits before letters; vehicles of unknown lines last, in one group.
-        ->assertSeeInOrder(['Bus 9', 'Bus 10 – Gare Saint-Jean / Mérignac', 'Véhicule 3', 'Véhicule 20', 'Tram B', 'Ligne inconnue', 'Véhicule lineless', 'Véhicule tbm:odd'])
+        ->assertSeeInOrder(['Bus 9', 'Gare Saint-Jean / Mérignac', 'Véhicule 3', 'Véhicule 20', 'Tram B', 'Ligne inconnue', 'Véhicule lineless', 'Véhicule tbm:odd'])
         // Times in the network's timezone: without JavaScript nothing updates, so an age would turn false.
         ->assertSee('relevé à 13:59:35')
         ->assertSee('Mis à jour à 14:00');
@@ -68,6 +68,56 @@ it('lists the line in the URL first, before JavaScript loads, and keeps the othe
 
     // A line the network does not have changes nothing.
     $this->get('/?ligne=nowhere')->assertSeeInOrder(['Véhicule on-10', 'Véhicule on-A']);
+});
+
+it('lists in the selector only the lines that run, and the selected one in any case', function (): void {
+    foreach (['A', 'B', 'C'] as $name) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => $name, 'mode' => TransportMode::Tram, 'sync_id' => Str::uuid()]);
+    }
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => 'tbm:A', 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+
+    $this->get('/')
+        ->assertSee('<option value="A"', escape: false)
+        ->assertDontSee('<option value="B"', escape: false)
+        ->assertDontSee('<option value="C"', escape: false);
+
+    // A shared link to a line without vehicles still shows it selected.
+    $this->get('/?ligne=C')
+        ->assertSee('<option value="C" selected>', escape: false)
+        ->assertDontSee('<option value="B"', escape: false);
+});
+
+it('offers the modes that run, and narrows the lines to one mode without JavaScript', function (): void {
+    foreach (['A' => TransportMode::Tram, '5' => TransportMode::Bus, '9' => TransportMode::Bus, 'BAT' => TransportMode::Ferry] as $name => $mode) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => (string) $name, 'mode' => $mode, 'sync_id' => Str::uuid()]);
+    }
+    foreach (['A', '5', '9'] as $name) {
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:on-{$name}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => "tbm:{$name}", 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+
+    // No ferry runs, so it is not offered.
+    $this->get('/')
+        ->assertSeeInOrder(['<option value="">Tous les modes</option>', '<option value="tram" >Tram</option>', '<option value="bus" >Bus</option>'], escape: false)
+        ->assertDontSee('<option value="ferry"', escape: false);
+
+    $this->get('/?mode=bus')
+        ->assertSee('<option value="bus" selected>Bus</option>', escape: false)
+        ->assertSee('<option value="5"', escape: false)
+        ->assertDontSee('<option value="A"', escape: false);
+
+    // The selected line stays listed whatever the mode; an unknown mode narrows nothing.
+    $this->get('/?mode=bus&ligne=A')->assertSee('<option value="A" selected>', escape: false);
+    $this->get('/?mode=nowhere')->assertSee('<option value="A"', escape: false);
+
+    // A selected line without vehicles brings no mode; a mode asked for stays chosen while none of its lines runs.
+    $this->get('/?ligne=BAT')->assertDontSee('<option value="ferry"', escape: false);
+    $this->get('/?mode=ferry')->assertSee('<option value="ferry" selected>Bateau</option>', escape: false);
 });
 
 it('groups a line by destination, sorted by name ignoring case, the unknown one last (E3.7)', function (): void {

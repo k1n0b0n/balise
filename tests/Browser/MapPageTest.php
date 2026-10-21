@@ -77,7 +77,7 @@ it('lists vehicles by line and destination in the text view and opens their popu
     visit('/')
         ->assertPresent('[data-map][data-vehicle-count="4"]')
         // A line the catalogue lacks shows like no line at all, in the last group.
-        ->assertScript("[...document.querySelectorAll('#vue-texte h3')].map((heading) => heading.textContent).join(' | ')", 'Tram A – Le Haillan Rostand / Floirac Dravemont | Ligne inconnue')
+        ->assertScript("[...document.querySelectorAll('#vue-texte h3')].map((heading) => heading.textContent).join(' | ')", 'Le Haillan Rostand / Floirac Dravemont | Ligne inconnue')
         ->assertScript("[...document.querySelectorAll('#vue-texte h4')].map((heading) => heading.textContent).join(' | ')", 'La Gardette | Destination inconnue | CENON GARE | Destination inconnue')
         ->assertSeeIn('[data-vehicle="tbm:stranger"]', 'il y a 3 min')
         // Tab skips the headings: each button's accessible name, as computed for assistive technologies, says its line,
@@ -87,7 +87,7 @@ it('lists vehicles by line and destination in the text view and opens their popu
         ->assertPresent('[data-vehicle="tbm:nameless"] >> internal:role=button[name=/^Véhicule nameless ?, Tram A, afficher sur la carte$/]')
         ->assertPresent('[data-vehicle="tbm:stranger"] >> internal:role=button[name=/^Véhicule stranger ?, ligne inconnue, afficher sur la carte$/]')
         ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
-        ->assertSeeIn('[role="dialog"][aria-label="Tram A - La Gardette, véhicule 1234"]', 'A – Le Haillan Rostand / Floirac Dravemont')
+        ->assertSeeIn('[role="dialog"][aria-label="Tram A - La Gardette, véhicule 1234"]', 'Le Haillan Rostand / Floirac Dravemont')
         ->assertSeeIn('[role="dialog"]', 'La Gardette')
         // The popup takes the focus, so that keyboard and screen reader users land on it.
         ->assertScript("document.activeElement.closest('[role=\"dialog\"]') !== null", true)

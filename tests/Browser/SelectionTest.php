@@ -90,3 +90,33 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
         ->assertPresent('[data-map][data-followed="tbm:1234"]')
         ->assertNoJavaScriptErrors();
 });
+
+it('narrows the line selector to a mode, without changing the selection', function (): void {
+    foreach (['A' => TransportMode::Tram, '5' => TransportMode::Bus, '9' => TransportMode::Bus] as $name => $mode) {
+        Line::query()->create(['id' => "tbm:{$name}", 'network' => 'tbm', 'short_name' => (string) $name, 'mode' => $mode, 'sync_id' => Str::uuid()]);
+        VehiclePosition::query()->create([
+            'vehicle_id' => "tbm:on-{$name}", 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+            'line_id' => "tbm:{$name}", 'recorded_at' => now(), 'received_at' => now(),
+        ]);
+    }
+    $options = "[...document.querySelectorAll('#ligne option')].map((option) => option.value).join()";
+
+    $page = visit('/')
+        ->assertPresent('[data-map][data-vehicle-count="3"]')
+        ->assertScript("[...document.querySelectorAll('#mode option')].map((option) => option.textContent).join()", 'Tous les modes,Tram,Bus');
+    $page->script('window.samePage = true');
+
+    $page->select('#mode', 'bus')
+        ->assertScript($options, ',5,9')
+        ->assertScript('location.search', '')
+        ->assertScript('window.samePage', true)
+        // A selected line of another mode stays listed.
+        ->select('#ligne', '5')
+        ->select('#mode', 'tram')
+        ->assertScript($options, ',A,5')
+        ->assertScript('location.search', '?ligne=5')
+        ->select('#mode', '')
+        ->assertScript($options, ',A,5,9')
+        ->assertNoAccessibilityIssues(level: 3)
+        ->assertNoJavaScriptErrors();
+});

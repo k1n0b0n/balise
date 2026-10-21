@@ -23,6 +23,8 @@ final class Home extends Component
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
         $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
         $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
+        $mode = TransportMode::tryFrom(request()->string('mode')->toString());
+        $running = $this->lineOptions($lines, $positions, $selectedLine);
 
         return view('livewire.home', [
             'network' => $network,
@@ -32,7 +34,13 @@ final class Home extends Component
             'styleUrl' => Config::string('map.style'),
             'bounds' => $this->bounds($network),
             'neutralColour' => Line::NEUTRAL_COLOUR,
-            'lineOptions' => $lines->groupBy(fn (Line $line): string => $line->mode->label()),
+            // The modes that run, and the one asked for while none of its lines runs, so that the form keeps it.
+            'modeOptions' => collect(TransportMode::cases())->filter(fn (TransportMode $option): bool => $option === $mode || $positions->contains(fn (VehiclePosition $position): bool => $position->line?->mode === $option))->values(),
+            'selectedMode' => $mode,
+            // Without JavaScript, the mode chosen in the form narrows the lines; the browser does it at once (E3.4).
+            'lineOptions' => $running
+                ->filter(fn (Line $line): bool => $mode === null || $line->mode === $mode || $line->is($selectedLine))
+                ->groupBy(fn (Line $line): string => $line->mode->label()),
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
@@ -82,7 +90,22 @@ final class Home extends Component
     }
 
     /**
-     * The lines of the selector: by mode in the order of the enum, trams first, then in natural order of their short name.
+     * The selector lists the lines that run now, and the selected one whatever its vehicles, so that a shared link keeps
+     * working; the browser keeps the list up to date (E3.4).
+     *
+     * @param  Collection<int, Line>  $lines
+     * @param  Collection<int, VehiclePosition>  $positions
+     * @return Collection<int, Line>
+     */
+    private function lineOptions(Collection $lines, Collection $positions, ?Line $selectedLine): Collection
+    {
+        $running = $positions->pluck('line_id')->filter()->flip();
+
+        return $lines->filter(fn (Line $line): bool => $running->has($line->id) || $line->is($selectedLine))->values();
+    }
+
+    /**
+     * The lines of the network: by mode in the order of the enum, trams first, then in natural order of their short name.
      *
      * @return Collection<int, Line>
      */

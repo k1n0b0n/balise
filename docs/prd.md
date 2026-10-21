@@ -112,6 +112,8 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] A labelled line selector highlights that line without hiding the others: its vehicles drawn larger and over the rest, its group first in the text view, the map fitted to them; choosing a vehicle (popup or text view) selects its line and makes the map follow it on each update
   - [x] Moving the map by hand stops following; closing the popup, or a × link next to the selector, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
   - [x] The selected line's shape, from the network file of E3.8, is drawn over the others at the same width, still under its vehicles, in a colour that reaches 3:1 against the basemap (WCAG 1.4.11), measured and recorded in the story file
+  - [x] The selector lists only the lines that have a vehicle now, kept up to date while the page stays open but never while the selector has the focus (RGAA); the selected line stays listed without vehicles, so that a shared link keeps working; every line's shape stays on the map
+  - [x] A mode selector before the line selector narrows its list to one mode (tram, bus…), among the modes that run now, without changing the selected line; without JavaScript the form filters by reloading
 - E3.5 Accessible text view equivalent to the map: lines, their vehicles and the age of the last position (ADR-0006)
   - [x] The same data as the map, rendered on the server: lines sorted by name, each with its vehicles and the age of their last position, including "Ligne inconnue"; readable before JavaScript loads
   - [x] Each vehicle has a button that opens its popup on the map (E3.3, RGAA 7.3.1)
@@ -154,6 +156,7 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 
 ## Later
 
+- A "Signaler un problème" link to the repository's GitHub issues, with issue forms for a bug, a feature request and wrong data (a vehicle misplaced, a line unknown); the link says that it opens GitHub (RGAA)
 - Position history, stage 2: short window (24–48 h), e.g. a vehicle's recent trail (ADR-0002)
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
