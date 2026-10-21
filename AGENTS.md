@@ -28,9 +28,9 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
 | Create a local stand-in for a host (OrbStack, on the host; ADR-0020 point 9): fresh Debian 13, fresh Ubuntu 26.04, or Debian 13 with another site / remove it | `sh scripts/local-server.sh debian\|ubuntu\|shared` / `orb delete -f balise-debian` |
 | Prepare the local machines / a real host from its ignored inventory (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook host.yml` / `… -i local/inventory.yml host.yml` |
-| Build a release archive of the committed HEAD into `build/` | `docker compose run --rm test sh scripts/build-release.sh` |
 | Release a version | Merge the pull request `chore: release x.y.z` that release-please keeps open on `main`: it tags `vx.y.z` and publishes the GitHub release |
-| Deploy a release / go back to the previous one | `docker compose run --rm ansible ansible-playbook deploy.yml -e archive=../build/<name>.tar.gz` / `… rollback.yml` |
+| Build the production images locally (`app`, then `web` from it) | `docker build -f docker/php/Dockerfile --target production --build-arg POSTGRESQL_VERSION=18 --build-arg REDIS_VERSION=8 -t balise-php:production .` / `docker build -f docker/nginx/Dockerfile --target production -t balise-nginx:production .` |
+| Deploy a release on a prepared host / go back to the previous one | `ssh balise-deploy@<host> v1.2.3` / `ssh balise-deploy@<host> rollback` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` or `docker compose run` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
 

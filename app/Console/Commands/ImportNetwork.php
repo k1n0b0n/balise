@@ -10,29 +10,30 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
 
-#[Signature('network:import {network : Network key from config/networks.php}')]
+#[Signature('network:import {network? : Network key from config/networks.php; every network when left out}')]
 #[Description('Import the lines and stops of a network from its static catalogue')]
 final class ImportNetwork extends Command
 {
     public function handle(ImportNetworkCatalog $import): int
     {
+        $networks = array_keys(Config::array('networks'));
         $network = $this->argument('network');
 
-        if (! is_string($network) || ! array_key_exists($network, Config::array('networks'))) {
-            $this->components->error('Unknown network. Configured networks: '.implode(', ', array_keys(Config::array('networks'))).'.');
+        if ($network !== null && (! is_string($network) || ! in_array($network, $networks, true))) {
+            $this->components->error('Unknown network. Configured networks: '.implode(', ', $networks).'.');
 
             return self::INVALID;
         }
 
-        $counts = $import->handle($network);
+        foreach ($network === null ? $networks : [$network] as $key) {
+            $counts = $import->handle($key);
 
-        if ($counts === null) {
-            $this->components->info("{$network}: catalogue unchanged since the last import.");
-
-            return self::SUCCESS;
+            if ($counts === null) {
+                $this->components->info("{$key}: catalogue unchanged since the last import.");
+            } else {
+                $this->components->info("{$key}: {$counts['lines']} lines and {$counts['stops']} stops imported.");
+            }
         }
-
-        $this->components->info("{$network}: {$counts['lines']} lines and {$counts['stops']} stops imported.");
 
         return self::SUCCESS;
     }

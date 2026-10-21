@@ -1,0 +1,136 @@
+#!/bin/sh
+# Written by ansible/host.yml (ADR-0020 point 7). Deploys a release of balise, or starts the previous one again:
+#   balise-deploy v1.2.3
+#   balise-deploy rollback
+# Run as root: by the release workflow through the deploy key, or by hand. The argument is all it trusts.
+set -eu
+
+home={{ home }}
+repository={{ image_repository }}
+health_url=http://127.0.0.1:{{ web_port }}/up
+host={{ domain }}
+{% raw %}
+history=releases
+
+log() {
+    printf '%s %s\n' "$(date -u +%H:%M:%S)" "$*"
+}
+
+# Docker Compose without its progress bars, which fill the release workflow's log.
+compose() {
+    docker compose --progress quiet "$@"
+}
+
+fail() {
+    echo "$*" >&2
+    exit 1
+}
+
+cd "$home"
+
+exec 9> /run/balise-deploy.lock
+flock -n 9 || fail "Another deploy is running."
+
+case "${1:-}" in
+    rollback)
+        [ "$(grep -c . "$history" 2> /dev/null || true)" -ge 2 ] || fail "No previous version to go back to."
+        version=$(tail -n 2 "$history" | head -n 1)
+        ;;
+    *[!v0-9.]*) fail "Usage: balise-deploy vX.Y.Z | rollback" ;;
+    v[0-9]*.[0-9]*.[0-9]*) version=$1 ;;
+    *) fail "Usage: balise-deploy vX.Y.Z | rollback" ;;
+esac
+
+log "Pulling $version"
+docker pull -q "$repository-app:$version" > /dev/null
+docker pull -q "$repository-web:$version" > /dev/null
+
+# The release says which majors it expects (ADR-0020 point 3); digits only, since they end up in .env.
+label() {
+    docker image inspect -f "{{ index .Config.Labels \"balise.$1\" }}" "$repository-app:$version"
+}
+postgresql=$(label postgresql)
+redis=$(label redis)
+for major in "$postgresql" "$redis"; do
+    case "$major" in '' | *[!0-9]*) fail "The labels of $version name no PostgreSQL or Redis major." ;; esac
+done
+
+current_postgresql=
+if [ -f .env ]; then
+    cp .env .env.previous
+    current_postgresql=$(sed -n 's/^POSTGRESQL_VERSION=//p' .env)
+fi
+
+write_env() {
+    printf 'BALISE_VERSION=%s\nPOSTGRESQL_VERSION=%s\nREDIS_VERSION=%s\n' "$version" "$postgresql" "$redis" > .env
+}
+
+# Whatever fails once .env names the new version starts the previous one again. The old PostgreSQL volume is only
+# removed after the health check, so going back across a major finds its data.
+go_back() {
+    log "The new version failed: starting the previous one again"
+    if [ -f .env.previous ]; then
+        mv .env.previous .env
+        compose up -d --wait --remove-orphans
+    else
+        compose down
+    fi
+    exit 1
+}
+
+if [ -f .env.previous ]; then
+    log "Stopping the queue worker and the scheduler"
+    compose stop queue scheduler || go_back
+fi
+
+if [ -n "$current_postgresql" ] && [ "$current_postgresql" != "$postgresql" ]; then
+    dump="dumps/postgresql-$current_postgresql-$(date -u +%Y%m%dT%H%M%SZ).sql"
+    log "Moving PostgreSQL $current_postgresql to $postgresql through $home/$dump"
+    compose stop php web || go_back
+    compose exec -T postgres pg_dump -U balise --no-owner --no-privileges balise > "$dump" || go_back
+    compose stop postgres || go_back
+    write_env
+    # Left over by a failed attempt, it would hold that attempt's data.
+    docker volume rm -f "balise-postgres-$postgresql" > /dev/null
+    compose up -d --wait postgres || go_back
+    compose exec -T postgres psql -U balise -d balise -q -v ON_ERROR_STOP=1 < "$dump" > /dev/null || go_back
+else
+    write_env
+fi
+
+log "Migrating"
+compose up -d --wait postgres redis || go_back
+compose run --rm --no-deps php php artisan migrate --force --no-interaction || go_back
+
+log "Starting $version"
+compose up -d --wait --remove-orphans || go_back
+
+log "Checking $health_url"
+tries=0
+until curl -fs -o /dev/null -H "Host: $host" "$health_url"; do
+    tries=$((tries + 1))
+    [ "$tries" -lt 30 ] || go_back
+    sleep 1
+done
+
+# Nothing on an unchanged catalogue (ETag), everything on an empty database. A provider that is down does not undo the
+# release: the scheduler imports again every morning.
+log "Importing the networks' lines and stops"
+compose exec -T php php artisan network:import --no-interaction || log "The import failed; the daily one will retry."
+
+echo "$version" >> "$history"
+rm -f .env.previous
+if [ -n "$current_postgresql" ] && [ "$current_postgresql" != "$postgresql" ]; then
+    docker volume rm "balise-postgres-$current_postgresql" > /dev/null
+fi
+
+# Images of the last three versions stay, for a quick rollback.
+keep=$(awk '{ v[NR] = $0 } END { for (i = NR; i > 0 && n < 3; i--) if (!seen[v[i]]++) { print v[i]; n++ } }' "$history")
+for image in app web; do
+    docker image ls --format '{{ .Tag }}' "$repository-$image" | while read -r tag; do
+        echo "$keep" | grep -qx "$tag" || docker image rm -f "$repository-$image:$tag" > /dev/null
+    done
+done
+
+log "$version is live"
+{% endraw %}

@@ -105,6 +105,16 @@ it('schedules a daily import for every network', function (): void {
         ->and($commands->first())->toContain("network:import 'tbm'");
 });
 
+it('imports every configured network when none is named, as a deploy does', function (): void {
+    Http::fake(['gtfs.test/*' => Http::response(gtfsArchive(), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import')
+        ->expectsOutputToContain('tbm: 4 lines and 2 stops imported.')
+        ->assertSuccessful();
+
+    expect(CatalogImport::query()->pluck('network')->all())->toBe(array_keys(config('networks')));
+});
+
 it('rejects a network that is not configured', function (): void {
     $this->artisan('network:import', ['network' => 'nowhere'])
         ->expectsOutputToContain('Configured networks: tbm.')

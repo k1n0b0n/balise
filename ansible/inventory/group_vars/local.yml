@@ -7,3 +7,5 @@ ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/
 # No certificate for a .orb.local name: the site is served over HTTP.
 tls: false
 deploy_public_key: "{{ lookup('ansible.builtin.file', 'local/id_ed25519.pub') }}"
+# Test releases built on the Mac and pushed to a registry there (docs/stories/017-docker-deploy.md).
+image_repository: host.orb.internal:5000/balise

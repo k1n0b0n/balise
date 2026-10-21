@@ -52,6 +52,10 @@
         label: "{{ item.item }}"
       when: item.rc != 0 and (item.item != 'certbot' or tls)
 
+    - name: Install curl for the deploy's health check
+      ansible.builtin.apt:
+        name: curl
+
     - name: Check Docker Compose
       ansible.builtin.command: docker compose version
       changed_when: false
@@ -144,6 +148,14 @@
       vars:
         certificate: true
       when: tls and not certificate_file.stat.exists
+
+    - name: Install the deploy script
+      ansible.builtin.template:
+        src: templates/balise-deploy.sh.j2
+        dest: /usr/local/sbin/balise-deploy
+        owner: root
+        group: root
+        mode: "0755"
 
     # The key can only run the deploy script, with the client's command as its one argument (ADR-0020 point 5).
     - name: Create the deploy user

@@ -34,12 +34,15 @@ users:
     shell: /bin/bash
     ssh_authorized_keys:
       - $(cat "$key.pub")
+# Test releases come from a registry on the Mac (docs/stories/017-docker-deploy.md), over plain HTTP.
+write_files:
+  - path: /etc/docker/daemon.json
+    content: '{"insecure-registries": ["host.orb.internal:5000"]}'
 USERDATA
 
 # The shared host serves another site from nginx and another container from Docker, which the bootstrap must leave alone.
 if [ "$1" = shared ]; then
     cat >> "$user_data" <<'USERDATA'
-write_files:
   - path: /etc/nginx/conf.d/other.conf
     content: |
       server {
