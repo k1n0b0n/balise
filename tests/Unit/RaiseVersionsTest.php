@@ -10,8 +10,11 @@ require_once dirname(__DIR__, 2).'/scripts/raise-versions.php';
 
 const RAISED_FILES = ['docker/php/Dockerfile', 'compose.yaml', 'AGENTS.md', 'README.md'];
 
+// The versions the tests start from, whatever the repository runs once the weekly raise has moved it.
+const BASELINE = ['php' => '8.5', 'postgresql' => '18', 'redis' => '8', 'node' => '24'];
+
 /**
- * A copy of the files that name versions, some of them rewritten.
+ * A copy of the files that name versions, at the baseline versions, some of them rewritten.
  *
  * @param  array<string, array{string, string}>  $replace  file => [search, replacement]
  */
@@ -20,14 +23,16 @@ function versionedCopy(array $replace = []): string
     $root = sys_get_temp_dir().'/raise-versions-'.uniqid();
 
     foreach (RAISED_FILES as $file) {
-        $contents = (string) file_get_contents(dirname(__DIR__, 2)."/{$file}");
-
-        if (isset($replace[$file])) {
-            $contents = str_replace($replace[$file][0], $replace[$file][1], $contents);
-        }
-
         @mkdir(dirname("{$root}/{$file}"), recursive: true);
-        file_put_contents("{$root}/{$file}", $contents);
+        copy(dirname(__DIR__, 2)."/{$file}", "{$root}/{$file}");
+    }
+
+    foreach (BASELINE as $key => $version) {
+        apply($root, $key, $version);
+    }
+
+    foreach ($replace as $file => [$search, $replacement]) {
+        file_put_contents("{$root}/{$file}", str_replace($search, $replacement, (string) file_get_contents("{$root}/{$file}")));
     }
 
     return $root;
@@ -89,6 +94,16 @@ it('raises Node to a newer LTS line only, once its images are published', functi
 
     expect(newer(versionedCopy(), recordedSources($images, nodeLts: '26')))
         ->toBe([['key' => 'node', 'name' => 'Node', 'from' => '24', 'to' => '26']]);
+});
+
+it('takes the highest LTS line, whatever the order of the releases', function (): void {
+    $sources = recordedSources(['node:26-alpine', 'node:26-trixie-slim'], nodeLts: '26');
+    // A patch of 24 published after 26's latest release comes first in the list.
+    $patchedLater = fn (string $url): ?string => $url === 'https://nodejs.org/dist/index.json'
+        ? (string) json_encode([['version' => 'v24.22.2', 'date' => '2026-11-03', 'lts' => 'Krypton'], ...json_decode((string) $sources($url), associative: true)])
+        : $sources($url);
+
+    expect(newer(versionedCopy(), $patchedLater))->toBe([['key' => 'node', 'name' => 'Node', 'from' => '24', 'to' => '26']]);
 });
 
 it('rewrites every place that names a version, and nothing else', function (): void {

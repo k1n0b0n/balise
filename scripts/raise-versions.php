@@ -152,7 +152,8 @@ function nextVersions(string $version): array
 }
 
 /**
- * The major of the newest Node release that belongs to an LTS line, from nodejs.org's list (newest first).
+ * The highest major among nodejs.org's releases that belong to an LTS line. The list is by date: a patch of an older
+ * line can come before the newest line's releases.
  *
  * @param  callable(): string  $read
  */
@@ -160,13 +161,14 @@ function newestLts(callable $read): int
 {
     /** @var list<array{version: string, lts: string|false}> $releases */
     $releases = json_decode($read(), associative: true, flags: JSON_THROW_ON_ERROR);
+    $majors = [];
     foreach ($releases as $release) {
         if ($release['lts'] !== false) {
-            return (int) ltrim($release['version'], 'v');
+            $majors[] = (int) ltrim($release['version'], 'v');
         }
     }
 
-    throw new RuntimeException('No Node LTS release');
+    return $majors === [] ? throw new RuntimeException('No Node LTS release') : max($majors);
 }
 
 /**

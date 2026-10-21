@@ -64,6 +64,6 @@ jobs:
             if [ "$(gh pr view "$branch" --json state -q .state 2> /dev/null)" = OPEN ]; then
               gh pr edit "$branch" --title "$title" --body "$body"
             else
-              gh pr create --head "$branch" --title "$title" --body "$body"
+              gh pr create --draft --head "$branch" --title "$title" --body "$body"
             fi
           done < "$RUNNER_TEMP/raises"
