@@ -1,6 +1,6 @@
 import { type Map as MapLibreMap, Popup } from 'maplibre-gl';
 import { displayId, type Vehicle } from './live';
-import type { LineCatalogue } from './lines';
+import { type LineCatalogue, vehicleName } from './lines';
 
 /**
  * "il y a 25 s": how long ago a position was recorded; a position slightly in the future counts as now.
@@ -83,6 +83,7 @@ export class VehiclePopup {
         } else {
             this.vehicle = vehicle;
             this.render();
+            this.label();
         }
     }
 
@@ -111,7 +112,8 @@ export class VehiclePopup {
 
     private label(): void {
         if (this.vehicle !== null) {
-            this.popup.getElement()?.setAttribute('aria-label', `Véhicule ${displayId(this.vehicle)}`);
+            const { name, named } = vehicleName(this.vehicle, this.lines.get(this.vehicle.lineId));
+            this.popup.getElement()?.setAttribute('aria-label', named ? `${name}, véhicule ${displayId(this.vehicle)}` : name);
         }
     }
 
@@ -127,6 +129,7 @@ export class VehiclePopup {
 
         for (const [term, value] of [
             ['Ligne', line === undefined ? 'Ligne inconnue' : [line.shortName, line.longName].filter(Boolean).join(' – ')],
+            ['Destination', this.vehicle.destination ?? 'Destination inconnue'],
             ['Véhicule', displayId(this.vehicle)],
             ['Position', formatAge(recordedAt)],
         ] as const) {

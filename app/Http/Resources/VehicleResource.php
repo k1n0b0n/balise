@@ -16,7 +16,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 final class VehicleResource extends JsonResource
 {
     /**
-     * @return array{id: string, latitude: float, longitude: float, recordedAt: string, lineId: ?string}
+     * @return array{id: string, latitude: float, longitude: float, recordedAt: string, lineId: ?string, destination: ?string}
      */
     public function toArray(Request $request): array
     {
@@ -26,6 +26,7 @@ final class VehicleResource extends JsonResource
             'longitude' => $this->longitude,
             'recordedAt' => $this->recorded_at->toIso8601String(),
             'lineId' => $this->line_id,
+            'destination' => $this->destination,
         ];
     }
 }

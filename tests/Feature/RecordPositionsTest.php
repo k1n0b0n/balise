@@ -108,3 +108,11 @@ it('records what each poll reads', function (): void {
 
     expect(StoredPosition::query()->findOrFail('tbm:bus-1')->line_id)->toBe('tbm:01');
 });
+
+it('counts a new destination as a change', function (): void {
+    $at = $this->now->toDateTimeImmutable();
+    record([new VehiclePosition('tbm:bus', 44.84, -0.57, $at, 'tbm:01', destination: 'ARTIGUES BLANCHERIE')], $this->now);
+
+    expect(record([new VehiclePosition('tbm:bus', 44.84, -0.57, $at, 'tbm:01', destination: 'GARE ST-JEAN MECA')], $this->now)['changed'])->toBe(1)
+        ->and(StoredPosition::query()->findOrFail('tbm:bus')->destination)->toBe('GARE ST-JEAN MECA');
+});

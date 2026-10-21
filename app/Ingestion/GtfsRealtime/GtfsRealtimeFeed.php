@@ -27,6 +27,7 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
         private string $network,
         private string $url,
         private array $vehicleIdSources,
+        private bool $labelIsDestination,
         private Http $http,
     ) {}
 
@@ -89,6 +90,7 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
         }
 
         $trip = $vehicle->getTrip();
+        $label = $vehicle->getVehicle()?->getLabel();
 
         return new VehiclePosition(
             vehicleId: $this->id($vehicleId),
@@ -97,6 +99,7 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
             recordedAt: new DateTimeImmutable("@{$timestamp}"),
             lineId: $this->optionalId($trip?->getRouteId()),
             tripId: $this->optionalId($trip?->getTripId()),
+            destination: $this->labelIsDestination && $label !== null && $label !== '' ? $label : null,
         );
     }
 

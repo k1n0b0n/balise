@@ -131,14 +131,17 @@
                                 {{ $group['line']->mode->label() }} {{ $group['line']->short_name }}{{ $group['line']->long_name === null ? '' : " – {$group['line']->long_name}" }}
                             @endif
                         </h3>
-                        <ul class="mt-1 space-y-1">
-                            @foreach ($group['vehicles'] as $position)
-                                <li>
-                                    Véhicule {{ $position->displayId() }},
-                                    <time datetime="{{ $position->recorded_at->toIso8601String() }}" class="text-gray-700">relevé à {{ $position->recorded_at->setTimezone($timezone)->format('H:i:s') }}</time>
-                                </li>
-                            @endforeach
-                        </ul>
+                        @foreach ($group['destinations'] as $destination)
+                            <h4 class="mt-2 text-sm font-semibold">{{ $destination['destination'] ?? 'Destination inconnue' }}</h4>
+                            <ul class="mt-1 space-y-1">
+                                @foreach ($destination['vehicles'] as $position)
+                                    <li>
+                                        {{ $position->name() }}{{ $position->isNamed() ? ", véhicule {$position->displayId()}" : '' }}<span class="sr-only">,</span>
+                                        <time datetime="{{ $position->recorded_at->toIso8601String() }}" class="block text-sm text-gray-700">relevé à {{ $position->recorded_at->setTimezone($timezone)->format('H:i:s') }}</time>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endforeach
                     </div>
                 @empty
                     <p class="mt-4">Aucun véhicule en circulation.</p>
@@ -149,13 +152,20 @@
             <template data-line-template>
                 <div class="mt-4">
                     <h3 class="font-semibold" data-heading></h3>
+                    <div data-destinations></div>
+                </div>
+            </template>
+            <template data-destination-template>
+                <div>
+                    <h4 class="mt-2 text-sm font-semibold" data-heading></h4>
                     <ul class="mt-1 space-y-1" data-vehicles></ul>
                 </div>
             </template>
             <template data-vehicle-template>
                 <li>
-                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open>Véhicule <span data-name></span><span class="sr-only">, <span data-line-name></span>, afficher sur la carte</span></button>,
-                    <time class="text-gray-700" data-age></time>
+                    <button type="button" class="underline underline-offset-2 hover:no-underline" data-open><span data-name></span><span class="sr-only">, <span data-detail></span>, afficher sur la carte</span></button><span class="sr-only">,</span>
+                    {{-- On its own line; the comma stays for screen readers, which read the row as one sentence. --}}
+                    <time class="block text-sm text-gray-700" data-age></time>
                 </li>
             </template>
             <template data-empty-template>

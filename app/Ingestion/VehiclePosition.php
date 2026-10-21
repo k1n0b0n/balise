@@ -18,5 +18,6 @@ final readonly class VehiclePosition
         public DateTimeImmutable $recordedAt,
         public ?string $lineId = null,
         public ?string $tripId = null,
+        public ?string $destination = null,
     ) {}
 }
