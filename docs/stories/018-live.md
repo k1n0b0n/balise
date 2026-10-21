@@ -1,0 +1,24 @@
+# Story 018: Live on the maintainer's server
+
+- **PRD:** E1.3e
+- **Status:** In progress
+
+## Acceptance criteria
+
+See E1.3e in [prd.md](../prd.md). Decisions in [ADR-0020](../adr/0020-docker-hosting.md); the steps are those of
+[deploy.md](../deploy.md). Nothing about the server (name, address, port, users, other services) goes into the
+repository: it stays in the ignored inventory and the `production` environment's secrets.
+
+## Tasks
+
+- [ ] A first `--check --diff` runs to the end on a host that already serves other things but was never prepared, as `docs/deploy.md` asks; proven on a fresh shared OrbStack machine
+- [ ] The server's inventory in `ansible/local/`, its DNS record, and a `--check --diff` on it read with the maintainer
+- [ ] Bootstrap run by the maintainer; a second run changes nothing; the server's other sites and containers left as they were
+- [ ] Deploy key and the `production` environment's secrets set by the maintainer
+- [ ] A release through the workflow: images pushed to GHCR, packages made public, deploy approved; the public URL answers 200 over HTTPS
+- [ ] Memory used by the stack and one TBM poll measured on the server
+- [ ] Closing: story notes, *Current state*, ideas review
+
+## Notes
+
+- **A check on a host never prepared stopped halfway** (E1.3d proved the check only after a bootstrap): in check mode nothing is created, so the first task writing under `/srv/balise` failed. A host without `python3-apt` also refuses apt's check mode; Debian's standard install has it.
