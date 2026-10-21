@@ -9,6 +9,7 @@ use App\Models\Stop;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -113,6 +114,23 @@ it('imports every configured network when none is named, as a deploy does', func
         ->assertSuccessful();
 
     expect(CatalogImport::query()->pluck('network')->all())->toBe(array_keys(config('networks')));
+});
+
+it('imports the other networks when one of them fails, and reports the failure', function (): void {
+    config(['networks.down' => array_replace_recursive(config('networks.tbm'), ['catalog' => ['url' => 'https://down.test/gtfs.zip']])]);
+    Http::fake([
+        'down.test/*' => Http::response('', 503),
+        'gtfs.test/*' => Http::response(gtfsArchive(), 200, ['ETag' => '"v1"']),
+    ]);
+    Exceptions::fake();
+
+    $this->artisan('network:import')
+        ->expectsOutputToContain('tbm: 4 lines and 2 stops imported.')
+        ->expectsOutputToContain('down: ')
+        ->assertFailed();
+
+    Exceptions::assertReportedCount(1);
+    expect(CatalogImport::query()->pluck('network')->all())->toBe(['tbm']);
 });
 
 it('rejects a network that is not configured', function (): void {

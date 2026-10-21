@@ -9,6 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
+use Throwable;
 
 #[Signature('network:import {network? : Network key from config/networks.php; every network when left out}')]
 #[Description('Import the lines and stops of a network from its static catalogue')]
@@ -25,16 +26,36 @@ final class ImportNetwork extends Command
             return self::INVALID;
         }
 
-        foreach ($network === null ? $networks : [$network] as $key) {
-            $counts = $import->handle($key);
+        if ($network !== null) {
+            $this->import($import, $network);
 
-            if ($counts === null) {
-                $this->components->info("{$key}: catalogue unchanged since the last import.");
-            } else {
-                $this->components->info("{$key}: {$counts['lines']} lines and {$counts['stops']} stops imported.");
+            return self::SUCCESS;
+        }
+
+        // One provider that is down must not keep the other networks from importing.
+        $failed = false;
+
+        foreach ($networks as $key) {
+            try {
+                $this->import($import, $key);
+            } catch (Throwable $exception) {
+                report($exception);
+                $this->components->error("{$key}: {$exception->getMessage()}");
+                $failed = true;
             }
         }
 
-        return self::SUCCESS;
+        return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function import(ImportNetworkCatalog $import, string $network): void
+    {
+        $counts = $import->handle($network);
+
+        if ($counts === null) {
+            $this->components->info("{$network}: catalogue unchanged since the last import.");
+        } else {
+            $this->components->info("{$network}: {$counts['lines']} lines and {$counts['stops']} stops imported.");
+        }
     }
 }
