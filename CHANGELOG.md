@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/k1n0b0n/balise/compare/v0.1.0...v0.2.0) (2026-10-21)
+
+
+### Features
+
+* group vehicles by line and destination (E3.7) ([#53](https://github.com/k1n0b0n/balise/issues/53)) ([1b50174](https://github.com/k1n0b0n/balise/commit/1b501747b1592e830901fac8d3d4243b9bc5d1c0))
+
 ## 0.1.0 (2026-10-20)
 
 
