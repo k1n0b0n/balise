@@ -15,8 +15,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A pull request that changes only docs/ skips every job below; the required `ci` check still reports, green.
+  # AGENTS.md and README.md are outside docs/: the version raise's tests read them. A push to main runs everything.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      pull-requests: read
+    outputs:
+      code: ${{ steps.files.outputs.code }}
+    steps:
+      - id: files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          CHANGED: ${{ github.event.pull_request.changed_files }}
+        run: |
+          if [ -z "$PR" ]; then
+            echo code=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A file moved into docs/ counts by its old path too. The API lists 3,000 files at most: a list shorter than
+          # the pull request's count of changed files proves nothing, so everything runs.
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[] | "\(.filename)\t\(.previous_filename // "")"')
+          listed=$(grep -c . <<< "$files" || true)
+          if [ "$listed" -lt "$CHANGED" ] || tr '\t' '\n' <<< "$files" | grep . | grep -qv '^docs/'; then
+            echo code=true >> "$GITHUB_OUTPUT"
+          else
+            echo code=false >> "$GITHUB_OUTPUT"
+          fi
+
   # Builds each image once and fills the cache the other jobs load it from.
   image:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     strategy:
       matrix:
         target: [dev, test]
@@ -146,12 +178,12 @@ jobs:
           service: vite
           command: npm audit --audit-level=high
 
-  # The only required check: a job skipped or cancelled above fails it too.
+  # The only required check: a job skipped or cancelled above fails it too, unless only docs/ changed.
   ci:
-    needs: [style, static, tests, front, browser, audit]
+    needs: [changes, style, static, tests, front, browser, audit]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
-      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.code != 'false' && contains(needs.*.result, 'skipped'))
         run: exit 1
