@@ -1,0 +1,26 @@
+name: Bug
+description: Quelque chose ne marche pas sur le site (la carte, la liste des véhicules, un bouton…).
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Ce qui s'est passé
+      description: Ce que vous avez fait, puis ce que le site a fait.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ce que vous attendiez
+  - type: input
+    id: browser
+    attributes:
+      label: Navigateur et appareil
+      placeholder: Firefox sur ordinateur, Safari sur iPhone…
+  - type: input
+    id: page
+    attributes:
+      label: Adresse de la page
+      description: Elle garde la ligne ou le véhicule choisi.

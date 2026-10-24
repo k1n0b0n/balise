@@ -139,3 +139,12 @@ it('groups a line by destination, sorted by name ignoring case, the unknown one 
             '<h4', 'Destination inconnue', '</h4>', 'Véhicule 2228',
         ], escape: false);
 });
+
+it('links to the issue forms of the configured repository, saying that the link opens GitHub (E3.9)', function (): void {
+    config(['app.repository_url' => 'https://github.com/someone/fork']);
+
+    $this->get('/')
+        ->assertSee('<a href="https://github.com/someone/fork/issues/new/choose"', escape: false)
+        ->assertSee('Signaler un problème sur GitHub')
+        ->assertDontSee('target="_blank"', escape: false);
+});

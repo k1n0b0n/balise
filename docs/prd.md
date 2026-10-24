@@ -136,6 +136,10 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The simplification tolerance is chosen by testing at street and city zoom levels; tolerance and compressed weight are recorded in the story file
   - [x] A lines-shapes endpoint serves the file with `no-cache` and its fingerprint as `ETag` (`304` on a revisit); the map fetches it after the first positions
   - [x] Every line is drawn in its colour, thin and mostly transparent, under the vehicles; the text view is unchanged, the shapes being decorative
+- E3.9 A "Signaler un problème" link ([story 022](stories/022-report-a-problem.md))
+  - [x] The map page links to the repository's issue chooser in the same tab (RGAA 13.2), with a text that says it opens GitHub
+  - [x] Three issue forms, in French like the site: a bug, a feature request, and wrong data (what is wrong, the line, the vehicle number, the time, the details); blank issues are disabled
+  - [x] The repository's URL comes from the configuration, with this repository as the default
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
@@ -156,7 +160,7 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 
 ## Later
 
-- A "Signaler un problème" link to the repository's GitHub issues, with issue forms for a bug, a feature request and wrong data (a vehicle misplaced, a line unknown); the link says that it opens GitHub (RGAA)
+- A link in the vehicle popup that opens the wrong-data issue form filled with the line, the vehicle number and the time (E3.9)
 - Position history, stage 2: short window (24–48 h), e.g. a vehicle's recent trail (ADR-0002)
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
