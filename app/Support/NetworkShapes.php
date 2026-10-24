@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Ingestion\CatalogShape;
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Storage;
+use App\Models\CatalogImport;
 
 /**
- * The lines of a network drawn on the map (ADR-0016): one GeoJSON file per network, one feature per line, derived from
- * the catalogue and written only when its content changes, so that browsers keep their cached copy.
+ * The lines of a network drawn on the map (ADR-0016): one GeoJSON document per network, one feature per line, derived
+ * from the catalogue and written only when its content changes, so that browsers keep their cached copy. It is kept in
+ * the network's import row, where every container reads the same one; a file under storage/ was each container's own.
  */
 final readonly class NetworkShapes
 {
@@ -41,39 +41,34 @@ final readonly class NetworkShapes
     private const float METRES_PER_DEGREE = 111_320.0;
 
     /**
-     * Writes the network's file when its shapes or their lines changed.
+     * Writes the network's shapes when they or their lines changed, or when none are stored; its import row must exist.
      *
      * @param  iterable<CatalogShape>  $shapes
      * @param  array<string>  $lineIds  the lines of the catalogue: a shape of an unknown line is left out
-     * @return string the fingerprint of the file, also its ETag
+     * @return string the fingerprint of the shapes, also their ETag
      */
     public function store(string $network, iterable $shapes, array $lineIds, ?string $previousFingerprint): string
     {
         $json = $this->geoJson($shapes, $lineIds);
         $fingerprint = hash('xxh128', $json);
 
-        if ($fingerprint !== $previousFingerprint || ! $this->disk()->exists($this->path($network))) {
-            // Written aside then moved, so that the endpoint never serves half a file.
-            $this->disk()->put($this->path($network).'.tmp', $json);
-            $this->disk()->move($this->path($network).'.tmp', $this->path($network));
+        if ($fingerprint !== $previousFingerprint || ! $this->has($network)) {
+            CatalogImport::query()->whereKey($network)->update(['shapes' => $json]);
         }
 
         return $fingerprint;
     }
 
+    public function has(string $network): bool
+    {
+        return CatalogImport::query()->whereKey($network)->whereNotNull('shapes')->exists();
+    }
+
     public function read(string $network): ?string
     {
-        return $this->disk()->get($this->path($network));
-    }
+        $json = CatalogImport::query()->whereKey($network)->value('shapes');
 
-    private function path(string $network): string
-    {
-        return "shapes/{$network}.json";
-    }
-
-    private function disk(): Filesystem
-    {
-        return Storage::disk('local');
+        return is_string($json) ? $json : null;
     }
 
     /**
