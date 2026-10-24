@@ -53,16 +53,21 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
         }
 
         $positions = [];
+        $headerTimestamp = (int) $feed->getHeader()?->getTimestamp();
 
         foreach ($feed->getEntity() as $entity) {
-            $position = $this->position($entity, (int) $feed->getHeader()?->getTimestamp());
+            $position = $this->position($entity, $headerTimestamp);
 
             if ($position !== null) {
                 $positions[] = $position;
             }
         }
 
-        return new VehicleFeedSnapshot($response->header('ETag') ?: null, $positions);
+        return new VehicleFeedSnapshot(
+            $response->header('ETag') ?: null,
+            $positions,
+            $headerTimestamp > 0 ? new DateTimeImmutable("@{$headerTimestamp}") : null,
+        );
     }
 
     private function position(FeedEntity $entity, int $headerTimestamp): ?VehiclePosition
