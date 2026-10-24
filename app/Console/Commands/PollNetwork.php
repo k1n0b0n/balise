@@ -41,21 +41,30 @@ final class PollNetwork extends Command
         $etag = Cache::get($etagKey);
         $feed = $feeds->for($network);
 
-        $this->waitForPublication(Config::integer("networks.{$network}.vehicles.poll_every_seconds"), Cache::get($publishedKey));
+        $publishedAt = Cache::get($publishedKey);
+        $this->waitForPublication(Config::integer("networks.{$network}.vehicles.poll_every_seconds"), is_int($publishedAt) ? $publishedAt : null);
+        $retried = false;
 
         try {
             $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
-
-            if ($snapshot === null) {
-                Sleep::for(self::RETRY_AFTER_SECONDS)->seconds();
-                $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
-            }
         } catch (Throwable $exception) {
             // The current state stays as it is; the next scheduled run retries.
             Log::warning("Vehicle feed of {$network} could not be read.", ['exception' => $exception]);
             $this->components->error("{$network}: feed unavailable ({$exception->getMessage()}).");
 
             return self::FAILURE;
+        }
+
+        if ($snapshot === null) {
+            $retried = true;
+            Sleep::for(self::RETRY_AFTER_SECONDS)->seconds();
+
+            try {
+                $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
+            } catch (Throwable $exception) {
+                // The first answer said the feed had not changed: carry on as for that answer.
+                Log::info("Vehicle feed of {$network} could not be read again.", ['exception' => $exception]);
+            }
         }
 
         $receivedAt = CarbonImmutable::now();
@@ -79,7 +88,7 @@ final class PollNetwork extends Command
         }
 
         $read = count($snapshot->positions);
-        Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts, ...$lag]);
+        Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts, ...$lag, 'retried' => $retried]);
         $this->components->info("{$network}: {$read} read, {$counts['dropped']} dropped as stale, {$counts['changed']} changed, {$counts['removed']} removed.");
 
         return self::SUCCESS;
@@ -89,10 +98,14 @@ final class PollNetwork extends Command
      * Waits until just after the feed's next publication. Providers publish at a fixed second of their interval (TBM
      * at :02, :22 and :42), which the scheduler's runs (:00, :20, :40) knew nothing of: a run read the feed published
      * 18 s before. The second is learnt from the last feed's own time, so a provider that moves it is followed.
+     *
+     * It assumes that the provider publishes at the poll's interval, that both clocks are synchronised (NTP: a server
+     * ahead of the provider asks too early and retries, which `retried` shows in the logs), and one network per
+     * scheduler: the scheduler runs polls one after another, so the waits of several networks would add up.
      */
-    private function waitForPublication(int $everySeconds, mixed $publishedAt): void
+    private function waitForPublication(int $everySeconds, ?int $publishedAt): void
     {
-        if (! is_int($publishedAt)) {
+        if ($publishedAt === null) {
             return;
         }
 

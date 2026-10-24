@@ -140,7 +140,7 @@ it('polls every network at its configured interval without overlapping', functio
         ->and($event->expiresAt)->toBe(1);
 });
 
-it('waits until just after the feed is published, learnt from the last feed\'s own time (E2.5)', function (string $now, ?string $publishedAt, array $sleeps): void {
+it('waits until just after the feed is published, learnt from the last feed\'s own time (E2.5)', function (string $now, ?string $publishedAt, ?int $waitMilliseconds): void {
     Http::fake(['rt.test/*' => Http::response(feedPayload([]), 200, ['ETag' => '"rt1"'])]);
     $this->travelTo(CarbonImmutable::parse($now));
     if ($publishedAt !== null) {
@@ -149,13 +149,16 @@ it('waits until just after the feed is published, learnt from the last feed\'s o
 
     $this->artisan('network:poll', ['network' => 'tbm'])->assertSuccessful();
 
-    Sleep::assertSequence($sleeps);
+    // Built here, not in the dataset: a Sleep made before Sleep::fake() would really sleep when discarded.
+    Sleep::assertSequence($waitMilliseconds === null ? [] : [Sleep::for($waitMilliseconds)->milliseconds()]);
 })->with([
     // TBM publishes at :02, :22 and :42 and serves a second later; the scheduler runs at :00.
-    'before the publication' => ['2026-10-16 12:00:00', '2026-10-16 11:59:42', [Sleep::for(3000)->milliseconds()]],
-    'just after it' => ['2026-10-16 12:00:04', '2026-10-16 11:59:42', []],
-    'a provider that moved' => ['2026-10-16 12:00:00', '2026-10-16 11:59:47', [Sleep::for(8000)->milliseconds()]],
-    'no feed read yet' => ['2026-10-16 12:00:00', null, []],
+    'before the publication' => ['2026-10-16 12:00:00', '2026-10-16 11:59:42', 3000],
+    'just after it' => ['2026-10-16 12:00:04', '2026-10-16 11:59:42', null],
+    'half an interval after it' => ['2026-10-16 11:59:53', '2026-10-16 11:59:42', null],
+    'published but not served yet' => ['2026-10-16 12:00:02.5', '2026-10-16 12:00:02', 500],
+    'a provider that moved' => ['2026-10-16 12:00:00', '2026-10-16 11:59:47', 8000],
+    'no feed read yet' => ['2026-10-16 12:00:00', null, null],
 ]);
 
 it('remembers when the feed was published, and logs how late it was read', function (): void {
@@ -182,6 +185,21 @@ it('asks an unchanged feed once more, a little later', function (): void {
 
     Sleep::assertSequence([Sleep::for(2)->seconds()]);
     Http::assertSentCount(2);
+});
+
+it('carries on as unchanged when the second request fails, still ageing vehicles out', function (): void {
+    Log::spy();
+    Cache::put('vehicle-feed:tbm:etag', '"rt1"');
+    Http::fakeSequence('rt.test/*')
+        ->push('', 304)
+        ->push('Service unavailable', 503);
+
+    $this->artisan('network:poll', ['network' => 'tbm'])
+        ->expectsOutputToContain('tbm: feed unchanged, 0 removed.')
+        ->assertSuccessful();
+
+    Log::shouldHaveReceived('info')->withArgs(fn (string $message): bool => $message === 'Vehicle feed of tbm could not be read again.');
+    Log::shouldNotHaveReceived('warning');
 });
 
 it('sends what scheduled commands write to the scheduler\'s own log, the container\'s', function (): void {
