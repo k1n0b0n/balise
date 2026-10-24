@@ -23,7 +23,7 @@ final class PollNetwork extends Command
     {
         $network = $this->argument('network');
 
-        if (! is_string($network) || ! array_key_exists($network, Config::array('networks'))) {
+        if (! array_key_exists($network, Config::array('networks'))) {
             $this->components->error('Unknown network. Configured networks: '.implode(', ', array_keys(Config::array('networks'))).'.');
 
             return self::INVALID;
