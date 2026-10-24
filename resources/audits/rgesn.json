@@ -1,0 +1,475 @@
+{
+    "standard": "RGESN 2024",
+    "date": "2026-10-24",
+    "kind": "self-assessment",
+    "criteria": {
+        "1.1": {
+            "title": "Le service numérique a-t-il été évalué favorablement en termes d'utilité en tenant compte de ses impacts environnementaux ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Le service aide à prendre les transports en commun (objectif de développement durable 11.2) ; son empreinte est bornée par les engagements de l'ADR-0006."
+        },
+        "1.2": {
+            "title": "Le service numérique a-t-il défini ses cibles utilisatrices, les besoins métiers et les attentes réelles des utilisateurs-cibles ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Deux publics définis dans le cadrage : les voyageurs du réseau et les personnes qui relisent le code."
+        },
+        "1.3": {
+            "title": "Le service numérique a-t-il au moins un référent identifié en écoconception numérique ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le mainteneur, joignable par les issues GitHub du dépôt."
+        },
+        "1.4": {
+            "title": "Le service numérique réalise-t-il régulièrement des revues pour s’assurer du respect de sa démarche d’écoconception ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Chaque pull request est relue selon la définition de « terminé », qui inclut le RGESN, et l'intégration continue vérifie le budget JavaScript de la carte à chaque fois."
+        },
+        "1.5": {
+            "title": "Le service numérique s’est-il fixé des objectifs en matière de réduction ou de limitation de ses propres impacts environnementaux ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Objectifs mesurés : au plus 600 Ko de JavaScript compressé sur la page de la carte, seules les positions qui changent sont envoyées, au rythme du flux, et une réponse inchangée est un 304 sans corps."
+        },
+        "1.6": {
+            "title": "Le service numérique collecte-t-il la donnée de façon responsable et raisonnée ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Aucune donnée personnelle, aucune mesure d'audience, aucune publicité ; les seuls cookies sont ceux de session et de protection CSRF, nécessaires à la page."
+        },
+        "1.7": {
+            "title": "Le service numérique a-t-il recours à un niveau de chiffrement adapté à ses besoins ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "HTTPS uniquement, sans chiffrement supplémentaire : les données sont publiques."
+        },
+        "1.8": {
+            "title": "Le service numérique a-t-il mis en place des efforts d’open source ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Tout le service est libre (licence MIT) et ses données sont ouvertes (Licence Ouverte)."
+        },
+        "1.9": {
+            "title": "Le service numérique a-t-il été conçu avec des technologies standard interopérables plutôt que des technologies spécifiques et fermées ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Standards ouverts : HTML, CSS, GTFS et GTFS-Realtime, GeoJSON, tuiles vectorielles."
+        },
+        "1.10": {
+            "title": "Le service numérique repose-t-il sur des API documentées et ouvertes pour interagir avec le matériel ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucun matériel à piloter."
+        },
+        "2.1": {
+            "title": "Le service numérique a-t-il défini la liste des profils de matériels que les utilisateurs vont pouvoir employer pour y accéder ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Pas encore de liste des profils d'appareils pris en charge. Prévu : l'écrire, avec les navigateurs les plus anciens qui font tourner la carte (WebGL 2)."
+        },
+        "2.2": {
+            "title": "Le service numérique est-il utilisable sur d’anciens modèles de terminaux ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Pas encore testé sur d'anciens appareils ; la liste des véhicules est lisible sans JavaScript, la carte demande WebGL 2. Prévu : un test sur un ancien téléphone, avec les profils du critère 2.1."
+        },
+        "2.3": {
+            "title": "Le service numérique est-il utilisable via une connexion bas débit ou hors connexion ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le HTML de la page (environ 4 Ko compressés) contient toute la liste des véhicules, lisible avant le chargement du JavaScript ; une mise à jour sans changement est un 304 sans corps. Pas de mode hors connexion."
+        },
+        "2.4": {
+            "title": "Le service numérique est-il utilisable sur d’anciennes versions de système d’exploitation et de navigateurs web ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Pas encore de versions minimales de navigateur et de système. Prévu : les définir avec le critère 2.1."
+        },
+        "2.5": {
+            "title": "Le service numérique s’adapte-t-il à différents types de terminaux d’affichage ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "De 320 px aux grands écrans, en portrait comme en paysage : la liste se place à côté de la carte ou dans un panneau."
+        },
+        "2.6": {
+            "title": "Le service numérique a-t-il été conçu avec une revue de conception et une revue de code comprenant parmi ses objectifs la réduction des impacts environnementaux de chaque fonctionnalité ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Les choix de conception passent par des décisions écrites (ADR) qui en pèsent le poids ; les relectures de code suivent la définition de « terminé », qui inclut le RGESN."
+        },
+        "2.7": {
+            "title": "Le service numérique a-t-il prévu une stratégie de maintenance et de décommissionnement ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "La maintenance est prévue (montées de version chaque semaine, mises à jour des dépendances, versions publiées), le décommissionnement pas encore. Prévu : l'écrire dans la documentation du déploiement."
+        },
+        "2.8": {
+            "title": "Le service numérique impose-t-il à ses fournisseurs de garantir une démarche de réduction de leurs impacts environnementaux ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Aucune exigence environnementale demandée aux fournisseurs (hébergement, tuiles du fond de carte, GitHub). Prévu : les documenter avec les critères 8.1 à 8.7."
+        },
+        "2.9": {
+            "title": "Le service numérique a-t-il pris en compte les impacts environnementaux des composants d’interface prêts à l’emploi utilisés ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "La bibliothèque de carte (MapLibre GL) a été choisie parmi d'autres, poids mesuré ; le reste de l'interface utilise Livewire et Alpine, déjà présents."
+        },
+        "2.10": {
+            "title": "Le service numérique a-t-il pris en compte les impacts environnementaux des services tiers utilisés lors de leur sélection ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Les tuiles du fond de carte viennent d'OpenFreeMap, choisi parce qu'il ne demande ni clé ni compte et ne piste pas."
+        },
+        "3.1": {
+            "title": "Le service numérique repose-t-il sur une architecture, des ressources ou des composants conçus pour réduire leurs propres impacts environnementaux ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Seules les positions qui changent sont envoyées, une réponse inchangée est un 304 sans corps, et les tracés des lignes forment un seul fichier, regénéré seulement quand ils changent."
+        },
+        "3.2": {
+            "title": "Le service numérique fonctionne-t-il sur une architecture pouvant adapter la quantité de ressources utilisées à la consommation du service ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le service partage un serveur existant au lieu d'en occuper un : 216 Mio pour ses six conteneurs."
+        },
+        "3.3": {
+            "title": "Le service numérique est-il en mesure de supporter l’évolution technique des protocoles ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "HTTP/2 sur TLS."
+        },
+        "3.4": {
+            "title": "Le service numérique garantit-il la mise à disposition de mises à jour correctives pendant toute la durée de vie prévue des équipements et des logiciels liés au service ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Rien n'est installé sur l'appareil : c'est un site web, mis à jour sur le serveur."
+        },
+        "3.5": {
+            "title": "Le service numérique propose-t-il d’installer des mises à jour correctives indépendamment des mises à jour évolutives de façon transparente ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Rien n'est installé sur l'appareil : c'est un site web, mis à jour sur le serveur."
+        },
+        "3.6": {
+            "title": "Le service numérique propose-t-il les mises à jour incrémentielles, afin de ne pas remplacer tout le code à chaque mise à jour ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Rien n'est installé sur l'appareil : c'est un site web, mis à jour sur le serveur."
+        },
+        "3.7": {
+            "title": "Le service numérique optimise-t-il la sollicitation des environnements de développement, de préproduction ou de test en fonction de ses besoins ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Développement local dans Docker ; l'intégration continue ne lance pas ses tests quand seule la documentation change, et lance les tests navigateur à la suite sur une seule machine."
+        },
+        "4.1": {
+            "title": "Le service numérique comporte-t-il uniquement des animations, vidéos et sons dont la lecture automatique est désactivée ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Ni vidéo, ni son, ni animation décorative ; un véhicule ne bouge que quand sa position change."
+        },
+        "4.2": {
+            "title": "Le service numérique affiche-t-il uniquement des contenus sans défilement infini ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Pas de défilement infini : la liste montre les véhicules en circulation, rien ne se charge au défilement."
+        },
+        "4.3": {
+            "title": "Le service numérique optimise-t-il le parcours de navigation pour chaque fonctionnalité principale ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Une seule page, la carte et sa liste ; choisir une ligne ou un véhicule demande une action."
+        },
+        "4.4": {
+            "title": "Le service numérique permet-il à l’utilisateur de décider de l’activation d’un service tiers ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "Les tuiles d'OpenFreeMap se chargent avec la page sans le demander : la carte est le service. Prévu : étudier une page de la liste seule, sans fond de carte."
+        },
+        "4.5": {
+            "title": "Le service numérique utilise-t-il majoritairement des composants fonctionnels natifs du système d’exploitation, du navigateur ou du langage utilisé ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Listes déroulantes et boutons natifs ; aucun composant sur mesure en dehors de la carte."
+        },
+        "4.6": {
+            "title": "Le service numérique utilise-t-il uniquement du contenu vidéo, audio et animé porteur d’informations ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le seul mouvement est celui des véhicules vers leur nouvelle position, qui est l'information elle-même."
+        },
+        "4.7": {
+            "title": "Le service numérique opte-t-il pour les choix les plus sobres entre le texte, l’image, l’audio ou la vidéo, selon les besoins utilisateurs ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Du texte pour la liste, des tuiles vectorielles pour la carte ; ni image, ni son, ni vidéo."
+        },
+        "4.8": {
+            "title": "Le service numérique limite-t-il le nombre des polices de caractères téléchargées ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Polices du système uniquement ; les noms du fond de carte utilisent les glyphes de son style, chargés par plage quand ils s'affichent."
+        },
+        "4.9": {
+            "title": "Le service numérique limite-t-il les requêtes serveur lors de la saisie utilisateur ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Choisir un mode ou une ligne filtre ce que la page a déjà, sans requête."
+        },
+        "4.10": {
+            "title": "Le service numérique informe-t-il l’utilisateur du format de saisie attendu, en évitant les requêtes serveur inutiles pour la soumission d’un formulaire ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucun champ de saisie."
+        },
+        "4.11": {
+            "title": "Le service numérique informe-t-il l’utilisateur, avant le transfert, des poids et formats de fichier attendus ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucun envoi de fichier."
+        },
+        "4.12": {
+            "title": "Le service numérique indique-t-il à l’utilisateur que l’utilisation d’une fonctionnalité a des impacts environnementaux importants ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucune fonctionnalité dont l'impact propre mériterait un avertissement."
+        },
+        "4.13": {
+            "title": "Le service numérique limite-t-il le recours aux notifications, tout en laissant la possibilité à l’utilisateur de les désactiver ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune notification."
+        },
+        "4.14": {
+            "title": "Le service numérique évite-t-il le recours à des procédés manipulatoires dans son interface utilisateur ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Aucun procédé manipulatoire : pas de compte, pas de sollicitation, pas de compte à rebours."
+        },
+        "4.15": {
+            "title": "Le service numérique fournit-il à l’utilisateur un moyen de contrôle sur ses usages afin de suivre et de réduire les impacts environnementaux associés ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le bouton Pause arrête toutes les mises à jour, et la page cesse de demander les positions quand son onglet est masqué."
+        },
+        "5.1": {
+            "title": "Le service numérique utilise-t-il un format de fichier adapté au contenu et au contexte de visualisation de chaque image ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucune image : le fond de carte est vectoriel."
+        },
+        "5.2": {
+            "title": "Le service numérique propose-t-il des images dont le niveau de compression est adapté au contenu et au contexte de visualisation ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucune image : le fond de carte est vectoriel."
+        },
+        "5.3": {
+            "title": "Le service numérique utilise-t-il, pour chaque vidéo, une définition adaptée au contenu et au contexte de visualisation ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune vidéo."
+        },
+        "5.4": {
+            "title": "Le service numérique propose-t-il des vidéos dont le mode de compression est efficace et adapté au contenu et au contexte de visualisation ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune vidéo."
+        },
+        "5.5": {
+            "title": "Le service numérique propose-t-il un mode « écoute seule » pour ses vidéos ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune vidéo."
+        },
+        "5.6": {
+            "title": "Le service numérique propose-t-il des contenus audios dont le mode de compression est adapté au contenu et au contexte d’écoute ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucun contenu audio."
+        },
+        "5.7": {
+            "title": "Le service numérique utilise-t-il un format de fichier adapté au contenu et au contexte d’utilisation pour chaque document ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucun document à télécharger."
+        },
+        "5.8": {
+            "title": "Le service numérique a-t-il une stratégie d’archivage et de suppression, automatique ou manuelle, des contenus obsolètes ou périmés ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Seule la dernière position de chaque véhicule est gardée, supprimée après 5 minutes ; aucun historique."
+        },
+        "6.1": {
+            "title": "Le service numérique s’astreint-il à un poids maximum et une limite de requête par écran ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "La page de la carte a un budget de JavaScript (600 Ko compressés, vérifié en intégration continue), pas encore de poids total ni de nombre de requêtes maximal. Prévu : les ajouter au même contrôle."
+        },
+        "6.2": {
+            "title": "Le service numérique utilise-t-il des mécanismes de mise en cache pour la totalité des contenus transférés dont il a le contrôle ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Les fichiers construits sont en cache un an ; les positions, le catalogue des lignes et les tracés sont revalidés par ETag et répondent par un 304 sans corps."
+        },
+        "6.3": {
+            "title": "Le service numérique a-t-il mis en place des techniques de compression pour les ressources transférées dont il a le contrôle ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "HTML, CSS, JavaScript et JSON sont compressés par le serveur."
+        },
+        "6.4": {
+            "title": "Le service numérique affiche-t-il majoritairement des images dont les dimensions d’origine correspondent aux dimensions du contexte d’affichage ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucune image."
+        },
+        "6.5": {
+            "title": "Le service numérique évite-t-il de déclencher le chargement de ressources et de contenus inutilisés pour chaque fonctionnalité ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le JavaScript de la carte ne se charge que sur sa page ; les tracés des lignes arrivent après les premières positions ; seules les tuiles de la zone visible se chargent."
+        },
+        "6.6": {
+            "title": "Le service numérique restreint-il l’usage des capteurs des terminaux utilisateurs au besoin du service ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucun capteur utilisé, localisation comprise."
+        },
+        "6.7": {
+            "title": "Le service numérique héberge-t-il toutes les ressources statiques transférées dont il est l’émetteur sur un même domaine ?",
+            "priority": "Modéré",
+            "status": "S",
+            "note": "Toutes les ressources statiques émises par le service viennent de son domaine ; seuls le style et les tuiles du fond de carte viennent d'OpenFreeMap."
+        },
+        "7.1": {
+            "title": "Le service numérique a-t-il recours à un système de cache serveur pour les données les plus utilisées ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Le journal des changements de positions et l'ETag du flux sont gardés en cache, les tracés des lignes dans un fichier."
+        },
+        "7.2": {
+            "title": "Le service numérique met-il en place des durées de conservation sur les données et documents en vue de leur suppression ou archivage passé ce délai ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Une position vit au plus 5 minutes ; les données brutes du flux ne sont pas gardées en production."
+        },
+        "7.3": {
+            "title": "Le service numérique informe-t-il l’utilisateur d’un traitement en cours en arrière-plan ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Rien ne tourne en arrière-plan pour le compte d'un utilisateur."
+        },
+        "7.4": {
+            "title": "Le service numérique s’appuie-t-il sur un mécanisme de consensus qui minimise sa consommation de ressources ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucun mécanisme de consensus."
+        },
+        "8.1": {
+            "title": "Le service numérique utilise-t-il un hébergement ayant une démarche de réduction de son empreinte environnementale ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Les engagements environnementaux de l'hébergeur ne sont pas encore documentés. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.2": {
+            "title": "Le service numérique utilise-t-il un hébergement qui fournit une politique de gestion durable des équipements ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "La politique de gestion des équipements de l'hébergeur n'est pas encore documentée. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.3": {
+            "title": "Le service numérique utilise-t-il un hébergement dont le PUE (Power Usage Effectiveness) est minimisé ?",
+            "priority": "Prioritaire",
+            "status": "NS",
+            "note": "Le PUE de l'hébergement n'est pas encore documenté. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.4": {
+            "title": "Le service numérique utilise-t-il un hébergement dont son WUE (Water Usage Effectiveness) est minimisé ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "Le WUE de l'hébergement n'est pas encore documenté. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.5": {
+            "title": "Le service numérique utilise-t-il un hébergement dont l’origine de consommation d’électricité est documentée et majoritairement d’origine renouvelable ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "L'origine de l'électricité de l'hébergement n'est pas encore documentée. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.6": {
+            "title": "Le service numérique utilise-t-il un hébergement dont la localisation géographique est cohérente avec ses activités et qui minimise son empreinte environnementale ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "La localisation de l'hébergement n'est pas encore documentée. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.7": {
+            "title": "Le service numérique utilise-t-il un hébergement qui traite efficacement la chaleur produite par les serveurs ?",
+            "priority": "Recommandé",
+            "status": "NS",
+            "note": "Le traitement de la chaleur des serveurs n'est pas encore documenté. Prévu : le demander à l'hébergeur et le publier ici."
+        },
+        "8.8": {
+            "title": "Le service numérique héberge-t-il de façon distincte les données « chaudes » et « froides » ?",
+            "priority": "Modéré",
+            "status": "NA",
+            "note": "Aucune donnée froide : seulement les positions actuelles et le catalogue du réseau."
+        },
+        "8.9": {
+            "title": "Le service numérique duplique-t-il les données uniquement lorsque cela est nécessaire ?",
+            "priority": "Recommandé",
+            "status": "S",
+            "note": "Les données ne sont pas dupliquées : une seule base, reconstruite depuis les flux ouverts en cas de perte."
+        },
+        "8.10": {
+            "title": "Le service numérique tient-il compte des contraintes externes pour minimiser l’impact environnemental des calculs et transferts de données asynchrones ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucun calcul différable : le flux est lu à son rythme, l'import quotidien après la mise à jour nocturne du fournisseur."
+        },
+        "9.1": {
+            "title": "Le service numérique a-t-il interrogé la nécessité d’une phase d’entraînement pour éviter un usage non justifié et déraisonné ?",
+            "priority": "Prioritaire",
+            "status": "S",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.2": {
+            "title": "Le service numérique utilise-t-il une phase d’apprentissage avec un niveau de complexité minimisé et proportionné à l’usage effectif du service ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.3": {
+            "title": "Le service numérique a-t-il mis en place des mécanismes visant à limiter la quantité d’entraînement nécessaire à son fonctionnement ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.4": {
+            "title": "Le service numérique limite-il la quantité de données utilisées pour la phase d’apprentissage au strict nécessaire ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.5": {
+            "title": "Le service numérique optimise-t-il l’occurrence de mise à jour et de réentraînement des modèles en fonction de ses besoins et des cibles utilisatrices ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.6": {
+            "title": "Le service numérique utilise-t-il des techniques de compression pour les modèles utilisés lors de la phase d’entraînement ?",
+            "priority": "Recommandé",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        },
+        "9.7": {
+            "title": "Le service numérique utilise-t-il une stratégie d’inférence optimisée en termes de consommation de ressources et des cibles utilisatrices ?",
+            "priority": "Prioritaire",
+            "status": "NA",
+            "note": "Aucune intelligence artificielle dans le service."
+        }
+    }
+}

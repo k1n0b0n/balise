@@ -12,7 +12,7 @@ See E3.9 in [prd.md](../prd.md).
 - [x] `app.repository_url` (`APP_REPOSITORY_URL`, this repository by default) and a small link to its issue chooser under the header's subtitle
 - [x] Issue forms in `.github/ISSUE_TEMPLATE`: bug, feature request, wrong data; blank issues disabled
 - [x] Test: the link points to the configured repository, its name says it opens GitHub, and it opens in the same tab
-- [ ] Once merged: the issue chooser lists the three forms and no blank issue (*Current state*)
+- [x] Once merged: the issue chooser lists the three forms and no blank issue, checked by the maintainer (2026-10-24)
 
 ## Notes
 
