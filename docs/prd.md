@@ -131,11 +131,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [x] Resuming catches up with one request, then the normal interval resumes
 - E3.7 Group vehicles by line and destination ([story 013](stories/013-line-and-destination.md))
-  - [ ] A vehicle's destination is its `vehicle.label`, as is, on a network whose configuration says the label is a destination (TBM, ADR-0018); elsewhere it has none
-  - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
-  - [ ] A vehicle is named by its mode, line and destination ("Tram A - La Gardette", ADR-0018) in the text view and the popup, its number without a destination; the text view's buttons keep distinct accessible names with the number
-  - [ ] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
-  - [ ] Coverage checked over a day (morning, midday, evening): positions with a label, label stable along a trip, positions without a line and how many trip updates fill; recorded in the story file
+  - [x] A vehicle's destination is its `vehicle.label`, as is, on a network whose configuration says the label is a destination (TBM, ADR-0018); elsewhere it has none
+  - [x] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
+  - [x] A vehicle is named by its mode, line and destination ("Tram A - La Gardette", ADR-0018) in the text view and the popup, its number without a destination; the text view's buttons keep distinct accessible names with the number
+  - [x] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
+  - [x] Coverage checked over a day (morning, midday, evening): positions with a label, label stable along a trip, positions without a line and how many trip updates fill; recorded in the story file
 - E3.8 Every line of the network on the map, faint, under the vehicles (ADR-0016); comes before E3.4
   - [x] `network:import` writes one GeoJSON file per network, one feature per line (its shapes merged, duplicates removed), only when the shapes or their lines changed, not on every new archive
   - [x] The simplification tolerance is chosen by testing at street and city zoom levels; tolerance and compressed weight are recorded in the story file
