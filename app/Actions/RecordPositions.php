@@ -8,6 +8,8 @@ use App\Events\PositionsUpdated;
 use App\Ingestion\VehiclePosition;
 use App\Models\VehiclePosition as StoredPosition;
 use Carbon\CarbonImmutable;
+use DateTimeImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
@@ -48,7 +50,12 @@ final readonly class RecordPositions
         }
 
         [$changed, $removed] = DB::transaction(function () use ($network, $fresh, $oldest, $receivedAt): array {
-            $stored = StoredPosition::query()->where('network', $network)->get()->keyBy('vehicle_id');
+            // Plain rows of the compared columns, without a model per stored vehicle (story 021).
+            /** @var Collection<string, object{vehicle_id: string, latitude: float, longitude: float, line_id: ?string, trip_id: ?string, destination: ?string, recorded_at: string}> $stored */
+            $stored = StoredPosition::query()->toBase()
+                ->where('network', $network)
+                ->get(['vehicle_id', 'latitude', 'longitude', 'line_id', 'trip_id', 'destination', 'recorded_at'])
+                ->keyBy('vehicle_id');
 
             $rows = [];
 
@@ -56,8 +63,8 @@ final readonly class RecordPositions
                 $current = $stored->get($vehicleId);
 
                 // Unchanged, or a late report older than what is stored: keep the stored position.
-                if ($current instanceof StoredPosition
-                    && (! $this->differs($current, $position) || $current->recorded_at->getTimestamp() > $position->recordedAt->getTimestamp())) {
+                if ($current !== null
+                    && (! $this->differs($current, $position) || $this->timestamp($current->recorded_at) > $position->recordedAt->getTimestamp())) {
                     continue;
                 }
 
@@ -79,7 +86,7 @@ final readonly class RecordPositions
             }
 
             $removed = $stored
-                ->filter(fn (StoredPosition $current): bool => ! isset($fresh[$current->vehicle_id]) && $current->recorded_at->lt($oldest))
+                ->filter(fn (object $current): bool => ! isset($fresh[$current->vehicle_id]) && $this->timestamp($current->recorded_at) < $oldest->getTimestamp())
                 ->keys()
                 ->map(fn (int|string $vehicleId): string => (string) $vehicleId)
                 ->values()
@@ -89,9 +96,8 @@ final readonly class RecordPositions
                 StoredPosition::query()->whereKey($removed)->delete();
             }
 
-            $changed = StoredPosition::query()->whereKey(array_column($rows, 'vehicle_id'))->get()->values()->all();
-
-            return [$changed, $removed];
+            // The event carries the rows just written, as models, without reading them back.
+            return [StoredPosition::hydrate($rows)->all(), $removed];
         });
 
         if ($changed !== [] || $removed !== []) {
@@ -105,13 +111,24 @@ final readonly class RecordPositions
         ];
     }
 
-    private function differs(StoredPosition $stored, VehiclePosition $position): bool
+    /**
+     * @param  object{latitude: float, longitude: float, line_id: ?string, trip_id: ?string, destination: ?string, recorded_at: string}  $stored
+     */
+    private function differs(object $stored, VehiclePosition $position): bool
     {
         return $stored->latitude !== $position->latitude
             || $stored->longitude !== $position->longitude
             || $stored->line_id !== $position->lineId
             || $stored->trip_id !== $position->tripId
             || $stored->destination !== $position->destination
-            || $stored->recorded_at->getTimestamp() !== $position->recordedAt->getTimestamp();
+            || $this->timestamp($stored->recorded_at) !== $position->recordedAt->getTimestamp();
+    }
+
+    /**
+     * Seconds since the epoch of a timestamp as PostgreSQL returns it ("2026-10-16 12:00:00+00").
+     */
+    private function timestamp(string $value): int
+    {
+        return new DateTimeImmutable($value)->getTimestamp();
     }
 }
