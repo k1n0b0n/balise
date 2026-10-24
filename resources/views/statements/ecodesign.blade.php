@@ -3,7 +3,7 @@
     <p>balise s'appuie sur le référentiel général d'écoconception des services numériques (RGESN), version 2024. Cette déclaration est une auto-évaluation du mainteneur du site, établie le {{ \Illuminate\Support\Carbon::parse($statement['date'])->translatedFormat('j F Y') }}.</p>
 
     <h2>Score</h2>
-    <p>{{ $statement['score'] }} % des critères applicables sont validés : {{ $statement['counts']['S'] }} sur {{ $statement['counts']['S'] + $statement['counts']['NS'] }}. {{ $statement['counts']['NA'] }} critères ne s'appliquent pas au service.</p>
+    <p>{{ $statement['score'] }}&nbsp;% des critères applicables sont validés : {{ $statement['counts']['S'] }} sur {{ $statement['counts']['S'] + $statement['counts']['NS'] }}. {{ $statement['counts']['NA'] }} critères ne s'appliquent pas au service.</p>
 
     <h2>Engagements et mesures</h2>
     <ul>
@@ -18,7 +18,8 @@
         <ul>
             @foreach ($statement['criteria'][$status] as $criterion)
                 <li>
-                    <strong>{{ $criterion['id'] }}</strong> {{ $criterion['title'] }} <span class="text-sm text-gray-700">({{ $criterion['priority'] }})</span>
+                    {{-- The RGESN's titles name a few things in English (RGAA 8.7). --}}
+                    <strong>{{ $criterion['id'] }}</strong> {!! str_replace(['Power Usage Effectiveness', 'Water Usage Effectiveness', 'open source'], ['<span lang="en">Power Usage Effectiveness</span>', '<span lang="en">Water Usage Effectiveness</span>', '<span lang="en">open source</span>'], e($criterion['title'])) !!} <span class="text-sm text-gray-700">({{ $criterion['priority'] }})</span>
                     <span class="block text-sm text-gray-700">{{ $criterion['note'] }}</span>
                 </li>
             @endforeach

@@ -7,5 +7,5 @@
         <li><a href="{{ route('accessibility') }}" class="underline underline-offset-2 hover:no-underline">Accessibilité : {{ $accessibilityStatus }}</a></li>
         <li><a href="{{ route('ecodesign') }}" class="underline underline-offset-2 hover:no-underline">Écoconception</a></li>
     </ul>
-    <a href="{{ $reportUrl }}" class="underline underline-offset-2 hover:no-underline">Signaler un problème<span class="sr-only"> sur GitHub</span></a>
+    <a href="{{ $reportUrl }}" class="ml-auto underline underline-offset-2 hover:no-underline">Signaler un problème<span class="sr-only"> sur GitHub</span></a>
 </footer>

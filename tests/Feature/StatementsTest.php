@@ -18,8 +18,9 @@ it('publishes the accessibility statement from the self-audit, without JavaScrip
         ->assertOk()
         ->assertSee('<title>Déclaration d&#039;accessibilité - balise</title>', escape: false)
         ->assertSee("balise est <strong>{$statement['status']}</strong> avec le RGAA 4.1.2", escape: false)
-        ->assertSee("révèle que {$statement['rate']} % des critères applicables", escape: false)
+        ->assertSee("révèle que {$statement['rate']}&nbsp;% des critères applicables", escape: false)
         ->assertSee('auditeur indépendant')
+        ->assertDontSee('@if')
         ->assertSee('Défenseur des droits')
         ->assertSee('href="https://github.com/someone/fork/issues/new/choose"', escape: false)
         ->assertDontSee('livewire.js');
@@ -30,8 +31,9 @@ it('publishes the ecodesign statement from the self-assessment, without JavaScri
 
     $this->get('/ecoconception')
         ->assertOk()
-        ->assertSee("{$statement['score']} % des critères applicables sont validés", escape: false)
+        ->assertSee("{$statement['score']}&nbsp;% des critères applicables sont validés", escape: false)
         ->assertSee("Critères non validés et ce qui est prévu ({$statement['counts']['NS']})", escape: false)
+        ->assertSee('<span lang="en">Power Usage Effectiveness</span>', escape: false)
         ->assertSee('href="https://github.com/someone/fork/issues/new/choose"', escape: false)
         ->assertDontSee('livewire.js');
 });

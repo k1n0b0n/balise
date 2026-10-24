@@ -3,10 +3,10 @@
     <p>balise vise la conformité au référentiel général d'amélioration de l'accessibilité (RGAA), version 4.1.2, niveau AA. Cette déclaration s'applique au site {{ url('/') }}.</p>
 
     <h2>État de conformité</h2>
-    <p>balise est <strong>{{ $statement['status'] }}</strong> avec le RGAA 4.1.2@if ($statement['failing'] !== []), en raison des non-conformités énumérées ci-dessous@endif.</p>
+    <p>balise est <strong>{{ $statement['status'] }}</strong> avec le RGAA 4.1.2{{ $statement['failing'] === [] ? '' : ', en raison des non-conformités énumérées ci-dessous' }}.</p>
 
     <h2>Résultats des tests</h2>
-    <p>L'auto-évaluation, réalisée par le mainteneur du site et non par un auditeur indépendant, révèle que {{ $statement['rate'] }} % des critères applicables du RGAA 4.1.2 sont respectés.</p>
+    <p>L'auto-évaluation, réalisée par le mainteneur du site et non par un auditeur indépendant, révèle que {{ $statement['rate'] }}&nbsp;% des critères applicables du RGAA 4.1.2 sont respectés.</p>
     <ul>
         <li>Critères conformes : {{ $statement['counts']['C'] }}</li>
         <li>Critères non conformes : {{ $statement['counts']['NC'] }}</li>
@@ -53,7 +53,7 @@
     <h3>Pages du site ayant fait l'objet de la vérification de conformité</h3>
     <ul>
         @foreach ($statement['pages'] as $page)
-            <li>{{ $page['name'] }} : {{ url($page['path']) }}</li>
+            <li>{{ $page['name'] }} : {{ rtrim(url('/'), '/').$page['path'] }}</li>
         @endforeach
     </ul>
 

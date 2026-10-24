@@ -28,6 +28,9 @@ it('assesses every RGAA criterion, in order', function (): void {
 it('gives each criterion a result on every page of the sample, and says what was checked', function (): void {
     $audit = rgaaAudit();
 
+    // E1.5: the map page with and without a selected line, and both statements.
+    expect(array_keys($audit['pages']))->toBe(['carte', 'carte-ligne', 'accessibilite', 'ecoconception']);
+
     foreach ($audit['criteria'] as $id => $result) {
         foreach (array_keys($audit['pages']) as $page) {
             expect($result[$page] ?? null)->toBeIn(['C', 'NC', 'NA'], "{$id} on {$page}");
