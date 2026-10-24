@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0](https://github.com/k1n0b0n/balise/compare/v0.4.0...v0.5.0) (2026-10-24)
+
+
+### Features
+
+* a "Signaler un problème" link to the repository's issue forms (E3.9) ([#75](https://github.com/k1n0b0n/balise/issues/75)) ([0ba57f5](https://github.com/k1n0b0n/balise/commit/0ba57f550d89f72480f92559646550ce8f0fb608))
+* accessibility and ecodesign statements, from self-audits (E1.5) ([#78](https://github.com/k1n0b0n/balise/issues/78)) ([34ce52c](https://github.com/k1n0b0n/balise/commit/34ce52c51259d53e821ceea0338b513d7b303379))
+* read the feed as soon as it is published (E2.5) ([#79](https://github.com/k1n0b0n/balise/issues/79)) ([11bcb14](https://github.com/k1n0b0n/balise/commit/11bcb14f41da0fd38374580c2fefeff303e6372d))
+
+
+### Bug Fixes
+
+* keep the line shapes in the database, which every container reads ([#81](https://github.com/k1n0b0n/balise/issues/81)) ([57ff689](https://github.com/k1n0b0n/balise/commit/57ff689d67b375a48ac8124dd5b863f9ceb44fab))
+* send scheduled commands' logs to the container's logs (E1.6) ([#80](https://github.com/k1n0b0n/balise/issues/80)) ([d202fdf](https://github.com/k1n0b0n/balise/commit/d202fdfbdc85e5b9e38b2666e87ba3cc659811f5))
+
 ## [0.4.0](https://github.com/k1n0b0n/balise/compare/v0.3.0...v0.4.0) (2026-10-24)
 
 
