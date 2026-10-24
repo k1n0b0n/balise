@@ -8,11 +8,16 @@
 
         @vite('resources/css/app.css')
 
-        @livewireStyles
+        {{-- Pages without a Livewire component, the statements, load none of its script (RGESN 6.5). --}}
+        @unless ($withoutLivewire ?? false)
+            @livewireStyles
+        @endunless
     </head>
     <body class="bg-white text-gray-900 antialiased">
         {{ $slot }}
 
-        @livewireScripts
+        @unless ($withoutLivewire ?? false)
+            @livewireScripts
+        @endunless
     </body>
 </html>

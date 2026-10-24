@@ -64,6 +64,8 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     });
 
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+    // The style's credits are in English ("Data from OpenStreetMap"); MapLibre rewrites their text, not this element (RGAA 8.7).
+    container.querySelector('.maplibregl-ctrl-attrib-inner')?.setAttribute('lang', 'en');
 
     let vehicles: Vehicle[] = [];
     let layer: VehicleLayer | null = null;

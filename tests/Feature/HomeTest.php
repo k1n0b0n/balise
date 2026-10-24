@@ -140,6 +140,12 @@ it('groups a line by destination, sorted by name ignoring case, the unknown one 
         ], escape: false);
 });
 
+it('names the page after what it shows, and the map after the list that details it (RGAA 8.6, 1.6)', function (): void {
+    $this->get('/')
+        ->assertSee('<title>Carte des véhicules TBM en circulation - balise</title>', escape: false)
+        ->assertSee('data-label="Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit"', escape: false);
+});
+
 it('links to the issue forms of the configured repository, its name saying that it opens GitHub (E3.9)', function (): void {
     config(['app.repository_url' => 'https://github.com/someone/fork']);
 

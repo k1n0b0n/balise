@@ -29,8 +29,6 @@
         <div>
             <h1 class="text-xl font-semibold">balise</h1>
             <p class="text-sm text-gray-700">Véhicules {{ $networkName }} en circulation</p>
-            {{-- Same tab (RGAA 13.2); its name says where it leads, since it leaves the site. --}}
-            <a href="{{ $reportUrl }}" class="text-xs text-gray-700 underline underline-offset-2 hover:no-underline">Signaler un problème<span class="sr-only"> sur GitHub</span></a>
         </div>
         {{-- A plain form, so that it works before JavaScript loads; the map module then applies it without reloading (E3.4). --}}
         <form method="get" action="{{ route('home') }}" data-line-filter class="flex flex-wrap items-center gap-2">
@@ -86,7 +84,7 @@
             data-map
             data-style="{{ $styleUrl }}"
             data-bounds="{{ json_encode($bounds) }}"
-            data-label="Carte des véhicules {{ $networkName }} en circulation"
+            data-label="Carte des véhicules {{ $networkName }} en circulation, détaillée dans la liste des véhicules qui la suit"
             data-vehicles-url="{{ route('vehicles', $network) }}"
             data-lines-url="{{ route('lines', $network) }}"
             data-shapes-url="{{ route('shapes', $network) }}"
@@ -173,8 +171,8 @@
             <template data-vehicle-template>
                 <li>
                     <button type="button" class="underline underline-offset-2 hover:no-underline" data-open><span data-name></span><span class="sr-only">, <span data-detail></span>, afficher sur la carte</span></button><span class="sr-only">,</span>
-                    {{-- On its own line; the comma stays for screen readers, which read the row as one sentence. --}}
-                    <time class="block text-sm text-gray-700" data-age></time>
+                    {{-- On its own line; the comma stays for screen readers, which read the row as one sentence. The module sets the datetime. --}}
+                    <time class="block text-sm text-gray-700" datetime="1970-01-01T00:00:00Z" data-age></time>
                 </li>
             </template>
             <template data-empty-template>
@@ -182,6 +180,8 @@
             </template>
         </section>
     </main>
+
+    <x-site-footer />
 
     @vite('resources/js/map.ts')
 </div>
