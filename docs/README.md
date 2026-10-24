@@ -38,5 +38,5 @@ Update this section at the end of every working session.
   1. Follow-ups: time one poll on the server after the next deploy (story 021; 1.34 s before, story 018); check on the next pull request that changes only `docs/` that CI runs only `changes` and `ci`, both green (#70); Node 26 becomes LTS on 2026-10-28, so the `versions` workflow should open its pull request on Monday 2026-11-02 (or run it by hand); an AAAA record once IPv6 is wanted (the site already listens on it).
   2. Story 022 (E3.9): a "Signaler un problème" link to the repository's issue forms.
   3. Next departures and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): decide the brief's scope (timetables are out of the MVP); trip updates may make the storage of stop times ([ideas/network-on-map.md](ideas/network-on-map.md)) unnecessary; shared foundations and an order in [ideas/overview.md](ideas/overview.md).
-  4. Write acceptance criteria for the rest of E1.3, E1.4 and E1.5.
+  4. E1.5, the last story of M1: its acceptance criteria wait on the branch `feat/e1-5-statements`, the RGAA self-audit paused. E1.4 (Cloudflare) moved to the PRD's *Later* (2026-10-24).
   5. Raw recording (story 013) outside the repository (`~/Code/k1n0b0n/balise-samples`): 2026-10-20 to 22 so far, stopped by a shutdown; E5.1 brings it in.
