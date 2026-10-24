@@ -21,7 +21,8 @@ final class LineController extends Controller
     {
         abort_unless(array_key_exists($network, Config::array('networks')), 404);
 
-        $importedAt = CatalogImport::query()->find($network)?->imported_at;
+        // Not the shapes the row also holds (ADR-0016).
+        $importedAt = CatalogImport::query()->find($network, ['network', 'imported_at'])?->imported_at;
         $response = (new JsonResponse)->setEtag((string) ($importedAt?->getTimestampMs() ?? 0))->setCache(['no_cache' => true]);
 
         if ($response->isNotModified($request)) {

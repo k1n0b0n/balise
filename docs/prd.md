@@ -154,7 +154,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
   - [x] Coverage checked over a day (morning, midday, evening): positions with a label, label stable along a trip, positions without a line and how many trip updates fill; recorded in the story file
 - E3.8 Every line of the network on the map, faint, under the vehicles (ADR-0016); comes before E3.4
-  - [x] `network:import` writes one GeoJSON file per network, one feature per line (its shapes merged, duplicates removed), only when the shapes or their lines changed, not on every new archive
+  - [x] `network:import` writes one GeoJSON document per network, one feature per line (its shapes merged, duplicates removed), only when the shapes or their lines changed, not on every new archive; kept in the database since story 026, where every container reads the same one
   - [x] The simplification tolerance is chosen by testing at street and city zoom levels; tolerance and compressed weight are recorded in the story file
   - [x] A lines-shapes endpoint serves the file with `no-cache` and its fingerprint as `ETag` (`304` on a revisit); the map fetches it after the first positions
   - [x] Every line is drawn in its colour, thin and mostly transparent, under the vehicles; the text view is unchanged, the shapes being decorative

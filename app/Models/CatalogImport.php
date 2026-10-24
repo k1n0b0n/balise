@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $network
  * @property ?string $etag
  * @property ?string $shapes_fingerprint
+ * @property ?string $shapes the GeoJSON of the network's lines (ADR-0016)
  * @property Carbon $imported_at
  */
 final class CatalogImport extends Model

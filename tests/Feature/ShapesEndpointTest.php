@@ -3,15 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\CatalogImport;
-use Illuminate\Support\Facades\Storage;
-
-beforeEach(function (): void {
-    Storage::fake('local');
-});
 
 it('serves the network shapes written by the import', function (): void {
-    Storage::disk('local')->put('shapes/tbm.json', '{"type":"FeatureCollection","features":[]}');
-    CatalogImport::query()->create(['network' => 'tbm', 'etag' => 'v1', 'shapes_fingerprint' => 'f1', 'imported_at' => now()]);
+    CatalogImport::query()->create(['network' => 'tbm', 'etag' => 'v1', 'shapes_fingerprint' => 'f1', 'shapes' => '{"type":"FeatureCollection","features":[]}', 'imported_at' => now()]);
 
     $this->getJson(route('shapes', 'tbm'))
         ->assertOk()
@@ -21,8 +15,7 @@ it('serves the network shapes written by the import', function (): void {
 });
 
 it('answers 304 until the shapes change', function (): void {
-    Storage::disk('local')->put('shapes/tbm.json', '{"type":"FeatureCollection","features":[]}');
-    CatalogImport::query()->create(['network' => 'tbm', 'etag' => 'v1', 'shapes_fingerprint' => 'f1', 'imported_at' => now()]);
+    CatalogImport::query()->create(['network' => 'tbm', 'etag' => 'v1', 'shapes_fingerprint' => 'f1', 'shapes' => '{"type":"FeatureCollection","features":[]}', 'imported_at' => now()]);
 
     $this->getJson(route('shapes', 'tbm'), ['If-None-Match' => '"f1"'])->assertNotModified()->assertContent('');
 
