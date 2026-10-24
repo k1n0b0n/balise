@@ -20,7 +20,7 @@ final class ImportNetwork extends Command
         $networks = array_keys(Config::array('networks'));
         $network = $this->argument('network');
 
-        if ($network !== null && (! is_string($network) || ! in_array($network, $networks, true))) {
+        if ($network !== null && ! in_array($network, $networks, true)) {
             $this->components->error('Unknown network. Configured networks: '.implode(', ', $networks).'.');
 
             return self::INVALID;
