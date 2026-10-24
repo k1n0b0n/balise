@@ -56,6 +56,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Where the "Signaler un problème" link sends people (E3.9): a fork points it at its own repository.
+    'repository_url' => env('APP_REPOSITORY_URL', 'https://github.com/k1n0b0n/balise'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

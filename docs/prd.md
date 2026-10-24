@@ -130,16 +130,20 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] A button with `aria-pressed` stops and resumes updates of the map and the text view together (RGAA 13.8); no request is sent while paused
   - [x] Resuming catches up with one request, then the normal interval resumes
 - E3.7 Group vehicles by line and destination ([story 013](stories/013-line-and-destination.md))
-  - [ ] A vehicle's destination is its `vehicle.label`, as is, on a network whose configuration says the label is a destination (TBM, ADR-0018); elsewhere it has none
-  - [ ] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
-  - [ ] A vehicle is named by its mode, line and destination ("Tram A - La Gardette", ADR-0018) in the text view and the popup, its number without a destination; the text view's buttons keep distinct accessible names with the number
-  - [ ] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
-  - [ ] Coverage checked over a day (morning, midday, evening): positions with a label, label stable along a trip, positions without a line and how many trip updates fill; recorded in the story file
+  - [x] A vehicle's destination is its `vehicle.label`, as is, on a network whose configuration says the label is a destination (TBM, ADR-0018); elsewhere it has none
+  - [x] The text view nests two levels of headings: each line, then its destinations sorted by name with "Destination inconnue" last, then the vehicles; the popup shows the destination
+  - [x] A vehicle is named by its mode, line and destination ("Tram A - La Gardette", ADR-0018) in the text view and the popup, its number without a destination; the text view's buttons keep distinct accessible names with the number
+  - [x] Positions carry the destination (ADR-0018); the payload growth is measured again and recorded in the story file (RGESN)
+  - [x] Coverage checked over a day (morning, midday, evening): positions with a label, label stable along a trip, positions without a line and how many trip updates fill; recorded in the story file
 - E3.8 Every line of the network on the map, faint, under the vehicles (ADR-0016); comes before E3.4
   - [x] `network:import` writes one GeoJSON file per network, one feature per line (its shapes merged, duplicates removed), only when the shapes or their lines changed, not on every new archive
   - [x] The simplification tolerance is chosen by testing at street and city zoom levels; tolerance and compressed weight are recorded in the story file
   - [x] A lines-shapes endpoint serves the file with `no-cache` and its fingerprint as `ETag` (`304` on a revisit); the map fetches it after the first positions
   - [x] Every line is drawn in its colour, thin and mostly transparent, under the vehicles; the text view is unchanged, the shapes being decorative
+- E3.9 A "Signaler un problème" link ([story 022](stories/022-report-a-problem.md))
+  - [x] The map page links to the repository's issue chooser in the same tab (RGAA 13.2), "Signaler un problème", with a name that says it opens GitHub
+  - [x] Three issue forms, in French like the site: a bug, a feature request, and wrong data (what is wrong, the line, the vehicle number, the time, the details); blank issues are disabled
+  - [x] The repository's URL comes from the configuration, with this repository as the default
 
 ### E4: Real-time push
 - E4.1 Broadcast position updates with Reverb
@@ -160,7 +164,7 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 
 ## Later
 
-- A "Signaler un problème" link to the repository's GitHub issues, with issue forms for a bug, a feature request and wrong data (a vehicle misplaced, a line unknown); the link says that it opens GitHub (RGAA)
+- A link in the vehicle popup that opens the wrong-data issue form filled with the line, the vehicle number and the time (E3.9)
 - Position history, stage 2: short window (24–48 h), e.g. a vehicle's recent trail (ADR-0002)
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)

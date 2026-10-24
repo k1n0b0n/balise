@@ -1,0 +1,41 @@
+name: Donnée fausse
+description: Un véhicule mal placé, une ligne inconnue, une destination fausse…
+title: "[Donnée] "
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Ce qui est faux
+      options:
+        - Un véhicule mal placé
+        - Une ligne inconnue
+        - Une destination fausse
+        - Autre chose
+    validations:
+      required: true
+  - type: input
+    id: line
+    attributes:
+      label: Ligne
+      placeholder: Tram A, Bus 10, « Ligne inconnue »…
+    validations:
+      required: true
+  - type: input
+    id: vehicle
+    attributes:
+      label: Numéro du véhicule
+      description: Celui de la fenêtre du véhicule ou de la liste des véhicules.
+  - type: input
+    id: time
+    attributes:
+      label: Date et heure
+      placeholder: 24/10 à 14 h 32
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Ce qui ne va pas
+      description: Où était le véhicule sur la carte, et où il était vraiment.
+    validations:
+      required: true

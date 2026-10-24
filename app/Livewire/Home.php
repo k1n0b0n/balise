@@ -44,6 +44,8 @@ final class Home extends Component
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
+            // The repository's issue forms (E3.9).
+            'reportUrl' => Config::string('app.repository_url').'/issues/new/choose',
         ]);
     }
 
