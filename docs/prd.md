@@ -92,6 +92,11 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] The single write path upserts the latest position per vehicle and emits `PositionsUpdated` with the changed positions only; an unchanged poll emits nothing
   - [x] A vehicle whose last position is older than the limit leaves the current state
   - [x] One TBM poll (about 400 vehicles) is processed in under one second on the production server, measured (locally: 0.35 s for a whole scheduled run; on the server, story 018: about 0.8 s of decoding and recording for 430 changed positions, 1.34 s for the whole command with Laravel's boot and the download)
+- E2.4 A lighter poll ([story 021](stories/021-lighter-poll.md)); E2.3 measured about 1.3 s a poll on the server, more than half of it booting Laravel and recording
+  - [x] The production image runs the CLI with OPcache and a file cache outside the code: each scheduled poll is a new PHP process
+  - [x] `RecordPositions` reads the stored state as plain rows of the columns it compares, and builds the event's positions from the rows it writes instead of reading them back; its behaviour is unchanged
+  - [x] A test shows that a poll reads the stored state once and writes once, whatever the number of vehicles
+  - [x] Both are timed locally before and after on a recorded TBM feed, recorded in the story file; the server is timed after the next deploy
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)
@@ -171,6 +176,4 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - Line of a position without a `route_id` from its trip update, with the trip updates port: TBM `nt_` trips are the only cause, 283 positions of 908,605 (0.03 %) over 2026-10-20 and 21, all filled by trip updates ([story 013](stories/013-line-and-destination.md#study))
-- OPcache for the CLI in the production image, with a file cache: each scheduled poll is a new PHP process, and booting Laravel took about 0.35 s less on the server with it (story 018)
-- `RecordPositions` without loading every stored position as a model and the changed ones again for the event: the largest part of a poll's 0.8 s on the server (story 018)
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done
