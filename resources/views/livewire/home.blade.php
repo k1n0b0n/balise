@@ -29,6 +29,8 @@
         <div>
             <h1 class="text-xl font-semibold">balise</h1>
             <p class="text-sm text-gray-700">Véhicules {{ $networkName }} en circulation</p>
+            {{-- Same tab (RGAA 13.2); its name says where it leads, since it leaves the site. --}}
+            <a href="{{ $reportUrl }}" class="text-xs text-gray-700 underline underline-offset-2 hover:no-underline">Signaler un problème<span class="sr-only"> sur GitHub</span></a>
         </div>
         {{-- A plain form, so that it works before JavaScript loads; the map module then applies it without reloading (E3.4). --}}
         <form method="get" action="{{ route('home') }}" data-line-filter class="flex flex-wrap items-center gap-2">
@@ -154,11 +156,6 @@
                     <p class="mt-4">Aucun véhicule en circulation.</p>
                 @endforelse
             </div>
-
-            {{-- At the end of the list, out of the way; same tab (RGAA 13.2), and the text says where it leads. --}}
-            <p class="mt-8 border-t border-gray-300 pt-4 text-sm text-gray-700">
-                <a href="{{ $reportUrl }}" class="underline underline-offset-2 hover:no-underline">Signaler un problème sur GitHub</a>
-            </p>
 
             {{-- Markup the map module copies when it renders lines and vehicles. --}}
             <template data-line-template>
