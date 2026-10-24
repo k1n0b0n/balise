@@ -135,3 +135,11 @@ it('polls every network at its configured interval without overlapping', functio
         ->and($event->withoutOverlapping)->toBeTrue()
         ->and($event->expiresAt)->toBe(1);
 });
+
+it('sends what scheduled commands write to the scheduler\'s own log, the container\'s', function (): void {
+    $events = collect(app(Schedule::class)->events())->filter(fn ($event): bool => str_contains((string) $event->command, 'network:'));
+
+    expect($events)->toHaveCount(2)
+        ->and($events->pluck('output')->unique()->all())->toBe(['/proc/1/fd/2'])
+        ->and($events->every(fn ($event): bool => $event->shouldAppendOutput))->toBeTrue();
+});
