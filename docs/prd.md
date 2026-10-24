@@ -79,6 +79,12 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E1.6 Scheduled commands' logs reach the container's logs ([story 025](stories/025-scheduled-logs.md)); found by E2.5: their log lines, failures included, went nowhere
   - [x] The poll and the import, run by the scheduler, write to the scheduler's own `stderr`, so their lines show in the container's logs, locally and on the server
   - [x] A test checks where every scheduled command's output goes; a poll's line is seen in the local scheduler's logs
+- E1.7 Hardening from the code review of 2026-10-24 ([story 027](stories/027-hardening.md))
+  - [x] A feed that cannot be read still ages vehicles out (E2.3), and a position at (0, 0), sent when the GPS is lost, is dropped
+  - [x] The morning import runs in the background, so polls do not wait for it
+  - [x] The endpoints answer 404 for a dotted network name; Escape closes the popup only from the popup or the map; the locale defaults to French
+  - [x] Architecture tests: positions are written only by `RecordPositions`, and the map module imports neither Livewire nor Alpine; each shown to fail on a deliberate violation
+  - [x] AGENTS.md describes the polling store, not a Reverb subscription that does not exist
 ### E2: Ingestion
 - E2.1 Import the static GTFS (routes, stops, colours)
   - [x] `php artisan network:import {network}` imports lines (namespaced id, short name, long name, mode, colour, text colour) and stops (namespaced id, name, coordinates) through the `gtfs` driver of `NetworkCatalog`; colours are optional (73 of 202 TBM lines have none)

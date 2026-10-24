@@ -19,7 +19,7 @@ final class LineController extends Controller
      */
     public function __invoke(Request $request, string $network): JsonResponse
     {
-        abort_unless(Config::has("networks.{$network}"), 404);
+        abort_unless(array_key_exists($network, Config::array('networks')), 404);
 
         $importedAt = CatalogImport::query()->find($network)?->imported_at;
         $response = (new JsonResponse)->setEtag((string) ($importedAt?->getTimestampMs() ?? 0))->setCache(['no_cache' => true]);

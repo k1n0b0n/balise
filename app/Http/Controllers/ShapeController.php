@@ -18,7 +18,7 @@ final class ShapeController extends Controller
      */
     public function __invoke(Request $request, NetworkShapes $shapes, string $network): Response
     {
-        abort_unless(Config::has("networks.{$network}"), 404);
+        abort_unless(array_key_exists($network, Config::array('networks')), 404);
 
         $fingerprint = CatalogImport::query()->find($network)?->shapes_fingerprint;
         abort_if($fingerprint === null, 404);

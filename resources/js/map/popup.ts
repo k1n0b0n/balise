@@ -41,8 +41,12 @@ export class VehiclePopup {
     ) {
         this.popup.on('close', () => this.closed());
 
+        // Escape from the popup or the map only: elsewhere, such as the side panel, it belongs to what has the focus.
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.popup.isOpen()) {
+            const target = event.target instanceof Node ? event.target : null;
+            const inside = target !== null && (this.popup.getElement()?.contains(target) || this.map.getContainer().contains(target));
+
+            if (event.key === 'Escape' && this.popup.isOpen() && inside) {
                 this.popup.remove();
             }
         });

@@ -48,7 +48,9 @@ final class PollNetwork extends Command
         try {
             $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
         } catch (Throwable $exception) {
-            // The current state stays as it is; the next scheduled run retries.
+            // The current positions stay, but vehicles still age out: a feed down for an hour must not leave them on
+            // the map (E2.3). The next scheduled run retries.
+            $record->handle($network, [], CarbonImmutable::now());
             Log::warning("Vehicle feed of {$network} could not be read.", ['exception' => $exception]);
             $this->components->error("{$network}: feed unavailable ({$exception->getMessage()}).");
 
