@@ -31,8 +31,8 @@ class AppServiceProvider extends ServiceProvider
         // Listeners of the single write path (ADR-0002).
         Event::listen(PositionsUpdated::class, [PositionChangeLog::class, 'record']);
 
-        // E1.5: the conformance status in every page's footer, and the statements' contact (E3.9).
+        // Every page's footer: the conformance status (E1.5) and the repository's issue forms (E3.9), also the statements' contact.
         Views::composer('components.site-footer', fn (View $view): View => $view->with('accessibilityStatus', app(Statements::class)->accessibility()['status']));
-        Views::composer('statements.*', fn (View $view): View => $view->with('reportUrl', Config::string('app.repository_url').'/issues/new/choose'));
+        Views::composer(['components.site-footer', 'statements.*'], fn (View $view): View => $view->with('reportUrl', Config::string('app.repository_url').'/issues/new/choose'));
     }
 }

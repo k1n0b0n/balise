@@ -34,7 +34,7 @@
 | Feed decoding | `google/protobuf` runtime, GTFS-Realtime classes generated from the official proto at build time, not committed | Decided, [ADR-0015](adr/0015-gtfs-realtime-library.md) |
 | Real-time | Laravel Reverb | Agreed |
 | Hosting | Docker images (`app`, `web`) on one Debian 13 or Ubuntu 26.04 server prepared by an Ansible bootstrap; the host's nginx proxies to them | Decided, [ADR-0020](adr/0020-docker-hosting.md) (replaces [ADR-0012](adr/0012-hosting.md)) |
-| Edge | Cloudflare (free plan): DNS, proxy, TLS, cache rules | To decide in E1.4 (the free plan needs the whole DNS zone) |
+| Edge | None: the host's nginx serves the site over HTTPS | Decided (maintainer, 2026-10-24): Cloudflare's free plan needs the whole DNS zone, which stays where it is; moved to the PRD's *Later* |
 | Quality gates | Pint (`laravel` preset), Larastan (level max), Pest with `arch`, behind `composer qa` | Decided, [ADR-0005](adr/0005-quality-tooling.md) |
 | AI review | CodeRabbit, advisory only, configured in `.coderabbit.yaml` | Decided, [ADR-0014](adr/0014-ai-review-bot.md) |
 | Local environment | `compose.yaml` with the images production runs (official `php:8.5-fpm-alpine` and `nginx:alpine`; the browser tests on `php:8.5-cli-trixie`, ADR-0020 point 2), versioned app config | Decided, [ADR-0007](adr/0007-local-development-environment.md), amended by ADR-0020 |

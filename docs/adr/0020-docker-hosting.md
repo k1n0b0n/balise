@@ -65,7 +65,7 @@
 | A PostgreSQL major moved by deleting the volume | Fine while every row rebuilds itself, a loss once history or recordings exist |
 | `pgautoupgrade/pgautoupgrade`, which runs `pg_upgrade` at start | A community image for the production database; its speed only matters for databases of several GB, this one holds tens of MB |
 | Watchtower | Replaces containers when an image changes, with no migration step before it |
-| Cloudflare in front now | The free plan needs the whole DNS zone; E1.4 decides |
+| Cloudflare in front now | The free plan needs the whole DNS zone, which the maintainer keeps where it is (2026-10-24): moved to the PRD's *Later* |
 
 ## Consequences
 

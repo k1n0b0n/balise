@@ -1,0 +1,16 @@
+name: Idée de fonctionnalité
+description: Ce qui vous manque sur le site.
+title: "[Idée] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Votre besoin
+      description: Ce que vous cherchez à faire, et pourquoi le site ne le permet pas encore.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Ce que vous proposez

@@ -145,3 +145,12 @@ it('names the page after what it shows, and the map after the list that details 
         ->assertSee('<title>Carte des véhicules TBM en circulation - balise</title>', escape: false)
         ->assertSee('data-label="Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit"', escape: false);
 });
+
+it('links to the issue forms of the configured repository, its name saying that it opens GitHub (E3.9)', function (): void {
+    config(['app.repository_url' => 'https://github.com/someone/fork']);
+
+    $this->get('/')
+        ->assertSee('<a href="https://github.com/someone/fork/issues/new/choose"', escape: false)
+        ->assertSee('Signaler un problème<span class="sr-only"> sur GitHub</span>', escape: false)
+        ->assertDontSee('target="_blank"', escape: false);
+});
