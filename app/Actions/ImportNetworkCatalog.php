@@ -33,9 +33,11 @@ final readonly class ImportNetworkCatalog
      */
     public function handle(string $network): ?array
     {
-        $previous = CatalogImport::query()->find($network);
-        // Without shapes yet (first import since E3.8, or a failed shapes step), the archive is downloaded again.
-        $snapshot = $this->catalogs->for($network)->fetch($previous?->shapes_fingerprint === null ? null : $previous->etag);
+        $previous = CatalogImport::query()->find($network, ['network', 'etag', 'shapes_fingerprint']);
+        // Without shapes (first import since E3.8 or since they moved to the database, a failed shapes step, shapes
+        // lost), the archive is downloaded again, even if unchanged.
+        $unchangedIfSame = $previous?->shapes_fingerprint !== null && $this->shapes->has($network);
+        $snapshot = $this->catalogs->for($network)->fetch($unchangedIfSame ? $previous->etag : null);
 
         if ($snapshot === null) {
             return null;

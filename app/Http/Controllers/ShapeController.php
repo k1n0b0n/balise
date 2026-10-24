@@ -20,8 +20,9 @@ final class ShapeController extends Controller
     {
         abort_unless(Config::has("networks.{$network}"), 404);
 
-        $fingerprint = CatalogImport::query()->find($network)?->shapes_fingerprint;
-        abort_if($fingerprint === null, 404);
+        // The fingerprint alone: a revisit answered 304 does not read the shapes.
+        $fingerprint = CatalogImport::query()->whereKey($network)->value('shapes_fingerprint');
+        abort_unless(is_string($fingerprint), 404);
 
         $response = (new Response)->setEtag($fingerprint)->setCache(['no_cache' => true]);
 
