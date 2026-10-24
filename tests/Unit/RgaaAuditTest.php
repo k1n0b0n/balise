@@ -6,11 +6,11 @@ declare(strict_types=1);
 const RGAA_CRITERIA_PER_TOPIC = [1 => 9, 2 => 2, 3 => 3, 4 => 13, 5 => 8, 6 => 2, 7 => 5, 8 => 10, 9 => 4, 10 => 14, 11 => 13, 12 => 11, 13 => 12];
 
 /**
- * @return array{pages: array<string, string>, criteria: array<string, array<string, string>>}
+ * @return array{pages: array<string, array{name: string, path: string}>, criteria: array<string, array<string, string>>}
  */
 function rgaaAudit(): array
 {
-    /** @var array{pages: array<string, string>, criteria: array<string, array<string, string>>} */
+    /** @var array{pages: array<string, array{name: string, path: string}>, criteria: array<string, array<string, string>>} */
     return json_decode((string) file_get_contents(dirname(__DIR__, 2).'/resources/audits/rgaa.json'), associative: true, flags: JSON_THROW_ON_ERROR);
 }
 

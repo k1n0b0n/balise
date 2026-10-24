@@ -13,7 +13,7 @@ it('shows the map without accessibility issues', function (): void {
     visit('/')
         ->assertPresent('[data-map][data-state="loaded"] canvas')
         ->assertScript('document.documentElement.lang', 'fr')
-        ->assertAttribute('[data-map] canvas', 'aria-label', 'Carte des véhicules TBM en circulation')
+        ->assertAttribute('[data-map] canvas', 'aria-label', 'Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit')
         ->assertPresent('button[aria-label="Zoom avant"]')
         ->assertNoJavaScriptErrors()
         // Level 3 counts every axe violation, down to minor ones (PRD: no axe violation).

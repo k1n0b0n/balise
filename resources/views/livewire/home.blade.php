@@ -181,5 +181,7 @@
         </section>
     </main>
 
+    <x-site-footer />
+
     @vite('resources/js/map.ts')
 </div>
