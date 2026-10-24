@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 use App\Ingestion\VehicleFeeds;
 use App\Ingestion\VehiclePosition;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 use Transit_realtime\FeedEntity;
 
 beforeEach(function (): void {
     config(['networks.tbm.vehicles.url' => 'https://rt.test/tbm']);
+    Sleep::fake();
 });
 
 /**
@@ -98,6 +101,7 @@ it('drops positions that cannot be dated', function (): void {
 it('sends the last ETag and stops on 304', function (): void {
     Http::fakeSequence('rt.test/*')
         ->push(feedPayload([feedEntity('e1', ['lat' => 44.8, 'lon' => -0.5, 'id' => 'bus-1'])]), 200, ['ETag' => '"rt1"'])
+        ->push('', 304)
         ->push('', 304);
 
     $this->artisan('network:poll', ['network' => 'tbm'])
@@ -134,4 +138,48 @@ it('polls every network at its configured interval without overlapping', functio
         ->and($event->repeatSeconds)->toBe(20)
         ->and($event->withoutOverlapping)->toBeTrue()
         ->and($event->expiresAt)->toBe(1);
+});
+
+it('waits until just after the feed is published, learnt from the last feed\'s own time (E2.5)', function (string $now, ?string $publishedAt, array $sleeps): void {
+    Http::fake(['rt.test/*' => Http::response(feedPayload([]), 200, ['ETag' => '"rt1"'])]);
+    $this->travelTo(CarbonImmutable::parse($now));
+    if ($publishedAt !== null) {
+        Cache::put('vehicle-feed:tbm:published-at', CarbonImmutable::parse($publishedAt)->getTimestamp());
+    }
+
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertSuccessful();
+
+    Sleep::assertSequence($sleeps);
+})->with([
+    // TBM publishes at :02, :22 and :42 and serves a second later; the scheduler runs at :00.
+    'before the publication' => ['2026-10-16 12:00:00', '2026-10-16 11:59:42', [Sleep::for(3000)->milliseconds()]],
+    'just after it' => ['2026-10-16 12:00:04', '2026-10-16 11:59:42', []],
+    'a provider that moved' => ['2026-10-16 12:00:00', '2026-10-16 11:59:47', [Sleep::for(8000)->milliseconds()]],
+    'no feed read yet' => ['2026-10-16 12:00:00', null, []],
+]);
+
+it('remembers when the feed was published, and logs how late it was read', function (): void {
+    Log::spy();
+    $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:03'));
+    $published = CarbonImmutable::parse('2026-10-16 12:00:02')->getTimestamp();
+    Http::fake(['rt.test/*' => Http::response(feedPayload([], headerTimestamp: $published), 200, ['ETag' => '"rt1"'])]);
+
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Cache::get('vehicle-feed:tbm:published-at'))->toBe($published);
+    Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $context['seconds_after_publication'] === 1.0);
+});
+
+it('asks an unchanged feed once more, a little later', function (): void {
+    Cache::put('vehicle-feed:tbm:etag', '"rt1"');
+    Http::fakeSequence('rt.test/*')
+        ->push('', 304)
+        ->push(feedPayload([feedEntity('e1', ['lat' => 44.8, 'lon' => -0.5, 'id' => 'bus-1'])]), 200, ['ETag' => '"rt2"']);
+
+    $this->artisan('network:poll', ['network' => 'tbm'])
+        ->expectsOutputToContain('tbm: 1 read')
+        ->assertSuccessful();
+
+    Sleep::assertSequence([Sleep::for(2)->seconds()]);
+    Http::assertSentCount(2);
 });

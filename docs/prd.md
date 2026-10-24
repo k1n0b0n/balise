@@ -96,6 +96,10 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] `RecordPositions` reads the stored state as plain rows of the columns it compares, and builds the event's positions from the rows it writes instead of reading them back; its behaviour is unchanged
   - [x] A test shows that a poll reads the stored state once and writes once, whatever the number of vehicles
   - [x] Both are timed locally before and after on a recorded TBM feed, recorded in the story file; the server is timed after the next deploy
+- E2.5 Read the feed as soon as it is published ([story 024](stories/024-poll-on-publication.md)); the scheduler's runs (:00, :20, :40) read TBM's feed 18 s after it was published (:02, :22, :42)
+  - [x] Each poll waits until just after the feed's next publication, learnt from the time the last feed carries, so a provider that moves it is followed; the number of polls does not change
+  - [x] An unchanged feed is asked again once, a little later
+  - [x] How long after its publication the feed was read is logged, and measured locally before and after, recorded in the story file; on the server after the next deploy
 
 ### E3: Live map
 - E3.1 MapLibre map inside Livewire, open basemap without API key; Tailwind installed (ADR-0008)

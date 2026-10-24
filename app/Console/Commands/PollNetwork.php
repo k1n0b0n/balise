@@ -13,12 +13,19 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 use Throwable;
 
 #[Signature('network:poll {network : Network key from config/networks.php}')]
 #[Description('Fetch the live vehicle positions of a network')]
 final class PollNetwork extends Command
 {
+    /** A feed is served about a second after the time it carries (TBM, measured over two hours, story 024). */
+    public const int PUBLICATION_DELAY_SECONDS = 1;
+
+    /** An unchanged feed is asked again once, this much later: the provider may be a little late. */
+    public const int RETRY_AFTER_SECONDS = 2;
+
     public function handle(VehicleFeeds $feeds, RecordPositions $record): int
     {
         $network = $this->argument('network');
@@ -30,11 +37,19 @@ final class PollNetwork extends Command
         }
 
         $etagKey = "vehicle-feed:{$network}:etag";
-        $receivedAt = CarbonImmutable::now();
+        $publishedKey = "vehicle-feed:{$network}:published-at";
         $etag = Cache::get($etagKey);
+        $feed = $feeds->for($network);
+
+        $this->waitForPublication(Config::integer("networks.{$network}.vehicles.poll_every_seconds"), Cache::get($publishedKey));
 
         try {
-            $snapshot = $feeds->for($network)->fetch(is_string($etag) ? $etag : null);
+            $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
+
+            if ($snapshot === null) {
+                Sleep::for(self::RETRY_AFTER_SECONDS)->seconds();
+                $snapshot = $feed->fetch(is_string($etag) ? $etag : null);
+            }
         } catch (Throwable $exception) {
             // The current state stays as it is; the next scheduled run retries.
             Log::warning("Vehicle feed of {$network} could not be read.", ['exception' => $exception]);
@@ -42,6 +57,8 @@ final class PollNetwork extends Command
 
             return self::FAILURE;
         }
+
+        $receivedAt = CarbonImmutable::now();
 
         if ($snapshot === null) {
             // Nothing new, but vehicles that stopped reporting still age out.
@@ -54,10 +71,38 @@ final class PollNetwork extends Command
         $counts = $record->handle($network, $snapshot->positions, $receivedAt);
         Cache::put($etagKey, $snapshot->etag, now()->addHour());
 
+        // How late the feed was read, so the server's logs measure what the waiting gains.
+        $lag = [];
+        if ($snapshot->publishedAt !== null) {
+            Cache::put($publishedKey, $snapshot->publishedAt->getTimestamp(), now()->addHour());
+            $lag = ['seconds_after_publication' => round($receivedAt->getTimestamp() + $receivedAt->micro / 1e6 - $snapshot->publishedAt->getTimestamp(), 1)];
+        }
+
         $read = count($snapshot->positions);
-        Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts]);
+        Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts, ...$lag]);
         $this->components->info("{$network}: {$read} read, {$counts['dropped']} dropped as stale, {$counts['changed']} changed, {$counts['removed']} removed.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Waits until just after the feed's next publication. Providers publish at a fixed second of their interval (TBM
+     * at :02, :22 and :42), which the scheduler's runs (:00, :20, :40) knew nothing of: a run read the feed published
+     * 18 s before. The second is learnt from the last feed's own time, so a provider that moves it is followed.
+     */
+    private function waitForPublication(int $everySeconds, mixed $publishedAt): void
+    {
+        if (! is_int($publishedAt)) {
+            return;
+        }
+
+        $now = CarbonImmutable::now();
+        $sinceAvailable = fmod($now->getTimestamp() + $now->micro / 1e6 - $publishedAt - self::PUBLICATION_DELAY_SECONDS, $everySeconds);
+        $sinceAvailable += $sinceAvailable < 0 ? $everySeconds : 0;
+
+        // Served less than half an interval ago: read it now rather than wait for the next one.
+        if ($sinceAvailable > $everySeconds / 2) {
+            Sleep::for((int) round(($everySeconds - $sinceAvailable) * 1000))->milliseconds();
+        }
     }
 }
