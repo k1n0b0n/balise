@@ -19,6 +19,7 @@ final class Home extends Component
     public function render(): View
     {
         $network = (string) array_key_first(Config::array('networks'));
+        $networkName = Config::string("networks.{$network}.name");
         $lines = $this->lines($network);
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
         $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
@@ -28,7 +29,7 @@ final class Home extends Component
 
         return view('livewire.home', [
             'network' => $network,
-            'networkName' => Config::string("networks.{$network}.name"),
+            'networkName' => $networkName,
             'timezone' => Config::string("networks.{$network}.timezone"),
             'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
             'styleUrl' => Config::string('map.style'),
@@ -44,7 +45,8 @@ final class Home extends Component
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
-        ]);
+            // What the page shows, then the site (RGAA 8.6).
+        ])->title("Carte des véhicules {$networkName} en circulation - balise");
     }
 
     /**

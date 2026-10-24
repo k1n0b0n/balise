@@ -139,3 +139,9 @@ it('groups a line by destination, sorted by name ignoring case, the unknown one 
             '<h4', 'Destination inconnue', '</h4>', 'Véhicule 2228',
         ], escape: false);
 });
+
+it('names the page after what it shows, and the map after the list that details it (RGAA 8.6, 1.6)', function (): void {
+    $this->get('/')
+        ->assertSee('<title>Carte des véhicules TBM en circulation - balise</title>', escape: false)
+        ->assertSee('data-label="Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit"', escape: false);
+});

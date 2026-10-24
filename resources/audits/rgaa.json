@@ -1,0 +1,550 @@
+{
+    "standard": "RGAA 4.1.2",
+    "date": "2026-10-24",
+    "kind": "self-audit",
+    "environment": [
+        "Chromium (Playwright) on macOS, at 1280 px, 640 px (200 %) and 320 px",
+        "VoiceOver with Firefox and Chrome on macOS, landscape and portrait (story 009, maintainer)"
+    ],
+    "tools": [
+        "axe-core through the Pest browser tests",
+        "W3C Nu HTML validator",
+        "stylesheets removed, text spacing overridden and widths measured in the browser"
+    ],
+    "pages": {
+        "carte": "/",
+        "carte-ligne": "/?ligne=A"
+    },
+    "criteria": {
+        "1.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The map is a canvas with role region and the label \"Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit\"; no img or svg element."
+        },
+        "1.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No decorative image: the zoom buttons draw their icons in CSS and carry their own names."
+        },
+        "1.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The map is a canvas with role region and the label \"Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit\"; no img or svg element."
+        },
+        "1.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No CAPTCHA, no test image."
+        },
+        "1.5": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No CAPTCHA, no test image."
+        },
+        "1.6": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The map's label refers to the text view that follows it (test 1.6.1, an alternative that refers to an adjacent detailed description); the skip link before the map leads to it. The text view lists every vehicle with its line, destination and time, and opens its popup (E3.5)."
+        },
+        "1.7": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The map's label refers to the text view that follows it (test 1.6.1, an alternative that refers to an adjacent detailed description); the skip link before the map leads to it. The text view lists every vehicle with its line, destination and time, and opens its popup (E3.5)."
+        },
+        "1.8": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No image of text: the map's labels are drawn by MapLibre from data, the rest is HTML text."
+        },
+        "1.9": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No image caption."
+        },
+        "2.1": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No frame."
+        },
+        "2.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No frame."
+        },
+        "3.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Line colours come with the line's name beside each marker and the mode by its shape (E3.2); the selected line is drawn larger and over the others and listed first, not only recoloured (E3.4)."
+        },
+        "3.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "axe finds no contrast violation (browser tests); grey texts are gray-700 on white; the labels beside markers reach 4.5:1 against the basemap, measured in story 007."
+        },
+        "3.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Marker outlines reach 3:1 against the basemap (story 007), the selected line's shape 3:1 (story 012), the focus outline (blue-800) and the controls' borders (gray-500) more than 3:1 against white. The faint shapes of every line are decorative (ADR-0016)."
+        },
+        "4.1": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.3": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.5": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.6": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.7": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.8": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.9": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.10": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.11": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.12": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "4.13": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No audio, video or other media."
+        },
+        "5.1": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.3": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.5": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.6": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.7": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "5.8": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No table."
+        },
+        "6.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Every link has a name that says where it leads: the skip link, \"Désélectionner la ligne A\" (visually hidden behind ×), the basemap credits."
+        },
+        "6.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Every link has a name that says where it leads: the skip link, \"Désélectionner la ligne A\" (visually hidden behind ×), the basemap credits."
+        },
+        "7.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Pause is a button with aria-pressed, the panel toggle a button with aria-expanded and aria-controls, the popup takes the focus when it opens and gives it back on Escape; checked with VoiceOver in Firefox and Chrome (story 009)."
+        },
+        "7.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No script alternative: the page works without JavaScript, the form reloading and the text view rendered by the server."
+        },
+        "7.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Everything done with the pointer is available with the keyboard: the text view opens each vehicle's popup, the selectors and buttons are native controls, the focused map moves with the arrow keys and zooms with + and -."
+        },
+        "7.4": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Choosing a mode or a line updates the list and fits the map without moving the focus or loading another page."
+        },
+        "7.5": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "One live region, role status, worded to the minute (\"Mis à jour à 21:25\"), written only when its text changes (story 009)."
+        },
+        "8.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "<!DOCTYPE html>."
+        },
+        "8.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "W3C Nu validator: well-formed, ids unique, no duplicate attribute. It also lists the attributes of Alpine and Livewire (x-*, wire:*), which the RGAA test does not cover: it checks writing rules, nesting and ids. The one error, the empty time element of a template, has a placeholder datetime since this audit."
+        },
+        "8.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "lang=\"fr\" on html."
+        },
+        "8.4": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "lang=\"fr\" on html."
+        },
+        "8.5": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "A title element on every page."
+        },
+        "8.6": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "\"Carte des véhicules TBM en circulation - balise\"; it was \"balise\" alone before this audit."
+        },
+        "8.7": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The basemap credits, in English (\"Data from OpenStreetMap\"), have lang=\"en\" since this audit; line and stop names are proper nouns."
+        },
+        "8.8": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The basemap credits, in English (\"Data from OpenStreetMap\"), have lang=\"en\" since this audit; line and stop names are proper nouns."
+        },
+        "8.9": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "No element used for presentation only: headings are headings, lists lists; the visually hidden texts are spans."
+        },
+        "8.10": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No change of reading direction."
+        },
+        "9.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "h1 balise, h2 Liste des véhicules, h3 per line, h4 per destination, without a skipped level."
+        },
+        "9.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "header, main, and a section named by its heading for the text view; a footer comes with the statements' links."
+        },
+        "9.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The vehicles of a destination are a ul; no other list of items written as paragraphs."
+        },
+        "9.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No quotation."
+        },
+        "10.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "All presentation in CSS (Tailwind); no presentational attribute."
+        },
+        "10.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Without stylesheets: skip link, title, form, buttons, map, then the text view in reading order; the visually hidden texts show, which only adds context."
+        },
+        "10.3": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Without stylesheets: skip link, title, form, buttons, map, then the text view in reading order; the visually hidden texts show, which only adds context."
+        },
+        "10.4": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "At 200 % (640 px wide for a 1280 px window) the header and the text view stay readable, nothing is cut."
+        },
+        "10.5": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The body declares both its background (white) and text colour (gray-900); the popup and the panel declare a white background."
+        },
+        "10.6": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Links are underlined."
+        },
+        "10.7": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "A 3 px blue-800 outline on every :focus-visible element, the map's canvas included (resources/css/app.css)."
+        },
+        "10.8": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Hidden content is meant to be hidden: templates, the panel closed on a phone (hidden), the controls that need Alpine (x-cloak) until it runs; the visually hidden texts are read on purpose."
+        },
+        "10.9": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "A marker's shape gives the mode, but its line's name is written beside it and the text view names the mode (\"Tram A\"); the selected line's larger size comes with its place first in the list and the selector's value."
+        },
+        "10.10": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "A marker's shape gives the mode, but its line's name is written beside it and the text view names the mode (\"Tram A\"); the selected line's larger size comes with its place first in the list and the selector's value."
+        },
+        "10.11": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "At 320 px the page has no horizontal scroll (scrollWidth 320); the text view becomes a side panel."
+        },
+        "10.12": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Line height 1.5, letter spacing 0.12 em, word spacing 0.16 em and paragraph spacing 2 em applied: no text cut, no control overflowing, no horizontal scroll at 320 px."
+        },
+        "10.13": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "Nothing appears on hover or focus alone: the popup opens on activation."
+        },
+        "10.14": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No content shown by CSS alone: the hover styles only remove underlines."
+        },
+        "11.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The two selectors have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\"."
+        },
+        "11.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The two selectors have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\"."
+        },
+        "11.3": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "The same field does not appear twice in a set of pages."
+        },
+        "11.4": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The two selectors have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\"."
+        },
+        "11.5": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "Two selectors that filter the same list, not a group of fields of the same nature."
+        },
+        "11.6": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "Two selectors that filter the same list, not a group of fields of the same nature."
+        },
+        "11.7": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "Two selectors that filter the same list, not a group of fields of the same nature."
+        },
+        "11.8": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The line selector groups its lines by mode in optgroups labelled \"Tram\", \"Bus\"…"
+        },
+        "11.9": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Buttons: \"Afficher la ligne\", \"Pause des mises à jour\", \"Liste des véhicules\", \"Fermer la liste des véhicules\", and each vehicle's name and \"afficher sur la carte\"."
+        },
+        "11.10": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No input checked: two selectors whose every value is valid."
+        },
+        "11.11": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No input checked: two selectors whose every value is valid."
+        },
+        "11.12": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "The form only filters what is shown."
+        },
+        "11.13": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No field about the user."
+        },
+        "12.1": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "Particular case: a very limited number of pages, all reachable from the home page (the map and the two statements)."
+        },
+        "12.2": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No menu; the statements' links will sit in the same footer on every page."
+        },
+        "12.3": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No site map (12.1 not applicable)."
+        },
+        "12.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No site map (12.1 not applicable)."
+        },
+        "12.5": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No search engine."
+        },
+        "12.6": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The header and the main area are header and main landmarks; the text view is a section named by its heading, reached by the skip link."
+        },
+        "12.7": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The first link, visible on focus, \"Aller à la liste des véhicules\", leads to the text view, the page's main content in text."
+        },
+        "12.8": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Tab order follows the reading order: skip link, mode, line, Pause, map, zoom, credits, then the vehicles of the text view; no positive tabindex."
+        },
+        "12.9": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "No keyboard trap: Tab leaves the map, and Escape closes the popup and gives the focus back."
+        },
+        "12.10": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "MapLibre's single-key shortcuts (arrows, + and -) work only while the map has the focus, which the criterion allows."
+        },
+        "12.11": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The popup opened from the text view takes the focus, so its content is reached with the keyboard."
+        },
+        "13.1": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The page updates every 5 s; the Pause button stops it (RGAA 13.8, E3.6)."
+        },
+        "13.2": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "No window opens without an action: the basemap credits open in a new tab only when followed."
+        },
+        "13.3": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No office document."
+        },
+        "13.4": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No office document."
+        },
+        "13.5": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The × of the line deselection link has a visually hidden name; the \"?\" beside a vehicle without a line is said \"Ligne inconnue\" in the text view."
+        },
+        "13.6": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "The × of the line deselection link has a visually hidden name; the \"?\" beside a vehicle without a line is said \"Ligne inconnue\" in the text view."
+        },
+        "13.7": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No flash nor sudden change of brightness."
+        },
+        "13.8": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Vehicles move on each update: the Pause button stops them, and the map never moves by itself except to follow a vehicle the user chose."
+        },
+        "13.9": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Both orientations: the text view sits beside the map in landscape and in a side panel in portrait."
+        },
+        "13.10": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Pinching to zoom has the zoom buttons; dragging moves the map, a movement the criterion does not cover, and the text view centres the map on any vehicle."
+        },
+        "13.11": {
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "Markers and buttons act on release (click), not on press."
+        },
+        "13.12": {
+            "carte": "NA",
+            "carte-ligne": "NA",
+            "note": "No feature that depends on moving the device."
+        }
+    }
+}
