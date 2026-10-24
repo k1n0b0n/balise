@@ -116,11 +116,13 @@ USER root
 COPY --from=build /var/www/balise ./
 COPY --from=assets /var/www/balise/public/build public/build
 COPY docker/php/production-entrypoint.sh /usr/local/bin/balise-entrypoint
+COPY docker/php/production.ini "$PHP_INI_DIR/conf.d/99-balise-production.ini"
 RUN for major in "$POSTGRESQL_VERSION" "$REDIS_VERSION"; do \
         case "$major" in '' | *[!0-9]*) echo "POSTGRESQL_VERSION and REDIS_VERSION must be majors" >&2; exit 1 ;; esac; \
     done \
     && rm -rf .coderabbit.yaml .github .mcp.json ansible docker docs tests \
-    && chown -R balise:balise storage bootstrap/cache \
+    && mkdir /tmp/opcache \
+    && chown -R balise:balise storage bootstrap/cache /tmp/opcache \
     && chmod 755 /usr/local/bin/balise-entrypoint
 
 LABEL balise.postgresql="${POSTGRESQL_VERSION}" \

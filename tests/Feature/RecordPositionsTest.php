@@ -7,6 +7,7 @@ use App\Events\PositionsUpdated;
 use App\Ingestion\VehiclePosition;
 use App\Models\VehiclePosition as StoredPosition;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
@@ -115,4 +116,30 @@ it('counts a new destination as a change', function (): void {
 
     expect(record([new VehiclePosition('tbm:bus', 44.84, -0.57, $at, 'tbm:01', destination: 'GARE ST-JEAN MECA')], $this->now)['changed'])->toBe(1)
         ->and(StoredPosition::query()->findOrFail('tbm:bus')->destination)->toBe('GARE ST-JEAN MECA');
+});
+
+it('reads the stored state once and writes once, whatever the number of vehicles', function (int $vehicles): void {
+    $fleet = fn (float $latitude, CarbonImmutable $now): array => array_map(
+        fn (int $number): VehiclePosition => position("bus-{$number}", 0, latitude: $latitude, now: $now),
+        range(1, $vehicles),
+    );
+    record($fleet(44.84, $this->now), $this->now);
+    $later = $this->now->addSeconds(20);
+
+    DB::enableQueryLog();
+    record($fleet(44.85, $later), $later);
+
+    expect(array_map(fn (array $query): string => strtok($query['query'], ' '), DB::getQueryLog()))->toBe(['select', 'insert']);
+    Event::assertDispatched(PositionsUpdated::class, fn (PositionsUpdated $event): bool => count($event->positions) === $vehicles
+        && $event->positions[0]->latitude === 44.85
+        && $event->positions[0]->recorded_at->equalTo($later));
+})->with([1, 50]);
+
+it('removes a vehicle whose last position is older than the limit by less than a second', function (): void {
+    record([position('leaving', 0)], $this->now);
+
+    // Received 300.4 s after the stored position, which the database keeps to the second.
+    $later = $this->now->addSeconds(300)->addMilliseconds(400);
+
+    expect(record([], $later)['removed'])->toBe(1);
 });
