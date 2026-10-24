@@ -15,6 +15,8 @@ it('shows the map without accessibility issues', function (): void {
         ->assertScript('document.documentElement.lang', 'fr')
         ->assertAttribute('[data-map] canvas', 'aria-label', 'Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit')
         ->assertPresent('button[aria-label="Zoom avant"]')
+        // The basemap credits are in English (RGAA 8.7, story 023).
+        ->assertPresent('[data-map] .maplibregl-ctrl-attrib-inner[lang="en"]')
         ->assertNoJavaScriptErrors()
         // Level 3 counts every axe violation, down to minor ones (PRD: no axe violation).
         ->assertNoAccessibilityIssues(level: 3);
