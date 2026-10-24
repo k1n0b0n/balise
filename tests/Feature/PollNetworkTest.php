@@ -183,3 +183,11 @@ it('asks an unchanged feed once more, a little later', function (): void {
     Sleep::assertSequence([Sleep::for(2)->seconds()]);
     Http::assertSentCount(2);
 });
+
+it('sends what scheduled commands write to the scheduler\'s own log, the container\'s', function (): void {
+    $events = collect(app(Schedule::class)->events())->filter(fn ($event): bool => str_contains((string) $event->command, 'network:'));
+
+    expect($events)->toHaveCount(2)
+        ->and($events->pluck('output')->unique()->all())->toBe(['/proc/1/fd/2'])
+        ->and($events->every(fn ($event): bool => $event->shouldAppendOutput))->toBeTrue();
+});
