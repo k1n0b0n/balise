@@ -86,7 +86,7 @@ final readonly class RecordPositions
             }
 
             $removed = $stored
-                ->filter(fn (object $current): bool => ! isset($fresh[$current->vehicle_id]) && $this->timestamp($current->recorded_at) < $oldest->getTimestamp())
+                ->filter(fn (object $current): bool => ! isset($fresh[$current->vehicle_id]) && new DateTimeImmutable($current->recorded_at) < $oldest)
                 ->keys()
                 ->map(fn (int|string $vehicleId): string => (string) $vehicleId)
                 ->values()

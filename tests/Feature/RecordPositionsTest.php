@@ -134,3 +134,12 @@ it('reads the stored state once and writes once, whatever the number of vehicles
         && $event->positions[0]->latitude === 44.85
         && $event->positions[0]->recorded_at->equalTo($later));
 })->with([1, 50]);
+
+it('removes a vehicle whose last position is older than the limit by less than a second', function (): void {
+    record([position('leaving', 0)], $this->now);
+
+    // Received 300.4 s after the stored position, which the database keeps to the second.
+    $later = $this->now->addSeconds(300)->addMilliseconds(400);
+
+    expect(record([], $later)['removed'])->toBe(1);
+});
