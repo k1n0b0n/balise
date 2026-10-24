@@ -41,6 +41,6 @@
 
 ## Against this order
 
-- The MVP is live (E1.3a to E1.3e, stories 014 to 018); E1.3f, E1.4 and E1.5 are open. Each feature now reaches riders, not only reviewers of the repository.
+- The MVP is live (E1.3a to E1.3e, stories 014 to 018); E1.3f is done, E1.4 moved to the PRD's *Later* and E1.5 is open. Each feature now reaches riders, not only reviewers of the repository.
 - Each foundation adds to what a reviewer reads in ten minutes; two of them (C extension, trip updates port) change ADRs.
 - Next departures is the idea riders would value most, and this order puts it last.

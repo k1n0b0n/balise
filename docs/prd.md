@@ -69,7 +69,6 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 - E1.3f Version upkeep, once the images start from the official ones (E1.3d)
   - [x] A weekly workflow opens or updates one pull request per newer supported version, with the token of the release App: PHP, PostgreSQL and Redis when their official image has a newer version, Node when a newer LTS line starts; each alone, rewriting the one place that names it (ADR-0020)
   - [x] The weekly workflow never fails on "nothing to raise", and its rules are tested on recorded answers of the version sources
-- E1.4 Cloudflare in front (DNS, proxy, cache rules)
 - E1.5 Public accessibility statement and ecodesign statement, linked from every page (ADR-0006)
 
 ### E2: Ingestion
@@ -176,4 +175,5 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - Line of a position without a `route_id` from its trip update, with the trip updates port: TBM `nt_` trips are the only cause, 283 positions of 908,605 (0.03 %) over 2026-10-20 and 21, all filled by trip updates ([story 013](stories/013-line-and-destination.md#study))
+- Cloudflare in front (DNS, proxy, TLS, cache rules), formerly E1.4: its free plan needs the whole DNS zone, which the maintainer keeps where it is (2026-10-24); the host's nginx serves the site, its assets cached a year by browsers
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

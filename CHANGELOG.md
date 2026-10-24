@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.0](https://github.com/k1n0b0n/balise/compare/v0.3.0...v0.4.0) (2026-10-24)
+
+
+### Features
+
+* a lighter poll, with OPcache for the CLI (E2.4) ([#74](https://github.com/k1n0b0n/balise/issues/74)) ([753e9d1](https://github.com/k1n0b0n/balise/commit/753e9d1cc93d7acacd0565d1a3213e5cd1be9c3f))
+* live on the maintainer's server (E1.3e) ([#64](https://github.com/k1n0b0n/balise/issues/64)) ([f766efe](https://github.com/k1n0b0n/balise/commit/f766efe502287c2617d160eb1d94500f3ac44d8b))
+* raise PHP, PostgreSQL, Redis and Node every week (E1.3f) ([#68](https://github.com/k1n0b0n/balise/issues/68)) ([57ad6f8](https://github.com/k1n0b0n/balise/commit/57ad6f8e6afab1b0a01fde07d019d74a87808483))
+* the line selector lists the running lines, by mode (E3.4) ([#66](https://github.com/k1n0b0n/balise/issues/66)) ([ad84047](https://github.com/k1n0b0n/balise/commit/ad840470f8163a5f13e6735850a0a96349e08da4))
+
 ## [0.3.0](https://github.com/k1n0b0n/balise/compare/v0.2.0...v0.3.0) (2026-10-21)
 
 
