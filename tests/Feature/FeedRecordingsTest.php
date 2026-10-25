@@ -127,6 +127,17 @@ it('records nothing while recordings are off', function (): void {
     expect(Storage::disk('recordings')->allFiles())->toBe([]);
 });
 
+it('polls a network without a recordings block', function (): void {
+    config(['networks.tbm.recordings' => null]);
+    $now = CarbonImmutable::parse('2026-10-21 10:00:00', 'Europe/Paris');
+    $this->travelTo($now);
+    Http::fake(['rt.test/*' => Http::response(freshFeed($now), 200, ['ETag' => '"rt1"'])]);
+
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Storage::disk('recordings')->allFiles())->toBe([]);
+});
+
 it('runs a service day from the first vehicle to the last, across midnight', function (): void {
     recordAt(...running('2026-10-21 04:30', '2026-10-22 01:30'));
     // Back after the night's gap: the next day.

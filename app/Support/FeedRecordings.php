@@ -23,7 +23,8 @@ final readonly class FeedRecordings
 {
     public function enabled(string $network): bool
     {
-        return Config::boolean("networks.{$network}.recordings.enabled");
+        // Off for a network without a `recordings` block: adding a network stays a matter of configuration (E6.1).
+        return Config::boolean("networks.{$network}.recordings.enabled", false);
     }
 
     /**
