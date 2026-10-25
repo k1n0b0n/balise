@@ -34,7 +34,7 @@ users:
     shell: /bin/bash
     ssh_authorized_keys:
       - $(cat "$key.pub")
-# Test releases come from a registry on the Mac (docs/stories/017-docker-deploy.md), over plain HTTP.
+# Test releases come from a registry on the workstation (docs/stories/017-docker-deploy.md), over plain HTTP.
 write_files:
   - path: /etc/docker/daemon.json
     content: '{"insecure-registries": ["host.orb.internal:5000"]}'

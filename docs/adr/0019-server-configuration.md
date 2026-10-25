@@ -39,6 +39,6 @@ Measured on 2026-10-20 in `ubuntu:26.04`: the archive has nginx 1.28, PHP 8.5.4,
 ## Consequences
 
 - A contributor proves the server with Docker and any Ubuntu 26.04 machine; the same playbook runs from CI against Oracle in E1.3c.
-- The OrbStack machine shares the Mac's kernel: kernel-level settings (sysctl, firewall backends) are only proven on a real virtual machine, in E1.3c.
+- The OrbStack machine shares the workstation's kernel: kernel-level settings (sysctl, firewall backends) are only proven on a real virtual machine, in E1.3c.
 - Redis 8 replaces 7 locally and runs on the server; the application is not affected, since it does not use Redis yet.
 - Three releases on disk, each with its `vendor`: about 3 × 80 MB.

@@ -139,7 +139,7 @@ across majors does the same in the other direction. Redis holds nothing that doe
 ## Trying it on local machines
 
 `scripts/local-server.sh` creates OrbStack machines that stand in for hosts (ADR-0020 point 9), described by
-`ansible/inventory/local.yml`. Test releases are built on the Mac and pushed to a registry there:
+`ansible/inventory/local.yml`. Test releases are built on the workstation and pushed to a registry there:
 
 ```sh
 docker run -d --name balise-registry --restart unless-stopped -p 5000:5000 registry:3
