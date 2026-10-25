@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/k1n0b0n/balise/compare/v0.6.0...v0.7.0) (2026-10-25)
+
+
+### Features
+
+* keep the positions' answers in nginx until the next version (E4.2) ([#86](https://github.com/k1n0b0n/balise/issues/86)) ([e7a10d3](https://github.com/k1n0b0n/balise/commit/e7a10d367fada959c0af9588102473005f933ed4))
+* record the vehicle feed on the server, one public archive per service day (E5.1) ([#89](https://github.com/k1n0b0n/balise/issues/89)) ([11f15f7](https://github.com/k1n0b0n/balise/commit/11f15f74ebb4497f877aca23b2d0cc99caf2392e))
+
+
+### Bug Fixes
+
+* restart the web container when php is recreated alone ([#87](https://github.com/k1n0b0n/balise/issues/87)) ([71153de](https://github.com/k1n0b0n/balise/commit/71153dea39ee0d9b96d4d0362000661b94ac2a1d))
+
 ## [0.6.0](https://github.com/k1n0b0n/balise/compare/v0.5.0...v0.6.0) (2026-10-25)
 
 
