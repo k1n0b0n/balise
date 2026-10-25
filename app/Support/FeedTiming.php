@@ -20,6 +20,9 @@ final readonly class FeedTiming
     /** Reading and recording a feed took 0.3 s on the server after it was served (story 024): rounded up. */
     public const int RECORDING_SECONDS = 1;
 
+    /** How long the web server keeps an answer once the expected version is late (E4.2). */
+    public const int LATE_ANSWER_SECONDS = 2;
+
     public function __construct(private Repository $cache) {}
 
     public function remember(string $network, CarbonImmutable $publishedAt): void
@@ -57,6 +60,27 @@ final readonly class FeedTiming
         $intervals = $nowSeconds < $recorded ? 0 : (int) floor(($nowSeconds - $recorded) / $every) + 1;
 
         return (float) ($recorded + $intervals * $every);
+    }
+
+    /**
+     * Until when the web server may keep an answer of the positions endpoint (E4.2), in seconds since the epoch: the
+     * next version's time, or a couple of seconds once the expected version is late, so that a version recorded by
+     * the poll's retry reaches pages within the live store's retry. Null when no feed has been read yet.
+     */
+    public function answerExpiresAt(string $network, CarbonImmutable $now): ?int
+    {
+        $next = $this->nextVersionAt($network, $now);
+        $publishedAt = $this->publishedAt($network);
+
+        if ($next === null || $publishedAt === null) {
+            return null;
+        }
+
+        // Late: the expected time of the last interval has passed without a newer feed recorded.
+        $recorded = $publishedAt + self::PUBLICATION_DELAY_SECONDS + self::RECORDING_SECONDS;
+        $late = $next - $recorded > Config::integer("networks.{$network}.vehicles.poll_every_seconds");
+
+        return $late ? min((int) $next, $now->getTimestamp() + self::LATE_ANSWER_SECONDS) : (int) $next;
     }
 
     private function key(string $network): string

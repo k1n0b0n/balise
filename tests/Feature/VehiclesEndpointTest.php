@@ -144,8 +144,23 @@ it('says when the next version is expected, on a 304 too (E4.1)', function (): v
     vehicles()->assertHeader('Next-Version-At', (string) CarbonImmutable::parse('2026-10-16 12:00:24')->getTimestamp().'.0');
 });
 
+it('lets the web server keep an answer until the next version, or briefly when it is late (E4.2)', function (string $now, string $expiresAt): void {
+    app(FeedTiming::class)->remember('tbm', CarbonImmutable::parse('2026-10-16 11:59:42'));
+    $this->travelTo(CarbonImmutable::parse($now));
+
+    $this->getJson(route('vehicles', ['network' => 'tbm']))
+        ->assertOk()
+        ->assertHeader('X-Accel-Expires', '@'.CarbonImmutable::parse($expiresAt)->getTimestamp());
+})->with([
+    // Published at 11:59:42 and recorded about 11:59:44: the next one is expected at 12:00:04.
+    'before the expected time' => ['2026-10-16 12:00:00', '2026-10-16 12:00:04'],
+    'before the last version\'s own time' => ['2026-10-16 11:59:43', '2026-10-16 11:59:44'],
+    'the expected version late' => ['2026-10-16 12:00:05', '2026-10-16 12:00:07'],
+    'late, near the next one' => ['2026-10-16 12:00:23', '2026-10-16 12:00:24'],
+]);
+
 it('says nothing of the next version before the first feed', function (): void {
     poll(['bus' => 'tbm:A']);
 
-    vehicles()->assertOk()->assertHeaderMissing('Next-Version-At');
+    vehicles()->assertOk()->assertHeaderMissing('Next-Version-At')->assertHeaderMissing('X-Accel-Expires');
 });

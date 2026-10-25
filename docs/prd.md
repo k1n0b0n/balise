@@ -175,7 +175,12 @@ Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the 
   - [x] Every answer of the positions endpoint, `200` or `304`, says when the next version is expected, from the time of the last feed, the network's interval and the delays to serve and record it
   - [x] The page asks at that time, spread over a second, and every 5 s when the server cannot say or the expected version is late; pause and a hidden tab are unchanged
   - [x] Requests per hour and per visitor, and how long after its expected time a version is asked for, measured locally before and after, recorded in the story file
-- E4.2 Answers cached in the web container's nginx until the next version, so that visitors at the same version cost one PHP request; criteria to write
+- E4.2 Answers cached in the web container's nginx until the next version ([story 030](stories/030-nginx-cache.md))
+  - [x] The web container's nginx keeps each answer of the positions endpoint, per URL, until the time in its `Next-Version-At`: pages at the same version cost one PHP request per version, also when they ask at the same moment (one goes to PHP, the others wait for its answer)
+  - [x] A version recorded later than expected (the poll's retry) reaches a page within 5 s, as without the cache: once the expected time has passed, an answer is kept 2 s at most
+  - [x] Browsers keep the same contract: `304` for an up-to-date page, a fresh `Date`, and `Cache-Control: no-cache` so that neither the browser nor the host's nginx keeps answers
+  - [x] The cache is bounded in size and lives in the container (lost on restart, no volume); the same config locally and in production
+  - [x] PHP requests per version with 50 simulated pages, measured locally before and after, recorded in the story file
 
 ### E5: Replay and load
 - E5.1 Record raw feed payloads
