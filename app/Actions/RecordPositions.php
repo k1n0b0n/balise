@@ -49,7 +49,7 @@ final readonly class RecordPositions
             }
         }
 
-        [$changed, $removed] = DB::transaction(function () use ($network, $fresh, $oldest, $receivedAt): array {
+        [$changed, $removed, $version] = DB::transaction(function () use ($network, $fresh, $oldest, $receivedAt): array {
             // Plain rows of the compared columns, without a model per stored vehicle (story 021).
             /** @var Collection<string, object{vehicle_id: string, latitude: float, longitude: float, line_id: ?string, trip_id: ?string, destination: ?string, recorded_at: string}> $stored */
             $stored = StoredPosition::query()->toBase()
@@ -97,11 +97,11 @@ final readonly class RecordPositions
             }
 
             // The event carries the rows just written, as models, without reading them back.
-            return [StoredPosition::hydrate($rows)->all(), $removed];
+            return [StoredPosition::hydrate($rows)->all(), $removed, $rows === [] && $removed === [] ? null : $this->nextVersion($network)];
         });
 
-        if ($changed !== [] || $removed !== []) {
-            PositionsUpdated::dispatch($network, array_values($changed), array_values($removed));
+        if ($version !== null) {
+            PositionsUpdated::dispatch($network, $version, array_values($changed), array_values($removed));
         }
 
         return [
@@ -109,6 +109,23 @@ final readonly class RecordPositions
             'changed' => count($changed),
             'removed' => count($removed),
         ];
+    }
+
+    /**
+     * Counts this write in the database, within its transaction: versions follow one another without a gap, so the
+     * change log, kept in the cache, can tell when it missed one (ADR-0021).
+     */
+    private function nextVersion(string $network): int
+    {
+        /** @var object{version: int} $row */
+        $row = DB::selectOne(
+            'insert into position_versions (network, version) values (?, 1)
+             on conflict (network) do update set version = position_versions.version + 1
+             returning version',
+            [$network],
+        );
+
+        return (int) $row->version;
     }
 
     /**

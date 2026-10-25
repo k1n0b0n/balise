@@ -22,6 +22,8 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+    # Browsers come back over HTTPS only, for a year; this name only, the domain's other sites are not ours.
+    add_header Strict-Transport-Security "max-age=31536000" always;
 {% else %}
 server {
     listen 80;
