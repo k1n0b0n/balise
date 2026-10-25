@@ -24,11 +24,10 @@ final readonly class PositionChangeLog
     public function record(PositionsUpdated $event): void
     {
         $versions = $this->versions($event->network);
-        $last = $versions === [] ? 0 : $versions[array_key_last($versions)]['version'];
 
         $versions[] = [
-            // Milliseconds since the epoch, so that a version never comes back after the cache is cleared.
-            'version' => max((int) now()->getTimestampMs(), $last + 1),
+            // Counted by the database, so it never comes back after the cache is cleared, and has no gap (ADR-0021).
+            'version' => $event->version,
             'changed' => array_map(fn (VehiclePosition $position): string => $position->vehicle_id, $event->positions),
             'removed' => $event->removedVehicleIds,
         ];
@@ -47,15 +46,29 @@ final readonly class PositionChangeLog
     }
 
     /**
-     * Vehicles changed and removed after the given version, or null when that version is unknown or no longer kept.
+     * Vehicles changed and removed after the given version, or null when the log cannot say: that version is unknown
+     * or no longer kept, or a version after it is missing, which a write to the cache that failed, or a cache that
+     * restarted, leaves behind (ADR-0021).
      *
      * @return array{changed: list<string>, removed: list<string>}|null
      */
     public function since(string $network, int $version): ?array
     {
         $versions = $this->versions($network);
+        $expected = $version + 1;
 
-        if ($version !== $this->version($network) && ! in_array($version, array_column($versions, 'version'), true)) {
+        foreach ($versions as $entry) {
+            if ($entry['version'] <= $version) {
+                continue;
+            }
+
+            if ($entry['version'] !== $expected++) {
+                return null;
+            }
+        }
+
+        // No version after it: it must be the current one, not one the log never had.
+        if ($expected === $version + 1 && $version !== $this->version($network)) {
             return null;
         }
 

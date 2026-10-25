@@ -48,6 +48,9 @@ flock -n 9 || fail "Another deploy is running."
 
 case "${1:-}" in
     rollback)
+        # One step back only: the previous version is the one its migrations promise to keep working (ADR-0020
+        # point 8). A second rollback would toggle back to the version just left; going further names the version.
+        [ -f rolled-back ] && fail "Already rolled back to $(cat rolled-back): deploy a version by its name to go further."
         [ "$(grep -c . "$history" 2> /dev/null || true)" -ge 2 ] || fail "No previous version to go back to."
         version=$(tail -n 2 "$history" | head -n 1)
         ;;
@@ -135,6 +138,11 @@ log "Importing the networks' lines and stops"
 compose exec -T php php artisan network:import --no-interaction || log "The import failed; the daily one will retry."
 
 echo "$version" >> "$history"
+if [ "${1:-}" = rollback ]; then
+    echo "$version" > rolled-back
+else
+    rm -f rolled-back
+fi
 rm -f .env.previous
 if [ -n "$current_postgresql" ] && [ "$current_postgresql" != "$postgresql" ]; then
     docker volume rm "balise-postgres-$current_postgresql" > /dev/null

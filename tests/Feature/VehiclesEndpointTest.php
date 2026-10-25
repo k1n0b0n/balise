@@ -9,6 +9,7 @@ use App\Models\Line;
 use App\Support\PositionChangeLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 
@@ -99,13 +100,27 @@ it('sends everything again to a browser that fell too far behind', function (): 
     poll(['bus' => 'tbm:A']);
     $version = vehicles()->json('version');
 
-    foreach (range(1, PositionChangeLog::KEPT_VERSIONS) as $step) {
+    // The log keeps the last versions: one more than it keeps, and the browser's next one is gone.
+    foreach (range(1, PositionChangeLog::KEPT_VERSIONS + 1) as $step) {
         $this->travel(20)->seconds();
         poll(['bus' => 'tbm:A'], latitude: 44.84 + $step / 1000);
     }
 
     vehicles($version)->assertOk()->assertJsonPath('full', true)->assertJsonCount(1, 'vehicles');
     vehicles(123)->assertOk()->assertJsonPath('full', true);
+});
+
+it('sends everything again when the change log missed a version, as a failed cache write or a restart leaves it', function (): void {
+    poll(['bus' => 'tbm:A', 'leaving' => 'tbm:A']);
+    $version = vehicles()->json('version');
+
+    // The write is counted in the database, but the change log never hears of it.
+    $this->travel(20)->seconds();
+    Event::fakeFor(fn () => poll(['bus' => 'tbm:A'], latitude: 44.85));
+    $this->travel(20)->seconds();
+    poll(['bus' => 'tbm:A'], latitude: 44.86);
+
+    vehicles($version)->assertOk()->assertJsonPath('full', true)->assertJsonCount(2, 'vehicles');
 });
 
 it('does not know other networks', function (): void {

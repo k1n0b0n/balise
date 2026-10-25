@@ -15,11 +15,13 @@ final readonly class PositionsUpdated
     use Dispatchable;
 
     /**
+     * @param  int  $version  counted by the database with each write, one more than the previous (ADR-0021)
      * @param  list<VehiclePosition>  $positions  new or moved vehicles only
      * @param  list<string>  $removedVehicleIds  vehicles whose last position became too old
      */
     public function __construct(
         public string $network,
+        public int $version,
         public array $positions,
         public array $removedVehicleIds,
     ) {}

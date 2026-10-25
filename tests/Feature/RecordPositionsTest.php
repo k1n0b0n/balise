@@ -118,7 +118,7 @@ it('counts a new destination as a change', function (): void {
         ->and(StoredPosition::query()->findOrFail('tbm:bus')->destination)->toBe('GARE ST-JEAN MECA');
 });
 
-it('reads the stored state once and writes once, whatever the number of vehicles', function (int $vehicles): void {
+it('reads the stored state once and writes once, then counts the version, whatever the number of vehicles', function (int $vehicles): void {
     $fleet = fn (float $latitude, CarbonImmutable $now): array => array_map(
         fn (int $number): VehiclePosition => position("bus-{$number}", 0, latitude: $latitude, now: $now),
         range(1, $vehicles),
@@ -129,7 +129,8 @@ it('reads the stored state once and writes once, whatever the number of vehicles
     DB::enableQueryLog();
     record($fleet(44.85, $later), $later);
 
-    expect(array_map(fn (array $query): string => strtok($query['query'], ' '), DB::getQueryLog()))->toBe(['select', 'insert']);
+    // The positions' upsert, then the version's (ADR-0021).
+    expect(array_map(fn (array $query): string => strtok($query['query'], ' '), DB::getQueryLog()))->toBe(['select', 'insert', 'insert']);
     Event::assertDispatched(PositionsUpdated::class, fn (PositionsUpdated $event): bool => count($event->positions) === $vehicles
         && $event->positions[0]->latitude === 44.85
         && $event->positions[0]->recorded_at->equalTo($later));

@@ -114,8 +114,9 @@ ssh -i ~/.ssh/balise-deploy balise-deploy@<host> v1.2.3     # deploy an existing
 ssh -i ~/.ssh/balise-deploy balise-deploy@<host> rollback   # start the previous version again
 ```
 
-A rollback is recorded like a deploy, so a second one returns to the version just left; to go further back, name the
-version.
+A rollback goes back one version, the one whose migrations the current release promises to keep working (ADR-0020
+point 8); a second rollback in a row is refused. To go further back, name the version, once its migrations allow it:
+none of the releases in between may have dropped what it reads.
 
 As the admin user on the host:
 

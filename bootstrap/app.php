@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // In production, the host's nginx terminates HTTPS and the web container forwards its headers (ADR-0020);
         // PHP is only reachable through them.
         $middleware->trustProxies(at: '*');
+        // Since every proxy is trusted, the host it forwards must be ours: links and asset URLs are built from it.
+        // Laravel applies it outside local development and tests.
+        $middleware->trustHosts();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
