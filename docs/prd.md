@@ -183,8 +183,17 @@ Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the 
   - [x] PHP requests per version with 50 simulated pages, measured locally before and after, recorded in the story file
 
 ### E5: Replay and load
-- E5.1 Record raw feed payloads
-- E5.2 Replay feed, selectable in configuration
+- E5.1 Record the feed on the server, one public archive per service day ([ADR-0022](adr/0022-feed-recordings.md), [story 031](stories/031-feed-recordings.md))
+  - [x] The poll keeps each new vehicle payload as received, gzipped, in a Docker volume kept across deploys, with no request of its own; a `304` and a feed without a fresh vehicle write nothing; a failed write is logged and never fails the poll; the catalogue import keeps its last archive
+  - [x] A service day runs from the network's first vehicle to its last: it ends after 30 minutes without a fresh vehicle and is named after the date it began; a network that never empties is cut at a configured hour (04:00 for TBM)
+  - [x] Every night at a configured time, every finished day not yet archived becomes one archive per network (payloads, catalogue, manifest, README with source, licence and attribution), and its raw files are deleted
+  - [x] The last 30 archives per network are kept
+  - [x] The archives and their list (`index.json`) are public under `/recordings/`, served by nginx without PHP, one download at a time per address at 5 MB/s at most, disallowed in `robots.txt`
+  - [x] Off by default, on in production; tests for the write, the `304`, the empty feed, the failed write, the service day's end and its fallback cut, the archive's content, the catch-up and the retention
+- E5.2 Replay a recorded service day locally
+  - [ ] `network:recordings:fetch tbm [date]` downloads an archive from the production site (the latest by default)
+  - [ ] The `replay` driver, chosen in `.env`, plays its payloads through the real GTFS-RT decoding at the recorded pace, from a chosen time of day, in a loop; the archive's catalogue is imported so that lines match
+  - [ ] The page says it shows a replay, and of which day
 - E5.3 Load test (k6) against cached endpoints, results published in the README
 
 ### E6: Second network

@@ -49,6 +49,22 @@ return [
             'report' => false,
         ],
 
+        // Raw recordings of the feeds and their nightly archives (E5.1, ADR-0022): two volumes on the server, the
+        // second one also served by nginx under /recordings/.
+        'recordings' => [
+            'driver' => 'local',
+            'root' => env('RECORDINGS_PATH', storage_path('app/recordings')),
+            'throw' => true,
+            'report' => false,
+        ],
+
+        'recording-archives' => [
+            'driver' => 'local',
+            'root' => env('RECORDING_ARCHIVES_PATH', storage_path('app/recording-archives')),
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

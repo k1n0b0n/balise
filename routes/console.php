@@ -22,6 +22,17 @@ foreach (array_keys(Config::array('networks')) as $network) {
         ->runInBackground()
         ->appendOutputTo($containerLog);
 
+    // Recordings (E5.1): the finished service days, each night at a time each server keeps clear of its maintenance;
+    // a run it misses is caught up the next night. In the background, like the import: tar must not hold up the polls.
+    if (Config::boolean("networks.{$network}.recordings.enabled", false)) {
+        Schedule::command('network:archive', [$network])
+            ->dailyAt(Config::string('recordings.archive_at'))
+            ->timezone(Config::string("networks.{$network}.timezone"))
+            ->withoutOverlapping(expiresAt: 60)
+            ->runInBackground()
+            ->appendOutputTo($containerLog);
+    }
+
     // A short lock: a crashed run must not stop polling for the default 24 hours.
     $poll = Schedule::command('network:poll', [$network])->withoutOverlapping(expiresAt: 1)->appendOutputTo($containerLog);
 

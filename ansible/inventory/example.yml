@@ -16,6 +16,9 @@ all:
       image_repository: ghcr.io/your-github-name/balise
       # A port free on the host's loopback for the web container; the host's nginx proxies to it.
       web_port: 8080
+      # Record the feeds and archive them each night at that time (E5.1), clear of the host's own maintenance.
+      recordings: true
+      recordings_archive_at: "05:15"
       # Leave the firewall and unattended upgrades alone when the host already manages them.
       manage_firewall: true
       manage_upgrades: true

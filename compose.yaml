@@ -85,6 +85,8 @@ services:
       - "${APP_PORT:-8000}:80"
     volumes:
       - ./public:/var/www/balise/public:ro
+      # The recordings' archives, served under /recordings/ (E5.1).
+      - ./storage/app/recording-archives:/var/www/recording-archives:ro
     depends_on:
       php:
         condition: service_started

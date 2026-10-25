@@ -6,6 +6,10 @@ x-app: &app
   image: {{ image_repository }}-app:${BALISE_VERSION:?}
   env_file: app.env
   restart: unless-stopped
+  # The feeds' recordings and their archives (E5.1, ADR-0022), kept across deploys.
+  volumes:
+    - recordings:/var/www/balise/storage/app/recordings
+    - recording-archives:/var/www/balise/storage/app/recording-archives
   depends_on:
     postgres:
       condition: service_healthy
@@ -30,6 +34,9 @@ services:
     # Loopback only: Docker's published ports bypass the host's firewall.
     ports:
       - "127.0.0.1:{{ web_port }}:80"
+    # Served under /recordings/.
+    volumes:
+      - recording-archives:/var/www/recording-archives:ro
     depends_on:
       php:
         condition: service_started
@@ -53,6 +60,10 @@ services:
     restart: unless-stopped
 
 volumes:
+  recordings:
+    name: balise-recordings
+  recording-archives:
+    name: balise-recording-archives
   # One volume per PostgreSQL major: a new major starts on a new volume, filled from a dump (ADR-0020 point 10).
   postgres:
     name: balise-postgres-${POSTGRESQL_VERSION:?}

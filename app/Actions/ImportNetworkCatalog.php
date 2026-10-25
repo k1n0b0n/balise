@@ -10,12 +10,15 @@ use App\Ingestion\NetworkCatalogs;
 use App\Models\CatalogImport;
 use App\Models\Line;
 use App\Models\Stop;
+use App\Support\FeedRecordings;
 use App\Support\NetworkShapes;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 final readonly class ImportNetworkCatalog
 {
@@ -24,6 +27,7 @@ final readonly class ImportNetworkCatalog
     public function __construct(
         private NetworkCatalogs $catalogs,
         private NetworkShapes $shapes,
+        private FeedRecordings $recordings,
     ) {}
 
     /**
@@ -36,7 +40,9 @@ final readonly class ImportNetworkCatalog
         $previous = CatalogImport::query()->find($network, ['network', 'etag', 'shapes_fingerprint']);
         // Without shapes (first import since E3.8 or since they moved to the database, a failed shapes step, shapes
         // lost), the archive is downloaded again, even if unchanged.
-        $unchangedIfSame = $previous?->shapes_fingerprint !== null && $this->shapes->has($network);
+        // Recordings without their catalogue (the first import since they were turned on), likewise (E5.1).
+        $unchangedIfSame = $previous?->shapes_fingerprint !== null && $this->shapes->has($network)
+            && (! $this->recordings->enabled($network) || $this->recordings->hasCatalog($network));
         $snapshot = $this->catalogs->for($network)->fetch($unchangedIfSame ? $previous->etag : null);
 
         if ($snapshot === null) {
@@ -92,6 +98,15 @@ final readonly class ImportNetworkCatalog
         );
         // The ETag is saved last: when the shapes step fails, the next run downloads the archive again.
         CatalogImport::query()->whereKey($network)->update(['etag' => $snapshot->etag(), 'shapes_fingerprint' => $fingerprint]);
+
+        if ($this->recordings->enabled($network)) {
+            // The catalogue is imported: a recording that cannot keep it still has the previous one.
+            try {
+                $this->recordings->keepCatalog($network, $snapshot);
+            } catch (Throwable $exception) {
+                Log::warning("Catalogue of {$network} could not be kept for the recordings.", ['exception' => $exception]);
+            }
+        }
 
         return $counts;
     }

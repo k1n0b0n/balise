@@ -36,6 +36,13 @@ final class GtfsArchive implements CatalogSnapshot
         return $this->etag;
     }
 
+    public function copyTo(string $path): void
+    {
+        if (! copy($this->path, $path)) {
+            throw new RuntimeException("Cannot copy the GTFS archive to {$path}.");
+        }
+    }
+
     /**
      * @return Generator<CatalogLine>
      */
