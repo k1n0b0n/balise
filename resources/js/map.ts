@@ -1,4 +1,5 @@
 import { type Bounds, mountMap } from './map/index';
+import { followReplayClock } from './map/replay-clock';
 
 // Entry of the map page only (ADR-0011): the other pages never load MapLibre.
 const container = document.querySelector<HTMLElement>('[data-map]');
@@ -20,4 +21,10 @@ if (container !== null) {
         neutralColour: container.dataset.neutralColour ?? '#4B5563',
         refreshSeconds: Number(container.dataset.refresh ?? 20),
     });
+}
+
+const replayClock = document.querySelector<HTMLTimeElement>('[data-replay-clock]');
+
+if (replayClock !== null) {
+    followReplayClock(replayClock, replayClock.dataset.timezone ?? 'Europe/Paris');
 }

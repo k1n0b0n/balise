@@ -6,8 +6,8 @@ declare(strict_types=1);
  * Keys of .env.example the host's app environment leaves to the defaults of config/ on purpose (ADR-0020).
  */
 const KEYS_LEFT_TO_DEFAULTS = [
-    // Development only.
-    'APP_FAKER_LOCALE', 'VITE_APP_NAME',
+    // Development only; replays are refused in production (E5.2).
+    'APP_FAKER_LOCALE', 'VITE_APP_NAME', 'RECORDINGS_SOURCE_URL',
     // Defaults that suit the server; LOG_STACK is unused, since containers log to stderr.
     'BCRYPT_ROUNDS', 'LOG_STACK', 'LOG_DEPRECATIONS_CHANNEL', 'SESSION_ENCRYPT', 'SESSION_PATH', 'SESSION_DOMAIN', 'REDIS_PASSWORD',
     // Services the application does not use: mail goes to the log, no Memcached, no S3.

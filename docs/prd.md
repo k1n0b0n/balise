@@ -191,10 +191,10 @@ Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the 
   - [x] The last 30 archives per network are kept
   - [x] The archives and their list (`index.json`) are public under `/recordings/`, served by nginx without PHP, one download at a time per address at 5 MB/s at most, disallowed in `robots.txt`
   - [x] Off by default, on in production; tests for the write, the `304`, the empty feed, the failed write, the service day's end and its fallback cut, the archive's content, the catch-up and the retention
-- E5.2 Replay a recorded service day locally
-  - [ ] `network:recordings:fetch tbm [date]` downloads an archive from the production site (the latest by default)
-  - [ ] The `replay` driver, chosen in `.env`, plays its payloads through the real GTFS-RT decoding at the recorded pace, from a chosen time of day, in a loop; the archive's catalogue is imported so that lines match
-  - [ ] The page says it shows a replay, and of which day
+- E5.2 Replay a recorded service day locally ([story 032](stories/032-replay.md))
+  - [x] `network:replay tbm [day] [--from=12:00]` downloads the archive when it is not there yet (the latest by default), from the site named in the repository's *Website* field on GitHub, or `RECORDINGS_SOURCE_URL`; imports its catalogue so that lines match; and replays it; `--stop` goes back to the live feed and its catalogue; refused in production
+  - [x] The replay plays the payloads through the real GTFS-RT decoding at the recorded pace, from the time asked for, in a loop over the day; positions and the feed's time are moved to now, so that freshness, the poll's wait and `Next-Version-At` work unchanged; the daily import leaves a replaying network's catalogue alone
+  - [x] The page says it shows a replay, of which day, and which time of that day it shows now
 
 ### E6: Second network
 - E6.1 Add a second French network through configuration only

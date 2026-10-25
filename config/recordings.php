@@ -23,4 +23,9 @@ return [
     // Archives kept per network: about 86 MB each for TBM.
     'keep' => 30,
 
+    // Where `network:replay` downloads archives from (E5.2): this URL, or else the site in the repository's Website
+    // field on GitHub, which keeps the production address out of the repository.
+    'source_url' => env('RECORDINGS_SOURCE_URL'),
+    'repository' => 'k1n0b0n/balise',
+
 ];
