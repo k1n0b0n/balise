@@ -72,7 +72,8 @@ export function followVehicles(url: string, everySeconds: number, onChange: (veh
 
         const wait = untilNextVersion(response);
         // The version expected has not come yet (the provider is late): ask again at the usual interval, not a whole
-        // feed interval later.
+        // feed interval later. Once is enough: the server asks a late feed again only once, two seconds later, and
+        // records nothing else before the next expected time.
         const late = aligned && response.status === 304;
         aligned = wait !== null && !late;
         const next = aligned && wait !== null ? wait + Math.random() * SPREAD_MILLISECONDS : everySeconds * 1000;
