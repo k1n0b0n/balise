@@ -48,7 +48,7 @@ final readonly class PositionChangeLog
     /**
      * Vehicles changed and removed after the given version, or null when the log cannot say: that version is unknown
      * or no longer kept, or a version after it is missing, which a write to the cache that failed, or a cache that
-     * restarted, leaves behind (ADR-0021).
+     * restarted, leaves behind (ADR-0021). A newest version missing is seen only when the next one is written.
      *
      * @return array{changed: list<string>, removed: list<string>}|null
      */

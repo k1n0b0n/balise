@@ -20,5 +20,13 @@ it('answers only for its own host in production, since every proxy is trusted', 
     config(['app.url' => 'https://balise.example']);
 
     $this->get('http://elsewhere.example/up')->assertBadRequest();
+    $this->get('https://sub.balise.example/up')->assertBadRequest();
     $this->get('https://balise.example/up')->assertOk();
+});
+
+it('trusts no host at all in production when APP_URL names none', function (): void {
+    $this->app['env'] = 'production';
+    config(['app.url' => '']);
+
+    $this->get('https://balise.example/up')->assertBadRequest();
 });

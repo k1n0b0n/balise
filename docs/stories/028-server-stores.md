@@ -15,6 +15,7 @@ See E1.8 in [prd.md](../prd.md); the decisions are [ADR-0021](../adr/0021-redis-
 - [x] The deploy script refuses a second rollback in a row (`rolled-back`, cleared by the next deploy); `docs/deploy.md`
 - [x] Tests: a version the change log missed gives the whole state; a browser one version further than the log keeps gets it too; the host check, shown failing without `trustHosts()`; the write path's query count with the version's upsert
 - [x] Dry run of the bootstrap on the local Ubuntu machine; `sh -n` on the deploy script
+- [x] CodeRabbit (#83): the exact host only, and none without `APP_URL`; the newest missing version, accepted and written in ADR-0021
 - [x] [ideas/page-without-livewire.md](../ideas/page-without-livewire.md), the other half of review point 15
 
 ## Notes
@@ -23,6 +24,7 @@ See E1.8 in [prd.md](../prd.md); the decisions are [ADR-0021](../adr/0021-redis-
 - **Why counted versions** (review point 10): with the cache in Redis, the change log can no longer join the positions' transaction. Versions were milliseconds, so a missing one could not be told from a pause; numbered by PostgreSQL in the write's own transaction, they have no gap, and a gap in the log means a lost entry. This also covers a Redis restart that lost the last entries, which a shared transaction would not have.
 - **A test changed meaning**: "a browser that fell too far behind" was one exactly as many versions behind as the log keeps. With numbered versions nothing is missing for it, so it now gets a delta; the test now falls one further.
 - **No `default_server` on the host** (review point 8): the host's nginx already sends other names to its own default site, and `server_name` keeps them away from ours; the risk was the application building links from any forwarded host, which `trustHosts()` closes. Laravel leaves it out in local development and tests, so the test switches the environment to production. The deploy's health check already sends the site's own host.
+- **The exact host, failing closed** (CodeRabbit): Laravel's default pattern also trusts subdomains, and an empty `APP_URL` gives no pattern, which Symfony reads as trusting every host. The pattern is now the exact host, or one that matches nothing.
 - **HSTS for a year, without `includeSubDomains`**: the domain's other names are not this project's.
-- **The dry run** on the local Ubuntu machine changes two files, the deploy script (the diff shows the refusal) and `app.env` (hidden, it holds secrets); the local machines have no certificate, so HSTS shows only on the server. The Debian machine had been reset: a dry run stops on a host never prepared (story 018).
+- **The dry run** (`--check --diff`) on the local Ubuntu machine predicts two changed files and writes neither: the deploy script (the diff shows the refusal) and `app.env` (hidden, it holds secrets); the local machines have no certificate, so HSTS shows only on the server. The Debian machine had been reset: a dry run stops on a host never prepared (story 018).
 - **On the server**: the maintainer's Ansible run writes `app.env`, the deploy script and the nginx site; the next deploy recreates the containers on Redis.

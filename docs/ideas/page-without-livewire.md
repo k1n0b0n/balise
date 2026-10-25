@@ -9,7 +9,7 @@ The map page has no Livewire action: Livewire renders it once, then the map modu
 
 ## What it could be
 
-A controller rendering the same Blade view, with Alpine loaded on its own (about 15 KB compressed): no session, no cookie, about 70 KB less JavaScript, and a page that a shared cache could keep.
+A controller rendering the same Blade view with the layout's `withoutLivewire` flag, and Alpine loaded on its own (about 15 KB compressed): about 70 KB less JavaScript. No session and no cookie only if the route also leaves out the session middleware (the `web` group starts one) and nothing in the view reads the session; checked by the absence of `Set-Cookie` before calling the page cacheable by a shared cache.
 
 ## Against
 

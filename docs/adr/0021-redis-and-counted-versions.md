@@ -13,7 +13,7 @@
 
 1. **The `redis` drivers for the cache, the queue and the sessions**, locally and on the server (`.env.example`, `env.j2`). The tests keep `array` and `sync`. Everything there may be lost: the change log answers full positions when it cannot answer a delta, the feed's ETag and publication time are learnt again on the next poll, a lost session only renews the CSRF token.
 2. **Versions counted by PostgreSQL**: `RecordPositions` adds one to the network's row of `position_versions` in the transaction that writes the positions, and `PositionsUpdated` carries that number. Versions follow one another without a gap.
-3. **The change log refuses a delta across a gap**: for `?since=v`, the versions after `v` must be `v + 1`, `v + 2`… up to the current one; a version the log missed (a failed write, a Redis restart that lost the last ones, an entry trimmed away) makes it answer the whole state instead.
+3. **The change log refuses a delta across a gap**: for `?since=v`, the versions after `v` must be `v + 1`, `v + 2`… up to the current one; a version the log missed (a failed write, a Redis restart that lost the last ones, an entry trimmed away) makes it answer the whole state instead. The newest version missing cannot be seen until the next one is written: until then, browsers keep the state before it, one poll late (about 20 s in the day), then get the whole state. Seeing it at once would mean reading PostgreSQL's version on every request of every map page, which this decision avoids; found by CodeRabbit on #83 and accepted.
 
 ## Alternatives considered
 
