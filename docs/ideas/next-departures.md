@@ -1,6 +1,6 @@
 # Idea: next departures at a stop, next stops of a vehicle
 
-- **Status:** Exploring
+- **Status:** Planned → E8 (2026-10-26): next departures only, from trip updates only, read on demand and kept a minute, decoded by the C extension; the destination of a departure not started is measured in E8.2
 - **Related:** ADR-0001 (trip updates port), ADR-0015 (protobuf), ADR-0018 (destination), [network-on-map.md](network-on-map.md) step 5, E4, E7.1, E7.2
 
 ## Why
@@ -20,6 +20,9 @@ The map shows where vehicles are; a rider then asks when the next one comes to t
 | Stops with a departure in the next hour | 3,125 of 5,233 platforms; every stop id of the updates is in the static stops |
 | Running vehicles | 420 with an update; median 22 stops left, up to 88 |
 | Static GTFS of the day | `stop_times.txt` 193 MB, 2,570,058 rows; `trips.txt` 67,341 trips, 66,922 with a `trip_headsign` |
+| Rhythm (measured 2026-10-25 around midnight, a request every 10 s for 3 min) | A new version about every 20 s, like the positions (the prototype read it once a minute, hence "every minute" above); about 300 KB at night |
+| Conditional requests | The producer ignores `If-None-Match` on this feed: every read is a full `200` |
+| Times | `time` is absolute (seconds since the epoch, UTC) and already includes the delay; `delay` (seconds) is `time` minus the scheduled time |
 
 ## Decisions to weigh
 

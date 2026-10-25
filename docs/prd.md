@@ -14,8 +14,9 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 | Milestone | Epics | Meaning |
 |---|---|---|
 | **M1: Visible** | E1, E2, E3 | Public URL shows live vehicles, CI green, automated deploy |
-| **M2: As fresh as the feed** | E4, E5 | Positions on screen seconds after the provider publishes them, at a fixed cost per version; replay mode, measured load |
-| **M3: Multi-network** | E6 | Second network added by configuration |
+| **M2: As fresh as the feed** | E4, E5 | Positions on screen seconds after the provider publishes them, at a fixed cost per version; recordings and replay |
+| **M3: At the stop** | E7, E8 | Stations on the map, their next departures in real time |
+| **M4: Multi-network** | E6 | Second network added by configuration, once the features of M3 exist (decided 2026-10-26: features first, on TBM) |
 
 ## Epics and stories
 
@@ -194,24 +195,35 @@ Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the 
   - [ ] `network:recordings:fetch tbm [date]` downloads an archive from the production site (the latest by default)
   - [ ] The `replay` driver, chosen in `.env`, plays its payloads through the real GTFS-RT decoding at the recorded pace, from a chosen time of day, in a loop; the archive's catalogue is imported so that lines match
   - [ ] The page says it shows a replay, and of which day
-- E5.3 Load test (k6) against cached endpoints, results published in the README
 
 ### E6: Second network
 - E6.1 Add a second French network through configuration only
 
 ### E7: Network on the map and in text
-Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/network-on-map.md)).
+In M3 ([ideas/network-on-map.md](ideas/network-on-map.md)).
 - E7.1 Stations on the map from a street zoom level, cached like the line catalogue
+  - [ ] The import keeps the stations (`location_type=1`, 2,189 for TBM) and the station of each platform; a platform without a station stands for itself
+  - [ ] The map shows the stations from a street zoom level, under the vehicles and distinct from them; their name on hover, and in a popup on click or from the keyboard, as for vehicles (E3.3)
+  - [ ] The stations come from `/api/networks/{network}/stations` as GeoJSON, cached like the line catalogue (ETag, changed by an import only), and are loaded only once the map reaches that zoom
+  - [ ] A search field finds a station by its name (accents and case ignored) and centres the map on it; it works with the keyboard and a screen reader, and is the text equivalent of the stations on the map (RGAA)
+  - [ ] The map page stays under its JavaScript budget (600 KB); its RGAA self-audit is redone
 - E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
 
+### E8: Next departures at a stop
+In M3; criteria to write once E7.1 is done, the trip updates port and its decoding decided by an ADR first ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
+- E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension (a new ADR superseding point 1 of ADR-0015)
+- E8.2 A page per station with its next departures in real time, grouped by line and destination like the text view (E3.7); cancelled departures shown; "Pas de données temps réel" when the feed has none
+
 ## Later
+
+- Load test (k6) against the cached endpoints, formerly E5.3: the networks and features to come (E6, E7, E8) would change what it measures; to run once they exist (decided 2026-10-26)
 
 - A link in the vehicle popup that opens the wrong-data issue form filled with the line, the vehicle number and the time (E3.9)
 - Position history, stage 2: short window (24–48 h), e.g. a vehicle's recent trail (ADR-0002)
 - Position history, stage 3: long retention for statistics such as delays per line (ADR-0002)
 - First spatial feature (stops and vehicles around me, viewport filtering), bringing PostGIS (ADR-0002)
 - SIRI-VM and NeTEx drivers, when a network needs them (ADR-0001)
-- Next departures at a stop and next stops of a vehicle ([ideas/next-departures.md](ideas/next-departures.md)): GTFS-RT TripUpdates, perhaps without static stop times (TBM's cover 9 h ahead, measured 2026-10-20), behind the anticipated trip updates port (ADR-0001); needs the brief's scope changed (no timetables), storage of stop times to be discussed, after E7.2
+- Next stops of a vehicle in its popup, from the trip updates port (E8.1) ([ideas/next-departures.md](ideas/next-departures.md))
 - Vector tiles for line shapes (PostGIS or PMTiles), when a second network makes the GeoJSON files too heavy (ADR-0016)
 - Brand web font, chosen with a visual identity; system fonts until then (ADR-0008)
 - `laravel/pail` to filter live logs, once ingestion produces logs worth filtering (ADR-0007)

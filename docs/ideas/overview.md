@@ -39,6 +39,8 @@
 3. Trip updates port with the C extension (one ADR superseding ADR-0015 point 1), first for the next stops of a vehicle, then for departures at a station once the brief's scope is opened.
 4. History when wanted (E4 is done, stories 029 and 030); PostGIS with "around me".
 
+Decided 2026-10-26: stations (E7.1), then next departures (E8: trip updates only, C extension) before a second network ([second-network.md](second-network.md)).
+
 ## Against this order
 
 - The MVP is live (E1.3a to E1.3e, stories 014 to 018); E1.3f is done, E1.4 moved to the PRD's *Later* and E1.5 is open. Each feature now reaches riders, not only reviewers of the repository.

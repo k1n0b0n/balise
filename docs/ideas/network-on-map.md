@@ -1,6 +1,6 @@
 # Idea: the network on the map and in text
 
-- **Status:** Planned → E7.1, E7.2; next departures studied in [next-departures.md](next-departures.md). Done and moved: whole-network shapes ([story 011](../stories/011-network-shapes.md#study)), selected line ([story 012](../stories/012-selection.md#study))
+- **Status:** Planned → E7.1 (criteria written 2026-10-26), E7.2; next departures studied in [next-departures.md](next-departures.md). Done and moved: whole-network shapes ([story 011](../stories/011-network-shapes.md#study)), selected line ([story 012](../stories/012-selection.md#study))
 - **Related:** ADR-0001, ADR-0002, ADR-0006
 
 ## Data (TBM static GTFS of 2026-10-17)

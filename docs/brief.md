@@ -23,11 +23,12 @@ Several networks and cities, each added through configuration rather than code.
 
 - One network: TBM (Bordeaux).
 - Live map of vehicles with their line, last position age and status.
+- Stations on the map and their next departures in real time (decided 2026-10-26).
 - Public deployment behind a CDN, with an automated pipeline.
 
 ## Out of scope for the MVP
 
-- Trip planning and timetables.
+- Trip planning and theoretical timetables. Real-time next departures at a stop are in scope since 2026-10-26 (PRD E8): the same live nature as the map, from the provider's real-time feed only.
 - User accounts.
 - Mobile apps.
 - Networks other than TBM (a second network is the first post-MVP story).
