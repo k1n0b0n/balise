@@ -35,6 +35,12 @@ final class VehicleController extends Controller
             $response->headers->set('Next-Version-At', number_format($next, 1, '.', ''));
         }
 
+        // How long the web container's nginx keeps this answer for other pages (E4.2); nginx does not pass it on.
+        $expiresAt = $timing->answerExpiresAt($network, CarbonImmutable::now());
+        if ($expiresAt !== null) {
+            $response->headers->set('X-Accel-Expires', "@{$expiresAt}");
+        }
+
         if ($response->isNotModified($request)) {
             return $response;
         }

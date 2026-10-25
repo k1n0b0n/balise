@@ -17,7 +17,7 @@
 | Network configuration | One entry per network: drivers, URLs, timezone, id prefix | ADR-0001 |
 | Scheduler + queue | Poll feeds, process positions; every write emits `PositionsUpdated` | ADR-0002 |
 | Livewire + MapLibre | Map UI; the map and the live store are a framework-agnostic TypeScript module, mounted by Livewire | [ADR-0010](adr/0010-ui-stack.md) |
-| Positions endpoint | Browsers ask for what changed, just after the next version is expected (E4.1); pushing it is in the PRD's *Later* | — |
+| Positions endpoint | Browsers ask for what changed, just after the next version is expected (E4.1); the web container's nginx keeps each answer until then, so that pages at the same version cost one PHP request (E4.2); pushing it is in the PRD's *Later* | — |
 
 ## Stack
 

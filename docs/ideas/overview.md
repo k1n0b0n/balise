@@ -37,7 +37,7 @@
 1. E5.1, recording in the repository (from the prototype), then E5.2 replay.
 2. Trips import with the stop order of representative trips; then E7.2 line pages and E7.1 stations.
 3. Trip updates port with the C extension (one ADR superseding ADR-0015 point 1), first for the next stops of a vehicle, then for departures at a station once the brief's scope is opened.
-4. E4.2 (nginx cache) and history when wanted; PostGIS with "around me".
+4. History when wanted (E4 is done, stories 029 and 030); PostGIS with "around me".
 
 ## Against this order
 
