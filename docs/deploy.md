@@ -129,6 +129,14 @@ sudo tail -n 50 /var/log/balise-deploy.log
 A deploy runs as the systemd unit `balise-deploy` and writes to `/var/log/balise-deploy.log`; the SSH session only
 follows it, so cancelling the workflow or losing the connection does not stop a deploy halfway.
 
+## Feed recordings
+
+With `recordings: true` (the default), the scheduler records the vehicle feed in the `balise-recordings` volume and
+archives each finished service day into `balise-recording-archives` at `recordings_archive_at` (05:15 by default, in the
+network's time zone): pick a time clear of the host's own nightly updates and reboots, since a missed run waits for the
+next night. The last 30 archives and their list are public at `https://<domain>/recordings/index.json`, one download at a
+time per address at 5 MB/s (ADR-0022). Both volumes survive deploys; removing them loses only past recordings.
+
 ## Moving PostgreSQL or Redis to a new major
 
 Change the image tag in `compose.yaml` (the local stack), check it locally, and release. The deploy reads the new

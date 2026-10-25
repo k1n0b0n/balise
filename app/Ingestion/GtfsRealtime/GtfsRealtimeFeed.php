@@ -67,6 +67,7 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
             $response->header('ETag') ?: null,
             $positions,
             $headerTimestamp > 0 ? new DateTimeImmutable("@{$headerTimestamp}") : null,
+            $response->body(),
         );
     }
 

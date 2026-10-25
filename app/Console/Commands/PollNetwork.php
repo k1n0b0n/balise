@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Actions\RecordPositions;
 use App\Ingestion\VehicleFeeds;
+use App\Support\FeedRecordings;
 use App\Support\FeedTiming;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
@@ -24,7 +25,7 @@ final class PollNetwork extends Command
     /** An unchanged feed is asked again once, this much later: the provider may be a little late. */
     public const int RETRY_AFTER_SECONDS = 2;
 
-    public function handle(VehicleFeeds $feeds, RecordPositions $record, FeedTiming $timing): int
+    public function handle(VehicleFeeds $feeds, RecordPositions $record, FeedTiming $timing, FeedRecordings $recordings): int
     {
         $network = $this->argument('network');
 
@@ -86,6 +87,17 @@ final class PollNetwork extends Command
         }
 
         $read = count($snapshot->positions);
+
+        if ($recordings->enabled($network) && $snapshot->payload !== null) {
+            // A recording that fails costs a replay of that moment, not the live map.
+            try {
+                $feedTime = $snapshot->publishedAt === null ? $receivedAt : CarbonImmutable::instance($snapshot->publishedAt);
+                $recordings->record($network, $snapshot->payload, $feedTime, $read - $counts['dropped'], $receivedAt);
+            } catch (Throwable $exception) {
+                Log::warning("Vehicle feed of {$network} could not be recorded.", ['exception' => $exception]);
+            }
+        }
+
         Log::info("Vehicle feed of {$network} recorded.", ['read' => $read, ...$counts, ...$lag, 'retried' => $retried]);
         $this->components->info("{$network}: {$read} read, {$counts['dropped']} dropped as stale, {$counts['changed']} changed, {$counts['removed']} removed.");
 

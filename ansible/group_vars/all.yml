@@ -4,3 +4,7 @@ web_port: 8080
 tls: true
 manage_firewall: true
 manage_upgrades: true
+# Feed recordings (E5.1, ADR-0022), archived each night at that time in the network's zone: keep it clear of the
+# host's own nightly maintenance (updates, reboots).
+recordings: true
+recordings_archive_at: "05:15"

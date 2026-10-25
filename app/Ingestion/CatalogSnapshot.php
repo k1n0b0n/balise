@@ -12,6 +12,11 @@ interface CatalogSnapshot
     public function etag(): ?string;
 
     /**
+     * Copies the catalogue as it was downloaded, for the recordings (E5.1).
+     */
+    public function copyTo(string $path): void;
+
+    /**
      * @return iterable<CatalogLine>
      */
     public function lines(): iterable;
