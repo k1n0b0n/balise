@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/k1n0b0n/balise/compare/v0.5.0...v0.6.0) (2026-10-25)
+
+
+### Features
+
+* ask for the positions when the next version is expected (E4.1) ([#85](https://github.com/k1n0b0n/balise/issues/85)) ([d997236](https://github.com/k1n0b0n/balise/commit/d99723629776dc97f971a5c655ed7406357148d2))
+* Redis for cache, queue and sessions, counted position versions, host and rollback guards (E1.8) ([#83](https://github.com/k1n0b0n/balise/issues/83)) ([bb34923](https://github.com/k1n0b0n/balise/commit/bb34923ef0ca2d260f270d5da668de5e7d30e4fe))
+
+
+### Bug Fixes
+
+* hardening from the code review (E1.7) ([#82](https://github.com/k1n0b0n/balise/issues/82)) ([6a2f3fe](https://github.com/k1n0b0n/balise/commit/6a2f3fe761d17a2336e49f9904bfcc1c2bbbfb50))
+
 ## [0.5.0](https://github.com/k1n0b0n/balise/compare/v0.4.0...v0.5.0) (2026-10-24)
 
 
