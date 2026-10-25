@@ -13,8 +13,8 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 
 | Milestone | Epics | Meaning |
 |---|---|---|
-| **M1: Visible** | E1, E2, E3 (without real-time push) | Public URL shows live vehicles, CI green, automated deploy |
-| **M2: Real-time** | E4, E5 | Positions pushed over WebSockets, replay mode, measured load |
+| **M1: Visible** | E1, E2, E3 | Public URL shows live vehicles, CI green, automated deploy |
+| **M2: As fresh as the feed** | E4, E5 | Positions on screen seconds after the provider publishes them, at a fixed cost per version; replay mode, measured load |
 | **M3: Multi-network** | E6 | Second network added by configuration |
 
 ## Epics and stories
@@ -169,9 +169,13 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Three issue forms, in French like the site: a bug, a feature request, and wrong data (what is wrong, the line, the vehicle number, the time, the details); blank issues are disabled
   - [x] The repository's URL comes from the configuration, with this repository as the default
 
-### E4: Real-time push
-- E4.1 Broadcast position updates with Reverb
-- E4.2 Fallback to periodic refresh when the socket drops
+### E4: Positions as fresh as the feed, at the lowest cost
+Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the feed changes every 20 s, so pushing positions (Reverb, SSE) gains seconds for a service and a connection per visitor; asking at the right time does nearly as well.
+- E4.1 Ask for the positions when the next version is expected ([story 029](stories/029-aligned-polling.md))
+  - [x] Every answer of the positions endpoint, `200` or `304`, says when the next version is expected, from the time of the last feed, the network's interval and the delays to serve and record it
+  - [x] The page asks at that time, spread over a second, and every 5 s when the server cannot say or the expected version is late; pause and a hidden tab are unchanged
+  - [x] Requests per hour and per visitor, and how long after its expected time a version is asked for, measured locally before and after, recorded in the story file
+- E4.2 Answers cached in the web container's nginx until the next version, so that visitors at the same version cost one PHP request; criteria to write
 
 ### E5: Replay and load
 - E5.1 Record raw feed payloads
@@ -200,4 +204,5 @@ Not in a milestone yet; criteria to be written ([ideas/network-on-map.md](ideas/
 - Bearing arrows and destination labels on vehicles (ADR-0013)
 - Line of a position without a `route_id` from its trip update, with the trip updates port: TBM `nt_` trips are the only cause, 283 positions of 908,605 (0.03 %) over 2026-10-20 and 21, all filled by trip updates ([story 013](stories/013-line-and-destination.md#study))
 - Cloudflare in front (DNS, proxy, TLS, cache rules), formerly E1.4: its free plan needs the whole DNS zone, which the maintainer keeps where it is (2026-10-24); the host's nginx serves the site, its assets cached a year by browsers
+- Positions pushed to the page (Reverb over WebSockets, or SSE through a hub such as Mercure) instead of asked for: a few seconds fresher at most, for a service and a connection per visitor ([ideas/realtime-push.md](ideas/realtime-push.md))
 - `SECURITY.md` with private vulnerability reporting, pull request template mirroring the definition of done

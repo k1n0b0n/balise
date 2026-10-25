@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Actions\RecordPositions;
 use App\Ingestion\VehicleFeeds;
+use App\Support\FeedTiming;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -20,13 +21,10 @@ use Throwable;
 #[Description('Fetch the live vehicle positions of a network')]
 final class PollNetwork extends Command
 {
-    /** A feed is served about a second after the time it carries (TBM, measured over two hours, story 024). */
-    public const int PUBLICATION_DELAY_SECONDS = 1;
-
     /** An unchanged feed is asked again once, this much later: the provider may be a little late. */
     public const int RETRY_AFTER_SECONDS = 2;
 
-    public function handle(VehicleFeeds $feeds, RecordPositions $record): int
+    public function handle(VehicleFeeds $feeds, RecordPositions $record, FeedTiming $timing): int
     {
         $network = $this->argument('network');
 
@@ -37,12 +35,10 @@ final class PollNetwork extends Command
         }
 
         $etagKey = "vehicle-feed:{$network}:etag";
-        $publishedKey = "vehicle-feed:{$network}:published-at";
         $etag = Cache::get($etagKey);
         $feed = $feeds->for($network);
 
-        $publishedAt = Cache::get($publishedKey);
-        $this->waitForPublication(Config::integer("networks.{$network}.vehicles.poll_every_seconds"), is_int($publishedAt) ? $publishedAt : null);
+        $this->waitForPublication(Config::integer("networks.{$network}.vehicles.poll_every_seconds"), $timing->publishedAt($network));
         $retried = false;
 
         try {
@@ -85,7 +81,7 @@ final class PollNetwork extends Command
         // How late the feed was read, so the server's logs measure what the waiting gains.
         $lag = [];
         if ($snapshot->publishedAt !== null) {
-            Cache::put($publishedKey, $snapshot->publishedAt->getTimestamp(), now()->addHour());
+            $timing->remember($network, CarbonImmutable::instance($snapshot->publishedAt));
             $lag = ['seconds_after_publication' => round($receivedAt->getTimestamp() + $receivedAt->micro / 1e6 - $snapshot->publishedAt->getTimestamp(), 1)];
         }
 
@@ -112,7 +108,7 @@ final class PollNetwork extends Command
         }
 
         $now = CarbonImmutable::now();
-        $sinceAvailable = fmod($now->getTimestamp() + $now->micro / 1e6 - $publishedAt - self::PUBLICATION_DELAY_SECONDS, $everySeconds);
+        $sinceAvailable = fmod($now->getTimestamp() + $now->micro / 1e6 - $publishedAt - FeedTiming::PUBLICATION_DELAY_SECONDS, $everySeconds);
         $sinceAvailable += $sinceAvailable < 0 ? $everySeconds : 0;
 
         // Served less than half an interval ago: read it now rather than wait for the next one.

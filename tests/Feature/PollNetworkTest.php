@@ -176,6 +176,16 @@ it('waits until just after the feed is published, learnt from the last feed\'s o
     'no feed read yet' => ['2026-10-16 12:00:00', null, null],
 ]);
 
+it('reads the publication time back as text, as Redis gives it', function (): void {
+    Http::fake(['rt.test/*' => Http::response(feedPayload([]), 200, ['ETag' => '"rt1"'])]);
+    $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:00'));
+    Cache::put('vehicle-feed:tbm:published-at', (string) CarbonImmutable::parse('2026-10-16 11:59:42')->getTimestamp());
+
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertSuccessful();
+
+    Sleep::assertSequence([Sleep::for(3000)->milliseconds()]);
+});
+
 it('remembers when the feed was published, and logs how late it was read', function (): void {
     Log::spy();
     $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:03'));
