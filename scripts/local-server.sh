@@ -1,6 +1,6 @@
 #!/bin/sh
-# Local stand-ins for the server (ADR-0020 point 9): OrbStack machines reached over SSH with their own key, as the
-# bootstrap reaches a real host. Runs on the host (OrbStack's `orb` command); the inventory is ansible/inventory/local.yml.
+# Local stand-ins for the server (ADR-0020 point 9): local machines reached over SSH with their own key, as the
+# bootstrap reaches a real host. Runs on the host (the `orb` command); the inventory is ansible/inventory/local.yml.
 #   sh scripts/local-server.sh debian    # balise-debian: a fresh Debian 13
 #   sh scripts/local-server.sh ubuntu    # balise-ubuntu: a fresh Ubuntu 26.04
 #   sh scripts/local-server.sh shared    # balise-shared: a Debian 13 already running Docker, nginx and another site

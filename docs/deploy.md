@@ -36,7 +36,7 @@ cp ansible/inventory/example.yml ansible/local/inventory.yml
 Fill in `ansible/local/inventory.yml`, which Git ignores: host and SSH user, `domain`, `certbot_email`, the content of
 `~/.ssh/balise-deploy.pub` as `deploy_public_key`, `image_repository` (`ghcr.io/<your GitHub name>/balise`), a free
 local `web_port`, and whether the bootstrap manages the firewall and unattended upgrades. The Ansible container only
-sees the repository. With OrbStack or Docker Desktop, it can use your SSH agent instead of a key file: add
+sees the repository. With Docker Desktop, it can use your SSH agent instead of a key file: add
 `-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock`
 after `run --rm` in the commands below. Otherwise put the admin user's SSH key under `ansible/local/` and name it in
 `ansible_ssh_private_key_file`. Copy the host's line of your `known_hosts` there too (`ssh-keygen -F`), and point
@@ -138,7 +138,7 @@ across majors does the same in the other direction. Redis holds nothing that doe
 
 ## Trying it on local machines
 
-`scripts/local-server.sh` creates OrbStack machines that stand in for hosts (ADR-0020 point 9), described by
+`scripts/local-server.sh` creates local machines that stand in for hosts (ADR-0020 point 9), described by
 `ansible/inventory/local.yml`. Test releases are built on the workstation and pushed to a registry there:
 
 ```sh
