@@ -22,7 +22,7 @@
 | **Stations** (`location_type=1`, 2,189 for TBM) | Stations on the map (E7.1), stop pages, departures grouped by station | One more catalogue entity, 36 KB gzipped to the browser | **Favourable**, after trips |
 | **Trip updates port** (ADR-0001's third port) | Next stops of a vehicle, next departures, line of `nt_` trips (PRD *Later*: 0.03 % of positions, story 013), delays per line (history stage 3) | A second feed of 2.7 MB a minute, a reading strategy, a cache | **Favourable once one consumer is in the PRD**: then the others come almost free |
 | **C extension `protobuf`** | Decoding trip updates (1.2 s and 344 MB in pure PHP, 0.03 s and 11 MB with it), replay at speed, larger networks (E6) | A build stage in the image and on the server, a version kept in step with Composer by hand | **Favourable with the trip updates port, not before** |
-| **Reverb** (E4) | Positions pushed instead of polled, departures pushed | A process, a socket fallback (E4.2) | Independent of the ideas above; already planned |
+| **Pushed positions** ([realtime-push.md](realtime-push.md)) | Positions pushed instead of polled, departures pushed | A process (Reverb) or a held connection (SSE) per visitor | **Later**: polling at the expected time (E4.1) gets within a second of the feed for 201 requests an hour |
 | **PostGIS** | Stops and vehicles around me, viewport filtering | An extension, a migration to `geography` (ADR-0002) | **Not needed yet**: 2,189 stations filter in the browser; only "around me" needs it |
 
 ## Where one choice serves several ideas better
@@ -37,7 +37,7 @@
 1. E5.1, recording in the repository (from the prototype), then E5.2 replay.
 2. Trips import with the stop order of representative trips; then E7.2 line pages and E7.1 stations.
 3. Trip updates port with the C extension (one ADR superseding ADR-0015 point 1), first for the next stops of a vehicle, then for departures at a station once the brief's scope is opened.
-4. E4 and history when wanted; PostGIS with "around me".
+4. E4.2 (nginx cache) and history when wanted; PostGIS with "around me".
 
 ## Against this order
 

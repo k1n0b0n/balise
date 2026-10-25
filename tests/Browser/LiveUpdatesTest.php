@@ -7,6 +7,7 @@ use App\Enums\TransportMode;
 use App\Ingestion\VehiclePosition as IngestionPosition;
 use App\Models\Line;
 use App\Models\VehiclePosition;
+use App\Support\FeedTiming;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -97,4 +98,24 @@ it('keeps the line selector to the lines that run, without changing it under the
         ->assertScript("document.querySelector('#ligne').value", 'B')
         ->assertNoAccessibilityIssues(level: 3)
         ->assertNoJavaScriptErrors();
+});
+
+it('waits for the version the server expects rather than asking at its usual interval (E4.1)', function (): void {
+    config(['map.refresh_every_seconds' => 1]);
+    VehiclePosition::query()->create([
+        'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'line_id' => null, 'recorded_at' => now(), 'received_at' => now(),
+    ]);
+    // Published 8 s ago: the next version is expected in about 14 s (publication, a second to serve, one to record),
+    // far enough for a slow page load not to reach it.
+    app(FeedTiming::class)->remember('tbm', CarbonImmutable::now()->subSeconds(8));
+    $expectedAt = (float) app(FeedTiming::class)->nextVersionAt('tbm', CarbonImmutable::now());
+    $requests = "performance.getEntriesByType('resource').filter((entry) => entry.name.includes('/vehicles')).length";
+
+    $page = visit('/')->assertPresent('[data-map][data-vehicle-count="1"]');
+
+    // Asking every second, the page would have asked about three more times by now.
+    $page->wait(3)->assertScript($requests, 1);
+    // Past the expected time and its random second, it has asked again.
+    $page->wait(max(0, $expectedAt - microtime(true)) + 2)->assertScript("({$requests}) >= 2", true)->assertNoJavaScriptErrors();
 });

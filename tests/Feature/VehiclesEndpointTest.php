@@ -6,6 +6,7 @@ use App\Actions\RecordPositions;
 use App\Enums\TransportMode;
 use App\Ingestion\VehiclePosition;
 use App\Models\Line;
+use App\Support\FeedTiming;
 use App\Support\PositionChangeLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -125,4 +126,26 @@ it('sends everything again when the change log missed a version, as a failed cac
 
 it('does not know other networks', function (): void {
     $this->getJson(route('vehicles', ['network' => 'nowhere']))->assertNotFound();
+});
+
+it('says when the next version is expected, on a 304 too (E4.1)', function (): void {
+    // TBM published at 11:59:42: recorded about 11:59:44, then every 20 s.
+    $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:00'));
+    app(FeedTiming::class)->remember('tbm', CarbonImmutable::parse('2026-10-16 11:59:42'));
+    poll(['bus' => 'tbm:A']);
+    $next = (string) CarbonImmutable::parse('2026-10-16 12:00:04')->getTimestamp().'.0';
+
+    $etag = vehicles()->assertOk()->assertHeader('Next-Version-At', $next)->headers->get('ETag');
+    $this->getJson(route('vehicles', ['network' => 'tbm']), ['If-None-Match' => $etag])
+        ->assertNotModified()
+        ->assertHeader('Next-Version-At', $next);
+
+    $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:05'));
+    vehicles()->assertHeader('Next-Version-At', (string) CarbonImmutable::parse('2026-10-16 12:00:24')->getTimestamp().'.0');
+});
+
+it('says nothing of the next version before the first feed', function (): void {
+    poll(['bus' => 'tbm:A']);
+
+    vehicles()->assertOk()->assertHeaderMissing('Next-Version-At');
 });
