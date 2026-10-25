@@ -12,7 +12,7 @@ The map shows where vehicles are; a rider then asks when the next one comes to t
 | Measure | Value |
 |---|---|
 | Feed (`/gtfsfeed/realtime/bordeaux`) | 2.7 MB, not compressed by the producer (0.85 MB gzipped); a new version every minute (27 in 27 min) |
-| Download | 0.3 s from the Mac, up to 2 s at midday |
+| Download | 0.3 s from the workstation, up to 2 s at midday |
 | Decoding, pure-PHP runtime (current, ADR-0015) | 1.2 to 1.4 s, 344 MB peak memory |
 | Decoding, C extension `protobuf` 5.36.2 (PECL, built in 18 s on Alpine) | 0.03 s, 11 MB peak memory: 40 times faster, 30 times less memory |
 | Trips | 2,041: 1,983 scheduled, 57 cancelled, 1 added; up to 9 h ahead |
@@ -62,7 +62,7 @@ Preferred: every minute while someone looks. **Against it:** "while someone look
 |---|---|---|
 | **Pure-PHP runtime** (current) | Nothing to build; Composer and Dependabot keep it current; the vehicle feed (57 KB) decodes fast enough | 1.2 s and 344 MB for trip updates: a worker needs a high `memory_limit`, and a click waits; decoding dominates the cost, not the download |
 | **C extension, built with PECL** | 40 times faster, 30 times less memory; the same generated classes, Composer's runtime steps aside when the extension is loaded | Not packaged by Ubuntu 26.04: a build stage in the PHP image and a build on the server by Ansible (compiler, `php8.5-dev`); its version must follow the Composer runtime by hand (Dependabot does not see PECL); a native crash takes the process down |
-| **C extension, built once and copied** (multi-stage image, the `.so` shipped to the server) | No compiler on the server or in the runtime image | The `.so` must match PHP's exact build and architecture (arm64 on the server, the Mac's in local); one more artifact to version |
+| **C extension, built once and copied** (multi-stage image, the `.so` shipped to the server) | No compiler on the server or in the runtime image | The `.so` must match PHP's exact build and architecture (arm64 on the server, the workstation's in local); one more artifact to version |
 | **Decode in another process** (a small service in Go, Rust or Python) | Fast, keeps PHP light | A second language and runtime to deploy and review, against ADR-0001's "plain Laravel" outside ingestion |
 | **Avoid decoding**: a producer feed in JSON, or SIRI Lite | No protobuf at all | TBM publishes GTFS-RT only in protobuf; SIRI Lite would be a new driver (ADR-0001: only when a network needs it) |
 

@@ -1,4 +1,4 @@
-# The OrbStack machines of scripts/local-server.sh (ADR-0020 point 9), with group_vars/local.yml. A real host gets its
+# The local machines of scripts/local-server.sh (ADR-0020 point 9), with group_vars/local.yml. A real host gets its
 # own inventory from example.yml, kept in ansible/local/, which Git ignores.
 all:
   children:

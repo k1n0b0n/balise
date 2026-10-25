@@ -33,6 +33,9 @@ services:
     depends_on:
       php:
         condition: service_started
+        # nginx resolves php once, at start: restarted when php is recreated alone (a change to app.env), it does
+        # not keep asking the previous container.
+        restart: true
 
   postgres:
     image: postgres:${POSTGRESQL_VERSION:?}-alpine

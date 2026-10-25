@@ -19,7 +19,7 @@ Measured on 2026-10-20 in `ubuntu:26.04`: the archive has nginx 1.28, PHP 8.5.4,
 5. **The repository's files are installed as they are:** `docker/nginx/site.conf` (the only site; its domain comes with E1.4), `docker/php/php.ini` and `docker/php/packages.txt`. Only server concerns are written in `ansible/`: the user, the upstream on php-fpm's socket, the pool's user, systemd units, the `.env` template, firewall, unattended upgrades. There is still no shared pool setting, so no `fpm-pool.conf` (story 001).
 6. **Secrets local to the server are generated on it:** the server playbook generates `APP_KEY` and the database password once, into root-only files of `shared/secrets/`, only when those files are missing, and writes `shared/.env` from them on every run; they never leave the machine. A rebuild gets new ones, which only ends open sessions: the application encrypts no stored data, and a rebuild reloads its data anyway (ADR-0012). Secrets that cross machines (deploy SSH key, OCI, Cloudflare) are GitHub secrets (E1.3c), passed as variables.
 7. **A build is an archive made outside the server** by `scripts/build-release.sh` in the `test` image (Composer without dev packages, Vite build, GTFS-Realtime classes generated): the server needs no Node, Composer or Git (ADR-0004).
-8. **Proof on a local machine:** an OrbStack Ubuntu 26.04 arm64 machine (the architecture of the Oracle A1 instance), created by `scripts/local-server.sh` with a cloud-init that adds what Oracle's image already has (an SSH server, the admin user's key). Any Ubuntu 26.04 host reachable by SSH works (Multipass, UTM, a VPS).
+8. **Proof on a local machine:** a local Ubuntu 26.04 arm64 machine (the architecture of the Oracle A1 instance), created by `scripts/local-server.sh` with a cloud-init that adds what Oracle's image already has (an SSH server, the admin user's key). Any Ubuntu 26.04 host reachable by SSH works (Multipass, UTM, a VPS).
 
 ## Alternatives considered
 
@@ -33,12 +33,12 @@ Measured on 2026-10-20 in `ubuntu:26.04`: the archive has nginx 1.28, PHP 8.5.4,
 | Every secret as a GitHub secret, passed to the playbook | The database password and `APP_KEY` would leave the only machine that uses them, and need a copy outside Git for local runs |
 | Supervisor for the workers | Familiar to Laravel readers (Laravel's documentation), but a second supervisor started by systemd, with its own logs; systemd already restarts units, orders them after PostgreSQL, limits their memory and sandboxes them |
 | Cron `schedule:run` every minute | Differs from `compose.yaml` (`schedule:work`), and ADR-0007 wants identical daemon commands |
-| A Vagrant or Multipass virtual machine | Slower to boot; OrbStack already runs the Docker engine here; the playbook does not depend on it |
+| A Vagrant or Multipass virtual machine | Slower to boot; the tool that runs the local machines already runs Docker on the workstation; the playbook does not depend on it |
 | Ansible Galaxy roles (geerlingguy.php, nginx…) | Hide what is installed behind many variables; the configuration is small enough to read in a few tasks |
 
 ## Consequences
 
 - A contributor proves the server with Docker and any Ubuntu 26.04 machine; the same playbook runs from CI against Oracle in E1.3c.
-- The OrbStack machine shares the Mac's kernel: kernel-level settings (sysctl, firewall backends) are only proven on a real virtual machine, in E1.3c.
+- The local machine shares the workstation's kernel: kernel-level settings (sysctl, firewall backends) are only proven on a real virtual machine, in E1.3c.
 - Redis 8 replaces 7 locally and runs on the server; the application is not affected, since it does not use Redis yet.
 - Three releases on disk, each with its `vendor`: about 3 × 80 MB.
