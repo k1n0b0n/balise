@@ -82,7 +82,8 @@ final readonly class GtfsRealtimeFeed implements VehicleFeed
         $latitude = $coordinates->getLatitude();
         $longitude = $coordinates->getLongitude();
 
-        if (! is_finite($latitude) || ! is_finite($longitude) || abs($latitude) > 90 || abs($longitude) > 180) {
+        // (0, 0) is what a position without its coordinates decodes to, often sent when the GPS is lost.
+        if (! is_finite($latitude) || ! is_finite($longitude) || abs($latitude) > 90 || abs($longitude) > 180 || ($latitude === 0.0 && $longitude === 0.0)) {
             return null;
         }
 

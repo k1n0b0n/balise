@@ -19,7 +19,7 @@ final class LineController extends Controller
      */
     public function __invoke(Request $request, string $network): JsonResponse
     {
-        abort_unless(Config::has("networks.{$network}"), 404);
+        abort_unless(array_key_exists($network, Config::array('networks')), 404);
 
         // Not the shapes the row also holds (ADR-0016).
         $importedAt = CatalogImport::query()->find($network, ['network', 'imported_at'])?->imported_at;

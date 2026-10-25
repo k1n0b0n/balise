@@ -28,9 +28,6 @@ final class Line extends Model
     protected $guarded = [];
 
     /**
-     * The published colour as `#RRGGBB`, or the neutral colour.
-     */
-    /**
      * What people call the line: its long name, "Tram A" or "Lianes 1" at TBM, else its mode and short name. Never
      * "A - Tram A": VoiceOver spells out the words after a dash in a selector's options.
      */
@@ -39,6 +36,9 @@ final class Line extends Model
         return $this->long_name ?? "{$this->mode->label()} {$this->short_name}";
     }
 
+    /**
+     * The published colour as `#RRGGBB`, or the neutral colour.
+     */
     public function colour(): string
     {
         return $this->color === null ? self::NEUTRAL_COLOUR : '#'.strtoupper($this->color);
