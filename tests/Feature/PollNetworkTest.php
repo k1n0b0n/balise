@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Ingestion\VehicleFeeds;
 use App\Ingestion\VehiclePosition;
+use App\Models\VehiclePosition as StoredPosition;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
@@ -83,14 +84,15 @@ it('takes the destination from the label only on a network whose label is one (A
     'a fleet number' => [false, null],
 ]);
 
-it('drops positions with impossible coordinates', function (): void {
+it('drops positions with impossible coordinates, and (0, 0), which a lost GPS sends', function (): void {
     $positions = fetchPositions(feedPayload([
         feedEntity('e1', ['lat' => 0.0, 'lon' => 0.0, 'id' => 'null-island']),
         feedEntity('e2', ['lat' => 91.0, 'lon' => -0.5, 'id' => 'too-north']),
         feedEntity('e3', ['lat' => NAN, 'lon' => -0.5, 'id' => 'not-a-number']),
+        feedEntity('e4', ['lat' => 0.0, 'lon' => -0.5, 'id' => 'on-the-equator']),
     ]));
 
-    expect(array_map(fn (VehiclePosition $position): string => $position->vehicleId, $positions))->toBe(['tbm:null-island']);
+    expect(array_map(fn (VehiclePosition $position): string => $position->vehicleId, $positions))->toBe(['tbm:on-the-equator']);
 });
 
 it('drops positions that cannot be dated', function (): void {
@@ -128,6 +130,19 @@ it('logs a failed or invalid fetch and lets the next run retry', function (): vo
 
     Log::shouldHaveReceived('warning')->times(3);
     expect(Cache::get('vehicle-feed:tbm:etag'))->toBeNull();
+});
+
+it('still ages vehicles out while the feed is down (E2.3)', function (): void {
+    $this->travelTo(CarbonImmutable::parse('2026-10-16 12:00:00'));
+    StoredPosition::query()->create([
+        'vehicle_id' => 'tbm:old', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
+        'recorded_at' => now()->subMinutes(6), 'received_at' => now()->subMinutes(6),
+    ]);
+    Http::fake(['rt.test/*' => Http::response('Service unavailable', 503)]);
+
+    $this->artisan('network:poll', ['network' => 'tbm'])->assertFailed();
+
+    expect(StoredPosition::query()->count())->toBe(0);
 });
 
 it('polls every network at its configured interval without overlapping', function (): void {

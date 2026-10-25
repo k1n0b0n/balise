@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Schedule;
 $containerLog = '/proc/1/fd/2';
 
 foreach (array_keys(Config::array('networks')) as $network) {
-    // Providers publish their static data overnight; TBM's lands around 04:50.
+    // Providers publish their static data overnight; TBM's lands around 04:50. In the background: an import takes a
+    // minute or two, and the scheduler runs its other commands one after another, so the polls would wait for it.
     Schedule::command('network:import', [$network])
         ->dailyAt('05:30')
         ->timezone(Config::string("networks.{$network}.timezone"))
         ->withoutOverlapping(expiresAt: 60)
+        ->runInBackground()
         ->appendOutputTo($containerLog);
 
     // A short lock: a crashed run must not stop polling for the default 24 hours.

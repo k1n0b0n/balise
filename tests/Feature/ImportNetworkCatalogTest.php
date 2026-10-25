@@ -101,13 +101,13 @@ it('keeps the current catalogue when the download fails', function (): void {
         ->and(CatalogImport::query()->findOrFail('tbm')->etag)->toBe('"v1"');
 });
 
-it('schedules a daily import for every network', function (): void {
-    $commands = collect(app(Schedule::class)->events())
-        ->map(fn ($event): string => (string) $event->command)
-        ->filter(fn (string $command): bool => str_contains($command, 'network:import'));
+it('schedules a daily import for every network, in the background so that polls do not wait for it', function (): void {
+    $imports = collect(app(Schedule::class)->events())
+        ->filter(fn ($event): bool => str_contains((string) $event->command, 'network:import'));
 
-    expect($commands)->toHaveCount(1)
-        ->and($commands->first())->toContain("network:import 'tbm'");
+    expect($imports)->toHaveCount(1)
+        ->and((string) $imports->first()->command)->toContain("network:import 'tbm'")
+        ->and($imports->first()->runInBackground)->toBeTrue();
 });
 
 it('imports every configured network when none is named, as a deploy does', function (): void {

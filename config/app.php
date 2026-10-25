@@ -83,7 +83,8 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // French by default: the interface is in French, and the locale gives every page its `lang` (RGAA 8.3).
+    'locale' => env('APP_LOCALE', 'fr'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

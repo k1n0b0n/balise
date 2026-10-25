@@ -20,7 +20,8 @@ final class VehicleController extends Controller
      */
     public function __invoke(Request $request, string $network, PositionChangeLog $changes): JsonResponse
     {
-        abort_unless(Config::has("networks.{$network}"), 404);
+        // Not Config::has(), which would also accept a dotted path such as `tbm.vehicles`.
+        abort_unless(array_key_exists($network, Config::array('networks')), 404);
 
         $version = $changes->version($network);
         $response = (new JsonResponse)->setEtag((string) $version)->setCache(['no_cache' => true]);
