@@ -11,5 +11,7 @@ final readonly class CatalogStop
         public string $name,
         public float $latitude,
         public float $longitude,
+        // The station it belongs to (E7.1): its own id when it belongs to none.
+        public ?string $stationId = null,
     ) {}
 }

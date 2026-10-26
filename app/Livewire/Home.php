@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Enums\TransportMode;
 use App\Models\Line;
+use App\Models\Station;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
 use App\Support\Replays;
@@ -14,6 +15,7 @@ use Collator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 final class Home extends Component
@@ -25,13 +27,18 @@ final class Home extends Component
         $networkName = Config::string("networks.{$network}.name");
         $lines = $this->lines($network);
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
-        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
+        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === $this->queryText('ligne'));
         $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
-        $mode = TransportMode::tryFrom(request()->string('mode')->toString());
+        $mode = TransportMode::tryFrom($this->queryText('mode'));
         $running = $this->lineOptions($lines, $positions, $selectedLine);
+
+        $stationQuery = Str::squish($this->queryText('arret'));
 
         return view('livewire.home', [
             'network' => $network,
+            // E7.1: the station search without JavaScript.
+            'stationQuery' => $stationQuery,
+            'stationResults' => $stationQuery === '' ? collect() : $this->stations($network, $stationQuery),
             'networkName' => $networkName,
             'timezone' => Config::string("networks.{$network}.timezone"),
             'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
@@ -124,6 +131,34 @@ final class Home extends Component
             ->where('network', $network)
             ->get()
             ->sort(fn (Line $a, Line $b): int => $modes[$a->mode->value] <=> $modes[$b->mode->value] ?: strnatcasecmp($a->short_name, $b->short_name))
+            ->values();
+    }
+
+    /**
+     * A text parameter of the address, empty when absent or sent as an array (`?ligne[]=A`).
+     */
+    private function queryText(string $key): string
+    {
+        $value = request()->query($key);
+
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * The stations whose name contains what was asked, accents and case ignored, the exact names first; at most 20.
+     *
+     * @return Collection<int, Station>
+     */
+    private function stations(string $network, string $asked): Collection
+    {
+        $normalise = fn (string $name): string => Str::lower(Str::ascii($name));
+        $asked = $normalise($asked);
+
+        return Station::query()->where('network', $network)->orderBy('name')->get(['id', 'name'])
+            ->filter(fn (Station $station): bool => str_contains($normalise($station->name), $asked))
+            ->sortBy(fn (Station $station): int => $normalise($station->name) === $asked ? 0 : 1)
+            ->unique('name')
+            ->take(20)
             ->values();
     }
 

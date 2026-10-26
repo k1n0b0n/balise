@@ -60,6 +60,15 @@
                 class="rounded border border-gray-500 px-3 py-2 text-sm leading-none"
             ><span aria-hidden="true">×</span><span class="sr-only">Désélectionner la ligne <span data-line-clear-name>{{ $selectedLine?->short_name }}</span></span></a>
         </form>
+        {{-- E7.1: the text equivalent of the stations on the map. Without JavaScript, the page lists the matches; the map
+             module then suggests names and centres the map on the station found, saying so in the status. --}}
+        <form method="get" action="{{ route('home') }}" role="search" data-station-search class="flex flex-wrap items-center gap-2">
+            <label for="arret" class="text-sm">Arrêt</label>
+            <input id="arret" name="arret" type="search" list="arrets" autocomplete="off" value="{{ $stationQuery }}" class="w-44 rounded border border-gray-500 px-2 py-2 text-sm">
+            <datalist id="arrets"></datalist>
+            <button type="submit" class="rounded border border-gray-500 px-3 py-2 text-sm">Chercher<span class="sr-only"> l’arrêt</span></button>
+            <p data-station-status role="status" class="w-full text-sm empty:hidden"></p>
+        </form>
         <div class="flex items-center gap-2">
             <button type="button" hidden data-pause aria-pressed="false" class="rounded border border-gray-500 px-3 py-2 text-sm aria-pressed:bg-gray-900 aria-pressed:text-white">
                 Pause<span class="sr-only"> des mises à jour</span>
@@ -87,6 +96,21 @@
         </p>
     @endif
 
+    @if ($stationQuery !== '')
+        <section aria-labelledby="arrets-trouves" class="border-b border-gray-300 px-4 py-2 text-sm">
+            <h2 id="arrets-trouves" class="font-semibold">Arrêts trouvés pour « {{ $stationQuery }} »</h2>
+            @if ($stationResults->isEmpty())
+                <p>Aucun arrêt ne correspond.</p>
+            @else
+                <ul class="list-disc pl-5">
+                    @foreach ($stationResults as $station)
+                        <li>{{ $station->name }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+    @endif
+
     <main class="relative flex min-h-0 grow flex-col landscape:flex-row">
         <div
             wire:ignore
@@ -97,6 +121,7 @@
             data-vehicles-url="{{ route('vehicles', $network) }}"
             data-lines-url="{{ route('lines', $network) }}"
             data-shapes-url="{{ route('shapes', $network) }}"
+            data-stations-url="{{ route('stations', $network) }}"
             data-neutral-colour="{{ $neutralColour }}"
             data-refresh="{{ $refreshSeconds }}"
             class="h-[70vh] w-full shrink-0 group-data-panel/page:h-auto group-data-panel/page:grow landscape:h-auto landscape:min-w-0 landscape:shrink landscape:grow"

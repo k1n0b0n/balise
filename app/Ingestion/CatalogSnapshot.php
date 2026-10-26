@@ -27,6 +27,13 @@ interface CatalogSnapshot
     public function stops(): iterable;
 
     /**
+     * Groups of platforms under one name, and the platforms that belong to none (E7.1).
+     *
+     * @return iterable<CatalogStation>
+     */
+    public function stations(): iterable;
+
+    /**
      * Empty when the source draws no shapes.
      *
      * @return iterable<CatalogShape>

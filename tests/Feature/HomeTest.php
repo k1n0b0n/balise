@@ -154,3 +154,7 @@ it('links to the issue forms of the configured repository, its name saying that 
         ->assertSee('Signaler un problème<span class="sr-only"> sur GitHub</span>', escape: false)
         ->assertDontSee('target="_blank"', escape: false);
 });
+
+it('ignores a parameter sent as an array', function (string $key): void {
+    $this->get("/?{$key}[]=A")->assertOk();
+})->with(['ligne', 'mode', 'arret']);
