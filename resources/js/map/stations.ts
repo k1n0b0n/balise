@@ -70,8 +70,9 @@ export function showStations(map: MapLibreMap, catalogue: StationCatalogue, befo
     let drawn = false;
     const hover = new Popup({ closeButton: false, closeOnClick: false, className: 'station-hover', offset: 8 });
     // The focus stays where it was: in the search field when the search opened it, so that a screen reader hears the
-    // status rather than a close button.
-    const popup = new Popup({ className: 'station-popup', offset: 8, maxWidth: '16rem', focusAfterOpen: false });
+    // status rather than a close button. It is closed here rather than by MapLibre's closeOnClick, which closed it again
+    // right after a click had opened it on another station.
+    const popup = new Popup({ className: 'station-popup', offset: 8, maxWidth: '16rem', focusAfterOpen: false, closeOnClick: false });
 
     function draw(stations: Station[]): void {
         if (drawn) {
@@ -139,6 +140,12 @@ export function showStations(map: MapLibreMap, catalogue: StationCatalogue, befo
         content.textContent = station.name;
         popup.setLngLat(station.coordinates).setDOMContent(content).addTo(map);
     }
+
+    map.on('click', ({ point }) => {
+        if (map.getLayer(LAYER) === undefined || map.queryRenderedFeatures(point, { layers: [LAYER] }).length === 0) {
+            popup.remove();
+        }
+    });
 
     function drawWhenClose(): void {
         if (!drawn && map.getZoom() >= STATION_ZOOM) {
