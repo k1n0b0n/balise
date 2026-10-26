@@ -39,6 +39,14 @@ return [
             'label_is_destination' => true,
         ],
 
+        // Optional (E8.1): the next departures at a stop. Read on demand, never polled.
+        'trip_updates' => [
+            'driver' => 'gtfs-rt',
+            'url' => env('TBM_TRIP_UPDATES_URL', 'https://bdx.mecatran.com/utw/ws/gtfsfeed/realtime/bordeaux?apiKey=opendata-bordeaux-metropole-flux-gtfs-rt'),
+            // How long one read answers every request, and how long a failed one is not retried.
+            'keep_seconds' => 60,
+        ],
+
         'recordings' => [
             'enabled' => (bool) env('RECORDINGS_ENABLED', false),
             // TBM empties between about 01:30 and 04:30; a night it does not (New Year's Eve) is cut here.
