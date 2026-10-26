@@ -10,6 +10,7 @@
 |---|---|---|
 | [network-on-map.md](network-on-map.md) | E7.1 stations, E7.2 line pages, no criteria yet; shapes and selection done and moved to stories 011 and 012 | Trips and stop order imported |
 | [next-departures.md](next-departures.md) | Exploring | The brief's scope, a trip updates port |
+| [journey-planner.md](journey-planner.md) | Exploring (2026-10-26): from one address to another, on the trip updates; RAPTOR prototyped | The brief's scope, a geocoder (ADR) |
 | PRD *Later* | History stages 2 and 3, PostGIS, bearing arrows, second network (E6) | — |
 
 ## Foundations shared by several ideas

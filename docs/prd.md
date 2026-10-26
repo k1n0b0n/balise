@@ -16,7 +16,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
 | **M1: Visible** | E1, E2, E3 | Public URL shows live vehicles, CI green, automated deploy |
 | **M2: As fresh as the feed** | E4, E5 | Positions on screen seconds after the provider publishes them, at a fixed cost per version; recordings and replay |
 | **M3: At the stop** | E7, E8 | Stations on the map, their next departures in real time |
-| **M4: Multi-network** | E6 | Second network added by configuration, once the features of M3 exist (decided 2026-10-26: features first, on TBM) |
+| **M4: Multi-network** | E6 | Second network added by configuration, once the features of M3 exist (decided 2026-10-26: features first, on TBM); built as a step towards a journey planner across networks ([ideas/journey-planner.md](ideas/journey-planner.md)) |
 
 ## Epics and stories
 
@@ -198,6 +198,7 @@ Replanned on 2026-10-24 ([ideas/realtime-push.md](ideas/realtime-push.md)): the 
   - [x] The page says it shows a replay, of which day, and which time of that day it shows now
 
 ### E6: Second network
+Decided on 2026-10-26: M4 comes before a journey planner, and keeps it in mind: nothing that assumes one network per page or per search where a planner would combine them ([ideas/journey-planner.md](ideas/journey-planner.md), *Where it leads*).
 - E6.1 Add a second French network through configuration only
 
 ### E7: Network on the map and in text
