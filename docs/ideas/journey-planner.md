@@ -1,6 +1,6 @@
 # Idea: a journey from one address to another
 
-- **Status:** Exploring (2026-10-26)
+- **Status:** Exploring (2026-10-26); the maintainer's order: M4 (a second network) first, built with the planner in mind, then the planner
 - **Related:** the brief's scope (timetables and trip planning out of the MVP), ADR-0001 (ports), E8.1 (trip updates port, story 034), E8.2 (departures, story 035), [next-departures.md](next-departures.md), [network-on-map.md](network-on-map.md)
 
 ## Why
