@@ -7,6 +7,23 @@
 
 The maintainer asked on 2026-10-26: from one address to another, combine the network's lines to shorten the journey, its number of changes, or both. The map shows where vehicles are and, since E8.2, when they leave a stop; a journey is the next question a rider asks.
 
+## Where it leads
+
+The maintainer's goal (2026-10-26) goes beyond one city:
+
+1. **First, one city without trains**: the network's trams, buses and boats, from one address to another. This study is about this step.
+2. **Then from one city to another**: trains (TER, Intercités, TGV) and the buses of other cities, for a whole journey across a region or the country.
+3. **An alternative: by bike with transit**: riding to a station, taking the bike on a train, a tram or a boat, never on a bus, and riding on.
+
+What the later steps change in the first one's decisions, so that it does not close their way:
+
+| Later need | Consequence for the first step |
+|---|---|
+| Several networks in one search (step 2) | Routing works on any number of networks: ids are already namespaced per network (ADR-0001), and walks between platforms are found by distance, whatever network each belongs to. A second network (M4) becomes a step towards the planner rather than a detour |
+| Trains, planned days ahead (step 2) | Trip updates only cover the coming hours: trains need the static timetables, with their calendars. The routing reads its timetable through an interface, so that "static timetables corrected by trip updates" can replace "trip updates only" without touching RAPTOR (decision 2) |
+| A region or a country (step 2) | Tens of thousands of stops and millions of stop times: RAPTOR in PHP, rebuilt each minute, would not hold. Decision 6 then leans towards an engine built for that scale (MOTIS, OpenTripPlanner), or a compiled timetable kept between requests |
+| Bikes on board (step 3) | GTFS says per trip whether bikes are allowed (`bikes_allowed`). TBM sets it only on its boats (1,556 trips allowed); its trams and buses say nothing (66,978 trips at "no information"), so a rule per mode in the network's configuration fills the gap. Riding needs a real cycling router on OpenStreetMap: the straight line will not do for a bike (decision 5) |
+
 ## What it takes
 
 | Building block | What balise has | What it would need |
@@ -91,7 +108,7 @@ Preferred: the straight line, refusing walks that cross the river (a line betwee
 | **OpenTripPlanner or MOTIS beside it** | Complete planners, GTFS and GTFS-Realtime, real footpaths | A Java or C++ service of several gigabytes on a shared server; balise would only display its answers |
 | **Navitia's API** | Covers Bordeaux already | A key, an account, and the core of the feature outside the repository |
 
-Preferred: in balise. **Against it:** an engine would answer better from the first day; building one is justified only by what the repository is for, showing readable code.
+Preferred: in balise. **Against it:** an engine would answer better from the first day; building one is justified only by what the repository is for, showing readable code. Steps 2 and 3 strengthen this case: at a country's scale, with bikes, an engine is the realistic choice, and the city-scale code would mostly be a prototype.
 
 ## Interface
 
