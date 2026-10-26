@@ -78,6 +78,15 @@
         </div>
     </header>
 
+    @if ($replayedAt !== null)
+        {{-- E5.2: never mistaken for the live network. The time follows the replay; the map module moves it on. --}}
+        <p data-replay class="border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-950">
+            Rediffusion du {{ $replayedAt->isoFormat('dddd D MMMM YYYY') }} : la carte montre le réseau de
+            <time data-replay-clock data-timezone="{{ $timezone }}" datetime="{{ $replayedAt->toIso8601String() }}">{{ $replayedAt->format('H:i') }}</time>
+            ce jour-là, décalé à l’heure actuelle.
+        </p>
+    @endif
+
     <main class="relative flex min-h-0 grow flex-col landscape:flex-row">
         <div
             wire:ignore

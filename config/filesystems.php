@@ -65,6 +65,14 @@ return [
             'report' => false,
         ],
 
+        // Recorded days downloaded and replayed locally (E5.2).
+        'replays' => [
+            'driver' => 'local',
+            'root' => storage_path('app/replays'),
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

@@ -3,4 +3,5 @@
 !public/
 !recordings/
 !recording-archives/
+!replays/
 !.gitignore

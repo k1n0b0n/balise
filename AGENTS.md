@@ -25,6 +25,7 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Import a network's lines and stops (static GTFS) | `docker compose exec php php artisan network:import tbm` |
 | Read a network's live vehicle positions once (the scheduler does it every 20 s) | `docker compose exec php php artisan network:poll tbm` |
 | Archive a network's finished service days of recordings (the scheduler does it each night when `RECORDINGS_ENABLED=true`; ADR-0022) | `docker compose exec php php artisan network:archive tbm` |
+| Replay a recorded service day locally, from a time of that day / go back to the live feed (E5.2; the archives come from the site in the repository's *Website* field, or `RECORDINGS_SOURCE_URL`) | `docker compose exec php php artisan network:replay tbm [2026-10-21] --from=12:00` / `… network:replay tbm --stop` |
 | Regenerate the GTFS-Realtime classes in `generated/` (not committed, built by setup and CI; never edit them) | `docker compose exec php sh scripts/generate-gtfs-realtime.sh` |
 | Stop / reset the database | `docker compose down` / `docker compose down -v` |
 | Create a local stand-in for a host (on the host; ADR-0020 point 9): fresh Debian 13, fresh Ubuntu 26.04, or Debian 13 with another site / remove it | `sh scripts/local-server.sh debian\|ubuntu\|shared` / `orb delete -f balise-debian` |

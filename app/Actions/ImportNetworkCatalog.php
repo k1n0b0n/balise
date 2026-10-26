@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Ingestion\CatalogLine;
+use App\Ingestion\CatalogSnapshot;
 use App\Ingestion\CatalogStop;
 use App\Ingestion\NetworkCatalogs;
 use App\Models\CatalogImport;
@@ -49,6 +50,36 @@ final readonly class ImportNetworkCatalog
             return null;
         }
 
+        $counts = $this->replace($network, $snapshot, $previous?->shapes_fingerprint);
+
+        if ($this->recordings->enabled($network)) {
+            // The catalogue is imported: a recording that cannot keep it still has the previous one.
+            try {
+                $this->recordings->keepCatalog($network, $snapshot);
+            } catch (Throwable $exception) {
+                Log::warning("Catalogue of {$network} could not be kept for the recordings.", ['exception' => $exception]);
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Replace a network's lines, stops and shapes with a catalogue already at hand: a replayed day's (E5.2). Its ETag
+     * is not the live one, so the next import downloads the live catalogue in full.
+     *
+     * @return array{lines: int, stops: int}
+     */
+    public function replaceWith(string $network, CatalogSnapshot $snapshot): array
+    {
+        return $this->replace($network, $snapshot, CatalogImport::query()->find($network)?->shapes_fingerprint);
+    }
+
+    /**
+     * @return array{lines: int, stops: int}
+     */
+    private function replace(string $network, CatalogSnapshot $snapshot, ?string $previousShapesFingerprint): array
+    {
         // Rows not touched by this run belong to lines or stops that left the feed.
         $syncId = (string) Str::uuid();
 
@@ -94,19 +125,10 @@ final readonly class ImportNetworkCatalog
             $network,
             $snapshot->shapes(),
             Line::query()->where('network', $network)->get()->map(fn (Line $line): string => $line->id)->all(),
-            $previous?->shapes_fingerprint,
+            $previousShapesFingerprint,
         );
         // The ETag is saved last: when the shapes step fails, the next run downloads the archive again.
         CatalogImport::query()->whereKey($network)->update(['etag' => $snapshot->etag(), 'shapes_fingerprint' => $fingerprint]);
-
-        if ($this->recordings->enabled($network)) {
-            // The catalogue is imported: a recording that cannot keep it still has the previous one.
-            try {
-                $this->recordings->keepCatalog($network, $snapshot);
-            } catch (Throwable $exception) {
-                Log::warning("Catalogue of {$network} could not be kept for the recordings.", ['exception' => $exception]);
-            }
-        }
 
         return $counts;
     }

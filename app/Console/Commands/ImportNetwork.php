@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\ImportNetworkCatalog;
+use App\Support\Replays;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,7 +16,7 @@ use Throwable;
 #[Description('Import the lines and stops of a network from its static catalogue')]
 final class ImportNetwork extends Command
 {
-    public function handle(ImportNetworkCatalog $import): int
+    public function handle(ImportNetworkCatalog $import, Replays $replays): int
     {
         $networks = array_keys(Config::array('networks'));
         $network = $this->argument('network');
@@ -27,7 +28,7 @@ final class ImportNetwork extends Command
         }
 
         if ($network !== null) {
-            $this->import($import, $network);
+            $this->import($import, $replays, $network);
 
             return self::SUCCESS;
         }
@@ -37,7 +38,7 @@ final class ImportNetwork extends Command
 
         foreach ($networks as $key) {
             try {
-                $this->import($import, $key);
+                $this->import($import, $replays, $key);
             } catch (Throwable $exception) {
                 report($exception);
                 $this->components->error("{$key}: {$exception->getMessage()}");
@@ -48,8 +49,16 @@ final class ImportNetwork extends Command
         return $failed ? self::FAILURE : self::SUCCESS;
     }
 
-    private function import(ImportNetworkCatalog $import, string $network): void
+    private function import(ImportNetworkCatalog $import, Replays $replays, string $network): void
     {
+        // A replay keeps its day's catalogue, so that its lines match (E5.2).
+        $replay = $replays->current($network);
+        if ($replay !== null) {
+            $this->components->info("{$network}: replaying {$replay['day']}, its catalogue is kept.");
+
+            return;
+        }
+
         $counts = $import->handle($network);
 
         if ($counts === null) {

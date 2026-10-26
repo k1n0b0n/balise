@@ -8,6 +8,8 @@ use App\Enums\TransportMode;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
+use App\Support\Replays;
+use Carbon\CarbonImmutable;
 use Collator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -19,6 +21,7 @@ final class Home extends Component
     public function render(): View
     {
         $network = (string) array_key_first(Config::array('networks'));
+        $replayedAt = app(Replays::class)->replayedAt($network, CarbonImmutable::now());
         $networkName = Config::string("networks.{$network}.name");
         $lines = $this->lines($network);
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
@@ -45,6 +48,8 @@ final class Home extends Component
             'selectedLine' => $selectedLine,
             'groups' => $this->groups($positions, $selectedLine),
             'updatedAt' => $positions->max('received_at'),
+            // E5.2: a replay says so, with the day and the time of that day it shows.
+            'replayedAt' => $replayedAt === null ? null : CarbonImmutable::createFromTimestamp($replayedAt, Config::string("networks.{$network}.timezone"))->locale('fr'),
             // What the page shows, then the site (RGAA 8.6).
         ])->title("Carte des véhicules {$networkName} en circulation - balise");
     }
