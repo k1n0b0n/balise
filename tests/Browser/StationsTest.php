@@ -27,34 +27,57 @@ it('finds a station by its name, centres the map on it and says so, without acce
         ->assertNoAccessibilityIssues(level: 3);
 });
 
-it('says when no station matches', function (): void {
+it('says when no station matches, on screen even after a station was found', function (): void {
     visit('/')
         ->assertPresent('[data-map][data-state="loaded"]')
+        ->type('#arret', 'quinconces')
+        ->keys('#arret', 'Enter')
+        ->assertScript("document.querySelector('[data-station-status]').classList.contains('sr-only')", true)
         ->type('#arret', 'nulle part')
         ->keys('#arret', 'Enter')
         ->assertSeeIn('[data-station-status]', 'Aucun arrêt ne correspond à « nulle part ».')
-        ->assertMissing('.station-popup')
+        ->assertScript("document.querySelector('[data-station-status]').classList.contains('sr-only')", false)
         ->assertNoJavaScriptErrors();
 });
 
-it('shows a suggestion as soon as it is chosen, without the button', function (): void {
+it('shows a suggestion as soon as it is chosen, without the button', function (string $event): void {
     $page = visit('/')
         ->assertPresent('[data-map][data-state="loaded"]')
         ->click('#arret')
         ->assertPresent('#arrets option[value="Gare Saint-Jean"]');
 
     // What a browser sends when a suggestion of the list replaces the text typed.
-    $page->script("const input = document.querySelector('#arret'); input.value = 'Gare Saint-Jean'; input.dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText', bubbles: true }));");
+    $page->script("const input = document.querySelector('#arret'); input.value = 'Gare Saint-Jean'; input.dispatchEvent({$event});");
 
     $page->assertSeeIn('.station-popup', 'Gare Saint-Jean')
         ->assertNoJavaScriptErrors();
-});
+})->with([
+    'Firefox' => "new InputEvent('input', { inputType: 'insertReplacementText', bubbles: true })",
+    'Chrome and Safari' => "new Event('input', { bubbles: true })",
+]);
 
-it('waits for the button when a full name is typed letter by letter', function (): void {
+it('waits for the button when a full name is typed', function (): void {
     visit('/')
         ->assertPresent('[data-map][data-state="loaded"]')
         ->click('#arret')
         ->assertPresent('#arrets option[value="Quinconces"]')
         ->type('#arret', 'Quinconces')
-        ->assertMissing('.station-popup');
+        ->assertMissing('.station-popup')
+        ->assertNoJavaScriptErrors();
+});
+
+it('opens the popup of a station clicked while another one is open', function (): void {
+    // Found by the search, Quinconces sits at the centre of the map; a click there opens it again.
+    visit('/')
+        ->assertPresent('[data-map][data-state="loaded"]')
+        ->type('#arret', 'gare')
+        ->keys('#arret', 'Enter')
+        ->assertSeeIn('.station-popup', 'Gare Saint-Jean')
+        ->type('#arret', 'quinconces')
+        ->keys('#arret', 'Enter')
+        ->assertSeeIn('.station-popup', 'Quinconces')
+        ->wait(1)
+        ->click('[data-map] canvas')
+        ->assertSeeIn('.station-popup', 'Quinconces')
+        ->assertNoJavaScriptErrors();
 });

@@ -40,15 +40,18 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
         }
     });
 
+    // Only the station found goes without saying on screen: the map shows it. The other answers are seen too.
+    const say = (text: string, visible: boolean): void => {
+        status.classList.toggle('sr-only', !visible);
+        status.textContent = text;
+    };
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         const asked = normalise(input.value);
 
-        // Only the station found goes without saying on screen: the map shows it. The other answers are seen too.
-        status.classList.remove('sr-only');
-
         if (asked === '') {
-            status.textContent = 'Saisissez le nom d’un arrêt.';
+            say('Saisissez le nom d’un arrêt.', true);
 
             return;
         }
@@ -59,7 +62,7 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
                 const found = loaded.find((station) => normalise(station.name) === asked) ?? loaded.find((station) => normalise(station.name).includes(asked));
 
                 if (found === undefined) {
-                    status.textContent = `Aucun arrêt ne correspond à « ${input.value.trim()} ».`;
+                    say(`Aucun arrêt ne correspond à « ${input.value.trim()} ».`, true);
 
                     return;
                 }
@@ -67,11 +70,10 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
                 // A station found before the map is ready waits for it.
                 void layer.then((shown) => {
                     shown.open(found);
-                    status.classList.add('sr-only');
-                    status.textContent = `Carte centrée sur l’arrêt ${found.name}.`;
+                    say(`Carte centrée sur l’arrêt ${found.name}.`, false);
                 });
             },
-            () => (status.textContent = 'La liste des arrêts n’a pas pu être chargée : réessayez plus tard.'),
+            () => say('La liste des arrêts n’a pas pu être chargée : réessayez plus tard.', true),
         );
     });
 }
