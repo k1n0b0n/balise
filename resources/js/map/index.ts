@@ -6,6 +6,8 @@ import { showLineOptions } from './line-options';
 import { LineCatalogue } from './lines';
 import { readSelection, writeSelection } from './selection';
 import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
+import { showStationSearch } from './station-search';
+import { showStations, StationCatalogue, type StationLayer } from './stations';
 import { showTextView } from './text-view';
 import { showVehicles, type VehicleLayer } from './vehicles';
 
@@ -18,6 +20,7 @@ export interface MapControls {
     textView: HTMLElement | null;
     pause: HTMLButtonElement | null;
     lineFilter: HTMLFormElement | null;
+    stationSearch: HTMLFormElement | null;
 }
 
 export interface MapOptions {
@@ -27,6 +30,7 @@ export interface MapOptions {
     vehiclesUrl: string;
     linesUrl: string;
     shapesUrl: string;
+    stationsUrl: string;
     neutralColour: string;
     refreshSeconds: number;
 }
@@ -69,6 +73,10 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
 
     let vehicles: Vehicle[] = [];
     let layer: VehicleLayer | null = null;
+    // E7.1: stations, drawn from street level and found by the search.
+    const stations = new StationCatalogue(options.stationsUrl);
+    let stationLayerReady: (layer: StationLayer) => void = () => undefined;
+    const stationLayer = new Promise<StationLayer>((resolve) => (stationLayerReady = resolve));
     let shapeLayer: ShapeLayer | null = null;
     let shapes: Shapes | null = null;
     let shapesRequested = false;
@@ -102,6 +110,10 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
                       layer.open(id);
                   }
               });
+
+    if (controls.stationSearch !== null) {
+        showStationSearch(controls.stationSearch, stations, stationLayer);
+    }
 
     function redraw(): void {
         if (!lines.settled) {
@@ -221,6 +233,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         container.dataset.state = 'loaded';
         shapeLayer = showShapes(map, lines, options.neutralColour);
         layer = showVehicles(map, lines, options.neutralColour, select);
+        stationLayerReady(showStations(map, stations, 'vehicles'));
         redraw();
 
         if (shapes !== null) {

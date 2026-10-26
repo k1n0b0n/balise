@@ -8,6 +8,7 @@ use App\Enums\TransportMode;
 use App\Ingestion\CatalogLine;
 use App\Ingestion\CatalogShape;
 use App\Ingestion\CatalogSnapshot;
+use App\Ingestion\CatalogStation;
 use App\Ingestion\CatalogStop;
 use Generator;
 use RuntimeException;
@@ -72,7 +73,34 @@ final class GtfsArchive implements CatalogSnapshot
                 continue;
             }
 
+            $parent = $stop['parent_station'] ?? '';
+
             yield new CatalogStop(
+                id: $this->id($stop['stop_id']),
+                name: $stop['stop_name'],
+                latitude: (float) $stop['stop_lat'],
+                longitude: (float) $stop['stop_lon'],
+                stationId: $this->id($parent === '' ? $stop['stop_id'] : $parent),
+            );
+        }
+    }
+
+    /**
+     * Stations (`location_type` 1), and the platforms without a `parent_station`, which riders find as stations too.
+     *
+     * @return Generator<CatalogStation>
+     */
+    public function stations(): Generator
+    {
+        foreach ($this->rows('stops.txt') as $stop) {
+            $type = $stop['location_type'] ?? '';
+            $standalone = in_array($type, ['', '0'], true) && ($stop['parent_station'] ?? '') === '';
+
+            if ($type !== '1' && ! $standalone) {
+                continue;
+            }
+
+            yield new CatalogStation(
                 id: $this->id($stop['stop_id']),
                 name: $stop['stop_name'],
                 latitude: (float) $stop['stop_lat'],

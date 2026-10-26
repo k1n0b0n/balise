@@ -6,10 +6,12 @@ namespace App\Actions;
 
 use App\Ingestion\CatalogLine;
 use App\Ingestion\CatalogSnapshot;
+use App\Ingestion\CatalogStation;
 use App\Ingestion\CatalogStop;
 use App\Ingestion\NetworkCatalogs;
 use App\Models\CatalogImport;
 use App\Models\Line;
+use App\Models\Station;
 use App\Models\Stop;
 use App\Support\FeedRecordings;
 use App\Support\NetworkShapes;
@@ -41,8 +43,10 @@ final readonly class ImportNetworkCatalog
         $previous = CatalogImport::query()->find($network, ['network', 'etag', 'shapes_fingerprint']);
         // Without shapes (first import since E3.8 or since they moved to the database, a failed shapes step, shapes
         // lost), the archive is downloaded again, even if unchanged.
-        // Recordings without their catalogue (the first import since they were turned on), likewise (E5.1).
+        // Recordings without their catalogue (the first import since they were turned on), likewise (E5.1), and a
+        // network without stations (the first import since E7.1).
         $unchangedIfSame = $previous?->shapes_fingerprint !== null && $this->shapes->has($network)
+            && Station::query()->where('network', $network)->exists()
             && (! $this->recordings->enabled($network) || $this->recordings->hasCatalog($network));
         $snapshot = $this->catalogs->for($network)->fetch($unchangedIfSame ? $previous->etag : null);
 
@@ -106,11 +110,22 @@ final readonly class ImportNetworkCatalog
                 'name' => $stop->name,
                 'latitude' => $stop->latitude,
                 'longitude' => $stop->longitude,
+                'station_id' => $stop->stationId,
+                'sync_id' => $syncId,
+            ]);
+
+            $this->upsert(Station::class, $snapshot->stations(), fn (CatalogStation $station): array => [
+                'id' => $station->id,
+                'network' => $network,
+                'name' => $station->name,
+                'latitude' => $station->latitude,
+                'longitude' => $station->longitude,
                 'sync_id' => $syncId,
             ]);
 
             Line::query()->where('network', $network)->where('sync_id', '!=', $syncId)->delete();
             Stop::query()->where('network', $network)->where('sync_id', '!=', $syncId)->delete();
+            Station::query()->where('network', $network)->where('sync_id', '!=', $syncId)->delete();
 
             CatalogImport::query()->updateOrCreate(
                 ['network' => $network],

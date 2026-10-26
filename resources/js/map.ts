@@ -9,6 +9,7 @@ if (container !== null) {
         textView: document.querySelector<HTMLElement>('[data-text-view]'),
         pause: document.querySelector<HTMLButtonElement>('[data-pause]'),
         lineFilter: document.querySelector<HTMLFormElement>('[data-line-filter]'),
+        stationSearch: document.querySelector<HTMLFormElement>('[data-station-search]'),
     };
 
     mountMap(container, controls, {
@@ -18,6 +19,7 @@ if (container !== null) {
         vehiclesUrl: container.dataset.vehiclesUrl ?? '',
         linesUrl: container.dataset.linesUrl ?? '',
         shapesUrl: container.dataset.shapesUrl ?? '',
+        stationsUrl: container.dataset.stationsUrl ?? '',
         neutralColour: container.dataset.neutralColour ?? '#4B5563',
         refreshSeconds: Number(container.dataset.refresh ?? 20),
     });

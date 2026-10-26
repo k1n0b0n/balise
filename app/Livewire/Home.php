@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Enums\TransportMode;
 use App\Models\Line;
+use App\Models\Station;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
 use App\Support\Replays;
@@ -14,6 +15,7 @@ use Collator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 final class Home extends Component
@@ -30,8 +32,13 @@ final class Home extends Component
         $mode = TransportMode::tryFrom(request()->string('mode')->toString());
         $running = $this->lineOptions($lines, $positions, $selectedLine);
 
+        $stationQuery = request()->string('arret')->squish()->toString();
+
         return view('livewire.home', [
             'network' => $network,
+            // E7.1: the station search without JavaScript.
+            'stationQuery' => $stationQuery,
+            'stationResults' => $stationQuery === '' ? collect() : $this->stations($network, $stationQuery),
             'networkName' => $networkName,
             'timezone' => Config::string("networks.{$network}.timezone"),
             'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
@@ -124,6 +131,24 @@ final class Home extends Component
             ->where('network', $network)
             ->get()
             ->sort(fn (Line $a, Line $b): int => $modes[$a->mode->value] <=> $modes[$b->mode->value] ?: strnatcasecmp($a->short_name, $b->short_name))
+            ->values();
+    }
+
+    /**
+     * The stations whose name contains what was asked, accents and case ignored, the exact names first; at most 20.
+     *
+     * @return Collection<int, Station>
+     */
+    private function stations(string $network, string $asked): Collection
+    {
+        $normalise = fn (string $name): string => Str::lower(Str::ascii($name));
+        $asked = $normalise($asked);
+
+        return Station::query()->where('network', $network)->orderBy('name')->get(['id', 'name'])
+            ->filter(fn (Station $station): bool => str_contains($normalise($station->name), $asked))
+            ->sortBy(fn (Station $station): int => $normalise($station->name) === $asked ? 0 : 1)
+            ->unique('name')
+            ->take(20)
             ->values();
     }
 

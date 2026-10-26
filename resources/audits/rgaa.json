@@ -346,7 +346,7 @@
             "title": "Chaque script est-il contrôlable par le clavier et par tout dispositif de pointage (hors cas particuliers) ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Everything done with the pointer is available with the keyboard: the text view opens each vehicle's popup, the selectors and buttons are native controls, the focused map moves with the arrow keys and zooms with + and -.",
+            "note": "Everything done with the pointer is available with the keyboard: the text view opens each vehicle's popup, the station search centres the map on a station and opens its popup (E7.1), the selectors and buttons are native controls, the focused map moves with the arrow keys and zooms with + and -.",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -362,7 +362,7 @@
             "title": "Dans chaque page web, les messages de statut sont-ils correctement restitués par les technologies d’assistance ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "One live region, role status, worded to the minute (\"Mis à jour à 21:25\"), written only when its text changes (story 009).",
+            "note": "Two live regions, role status: the update time, worded to the minute (\"Mis à jour à 21:25\"), written only when its text changes (story 009); the station search's outcome (\"Carte centrée sur l’arrêt Quinconces.\", \"Aucun arrêt ne correspond à « … ».\"), written once per search (E7.1).",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -594,7 +594,7 @@
             "title": "Chaque champ de formulaire a-t-il une étiquette ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "The two selectors have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\".",
+            "note": "The two selectors and the station search have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\", \"Arrêt\".",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -602,7 +602,7 @@
             "title": "Chaque étiquette associée à un champ de formulaire est-elle pertinente (hors cas particuliers) ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "The two selectors have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\".",
+            "note": "The two selectors and the station search have visible labels tied by for/id, beside them: \"Mode\", \"Ligne\", \"Arrêt\".",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -658,7 +658,7 @@
             "title": "Dans chaque formulaire, l’intitulé de chaque bouton est-il pertinent (hors cas particuliers) ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Buttons: \"Afficher la ligne\", \"Pause des mises à jour\", \"Liste des véhicules\", \"Fermer la liste des véhicules\", and each vehicle's name and \"afficher sur la carte\".",
+            "note": "Buttons: \"Afficher la ligne\", \"Chercher l’arrêt\", \"Pause des mises à jour\", \"Liste des véhicules\", \"Fermer la liste des véhicules\", and each vehicle's name and \"afficher sur la carte\".",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -666,7 +666,7 @@
             "title": "Dans chaque formulaire, le contrôle de saisie est-il utilisé de manière pertinente (hors cas particuliers) ?",
             "carte": "NA",
             "carte-ligne": "NA",
-            "note": "No input checked: two selectors whose every value is valid.",
+            "note": "No input checked: two selectors whose every value is valid, and a station search that takes any text; a search that matches nothing or is empty is answered in its status, not treated as an error (E7.1).",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -738,7 +738,7 @@
             "title": "Les zones de regroupement de contenus présentes dans plusieurs pages web (zones d’en-tête, de navigation principale, de contenu principal, de pied de page et de moteur de recherche) peuvent-elles être atteintes ou évitées ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Every page has header, main and footer landmarks; the map page's text view is a section named by its heading.",
+            "note": "Every page has header, main and footer landmarks; the station search is a form with role search; the map page's text view is a section named by its heading.",
             "accessibilite": "C",
             "ecoconception": "C"
         },
@@ -754,7 +754,7 @@
             "title": "Dans chaque page web, l’ordre de tabulation est-il cohérent ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Tab order follows the reading order on every page: on the map page, skip link, mode, line, Pause, map, zoom, credits, the vehicles, then the footer; no positive tabindex.",
+            "note": "Tab order follows the reading order on every page: on the map page, skip link, mode, line, station, Chercher, Pause, map, zoom, credits, the vehicles, then the footer; no positive tabindex.",
             "accessibilite": "C",
             "ecoconception": "C"
         },
