@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-16
 - **Amended:** 2026-10-16, during E2.2: the proto is converted to proto3 before generation; generated classes are built, not committed
+- **Amended:** 2026-10-26: point 1 superseded by ADR-0023, the C extension in every PHP image
 
 ## Context
 
