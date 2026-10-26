@@ -65,14 +65,16 @@ export interface StationLayer {
 
 /**
  * Draws the stations under `beforeLayer` once the map reaches a street zoom; their name on hover, in a popup on click.
+ * `onToggle` hears which station's popup is open, or that none is.
  */
-export function showStations(map: MapLibreMap, catalogue: StationCatalogue, beforeLayer: string): StationLayer {
+export function showStations(map: MapLibreMap, catalogue: StationCatalogue, beforeLayer: string, onToggle: (station: Station | null) => void): StationLayer {
     let drawn = false;
     const hover = new Popup({ closeButton: false, closeOnClick: false, className: 'station-hover', offset: 8 });
     // The focus stays where it was: in the search field when the search opened it, so that a screen reader hears the
     // status rather than a close button. It is closed here rather than by MapLibre's closeOnClick, which closed it again
     // right after a click had opened it on another station.
     const popup = new Popup({ className: 'station-popup', offset: 8, maxWidth: '16rem', focusAfterOpen: false, closeOnClick: false });
+    popup.on('close', () => onToggle(null));
 
     function draw(stations: Station[]): void {
         if (drawn) {
@@ -139,6 +141,7 @@ export function showStations(map: MapLibreMap, catalogue: StationCatalogue, befo
         content.className = 'font-semibold';
         content.textContent = station.name;
         popup.setLngLat(station.coordinates).setDOMContent(content).addTo(map);
+        onToggle(station);
     }
 
     map.on('click', ({ point }) => {

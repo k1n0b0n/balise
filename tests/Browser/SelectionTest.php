@@ -42,7 +42,6 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->select('#ligne', 'B')
         ->assertScript('location.search', '?ligne=B')
         ->assertMissing('[role="dialog"]')
-        ->assertPresent('[data-map][data-followed=""]')
         // The button next to the selector deselects the line; the focus goes back to the selector.
         // The cross is hidden from assistive technologies: the link's name says what it does.
         ->assertPresent('internal:role=link[name=/^ ?Désélectionner la ligne B$/]')
@@ -59,7 +58,7 @@ it('highlights the selected line, without reloading or hiding the others, and ke
         ->assertNoJavaScriptErrors();
 });
 
-it('follows the chosen vehicle until the map is moved by hand, and reopens it from the URL', function (): void {
+it('selects the chosen vehicle and its line, and reopens it from the URL', function (): void {
     Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
     VehiclePosition::query()->create([
         'vehicle_id' => 'tbm:1234', 'network' => 'tbm', 'latitude' => 44.84, 'longitude' => -0.57,
@@ -69,14 +68,10 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
     visit('/')
         ->assertPresent('[data-map][data-vehicle-count="1"]')
         ->keys('[data-vehicle="tbm:1234"] button', 'Enter')
-        ->assertPresent('[data-map][data-followed="tbm:1234"]')
         // Choosing a vehicle selects its line.
         ->assertScript('location.search', '?ligne=A&vehicule=1234')
         ->assertScript("document.querySelector('#ligne').value", 'A')
         ->assertScript("document.querySelector('[data-map]').dataset.highlightedLine", 'tbm:A')
-        ->keys('[data-map] canvas', 'ArrowRight')
-        ->assertPresent('[data-map][data-followed=""]')
-        // Still selected: the popup stays open and the URL keeps the vehicle.
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
         // Closing the popup ends the selection of the vehicle and of its line.
         ->keys('[role="dialog"] button', 'Escape')
@@ -87,7 +82,6 @@ it('follows the chosen vehicle until the map is moved by hand, and reopens it fr
 
     visit('/?vehicule=1234')
         ->assertPresent('[role="dialog"][aria-label="Véhicule 1234"]')
-        ->assertPresent('[data-map][data-followed="tbm:1234"]')
         ->assertNoJavaScriptErrors();
 });
 

@@ -7,7 +7,8 @@ import { LineCatalogue } from './lines';
 import { readSelection, writeSelection } from './selection';
 import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
 import { showStationSearch } from './station-search';
-import { showStations, StationCatalogue, type StationLayer } from './stations';
+import { RecentreControl } from './recentre';
+import { showStations, StationCatalogue, type Station, type StationLayer } from './stations';
 import { showTextView } from './text-view';
 import { showVehicles, type VehicleLayer } from './vehicles';
 
@@ -68,6 +69,17 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     });
 
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+    // The vehicle or station whose popup was opened last, while open: what the recentre button brings back.
+    let openStation: Station | null = null;
+    let lastOpened: 'vehicle' | 'station' | null = null;
+    const recentre = new RecentreControl(() => {
+        const vehicle = selectedVehicle === null ? undefined : vehicles.find((candidate) => candidate.id === selectedVehicle?.id);
+        const vehicleTarget = vehicle === undefined ? null : { label: `le véhicule ${displayId(vehicle)}`, coordinates: [vehicle.longitude, vehicle.latitude] as [number, number] };
+        const stationTarget = openStation === null ? null : { label: `l’arrêt ${openStation.name}`, coordinates: openStation.coordinates };
+
+        return lastOpened === 'station' ? (stationTarget ?? vehicleTarget) : (vehicleTarget ?? stationTarget);
+    });
+    map.addControl(recentre, 'top-right');
     // The style's credits are in English ("Data from OpenStreetMap"); MapLibre rewrites their text, not this element (RGAA 8.7).
     container.querySelector('.maplibregl-ctrl-attrib-inner')?.setAttribute('lang', 'en');
 
@@ -88,8 +100,6 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     let fitPending = selection.line !== null;
     let reopenPending = selection.vehicle;
     let selectedVehicle: Vehicle | null = null;
-    // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
-    let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
     const modeSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="mode"]') ?? null;
     const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
@@ -183,7 +193,8 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup ends both.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
-        follow(vehicle?.id ?? null);
+        lastOpened = vehicle === null ? lastOpened : 'vehicle';
+        recentre.refresh();
         selection = { line: vehicle === null ? null : (lines.get(vehicle.lineId)?.shortName ?? null), vehicle: vehicle === null ? null : displayId(vehicle) };
         changed();
     }
@@ -214,26 +225,18 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         }
     }
 
-    function follow(id: string | null): void {
-        followed = id;
-        // Lets browser tests know which vehicle the map follows.
-        container.dataset.followed = id ?? '';
-    }
-
-    // Dragging or panning with the arrow keys stops following; zooming keeps the vehicle in the centre.
-    map.on('dragstart', () => follow(null));
-    map.on('movestart', ({ originalEvent }) => {
-        if (originalEvent instanceof KeyboardEvent && originalEvent.key.startsWith('Arrow')) {
-            follow(null);
-        }
-    });
-
     // Lets pages and browser tests know the basemap actually rendered.
     map.once('load', () => {
         container.dataset.state = 'loaded';
         shapeLayer = showShapes(map, lines, options.neutralColour);
         layer = showVehicles(map, lines, options.neutralColour, select);
-        stationLayerReady(showStations(map, stations, 'vehicles'));
+        stationLayerReady(
+            showStations(map, stations, 'vehicles', (station) => {
+                openStation = station;
+                lastOpened = station === null ? lastOpened : 'station';
+                recentre.refresh();
+            }),
+        );
         redraw();
 
         if (shapes !== null) {
@@ -260,17 +263,9 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
                 }
             });
         }
-        // Only on new positions, and for a vehicle followed before them: a vehicle opened by this redraw, from the URL,
-        // is being zoomed to, and recentring would cancel that, as it would cancel a fit.
-        const following = followed;
         lines.ensure(next.map((vehicle) => vehicle.lineId));
         redraw();
         textView?.updated(new Date());
-
-        const vehicle = following === null || following !== followed ? undefined : next.find((candidate) => candidate.id === following);
-        if (vehicle !== undefined) {
-            map.easeTo({ center: [vehicle.longitude, vehicle.latitude] });
-        }
     });
 
     // The form works without JavaScript by reloading the page with its button; here a choice applies at once.
@@ -290,7 +285,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;
-            // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
+            // A vehicle of another line is no longer selected: closing its popup ends its selection.
             if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== line) {
                 layer?.close();
             }

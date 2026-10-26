@@ -530,7 +530,7 @@
             "title": "Dans chaque page web, pour chaque élément recevant le focus, la prise de focus est-elle visible ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "A 3 px blue-800 outline on every :focus-visible element, the map's canvas included (resources/css/app.css).",
+            "note": "A 3 px blue-800 outline on every :focus-visible element, the map's canvas included (resources/css/app.css). An open vehicle popup holding the focus can be driven out of view by its vehicle, since the map no longer moves (E3.4): the focus stays in it, Escape closes it, and the recentre button under the zoom brings it back.",
             "accessibilite": "C",
             "ecoconception": "C"
         },
@@ -842,7 +842,7 @@
             "title": "Dans chaque page web, chaque contenu en mouvement ou clignotant est-il contrôlable par l’utilisateur ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Vehicles move on each update: the Pause button stops them, and the map never moves by itself except to follow a vehicle the user chose.",
+            "note": "Vehicles move on each update: the Pause button stops them, and the map never moves by itself: only the user's choice of a line, a vehicle or a station, or the recentre button, moves it.",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
