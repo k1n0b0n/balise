@@ -30,9 +30,22 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
 
     input.addEventListener('focus', () => void load().catch(() => undefined), { once: true });
 
+    // A suggestion chosen shows its station at once, without the button. Browsers report the choice as a replacement
+    // of the text (or, for some, as an input event without a type); typing the same name letter by letter does not.
+    input.addEventListener('input', (event) => {
+        const chosen = !(event instanceof InputEvent) || event.inputType === 'insertReplacementText';
+
+        if (chosen && stations.some((station) => station.name === input.value)) {
+            form.requestSubmit();
+        }
+    });
+
     form.addEventListener('submit', (event) => {
         event.preventDefault();
         const asked = normalise(input.value);
+
+        // Only the station found goes without saying on screen: the map shows it. The other answers are seen too.
+        status.classList.remove('sr-only');
 
         if (asked === '') {
             status.textContent = 'Saisissez le nom d’un arrêt.';
@@ -54,6 +67,7 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
                 // A station found before the map is ready waits for it.
                 void layer.then((shown) => {
                     shown.open(found);
+                    status.classList.add('sr-only');
                     status.textContent = `Carte centrée sur l’arrêt ${found.name}.`;
                 });
             },

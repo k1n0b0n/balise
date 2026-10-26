@@ -16,7 +16,9 @@ it('finds a station by its name, centres the map on it and says so, without acce
         ->assertPresent('[data-map][data-state="loaded"]')
         ->type('#arret', 'quinconces')
         ->keys('#arret', 'Enter')
-        ->assertSeeIn('[data-station-status]', 'Carte centrée sur l’arrêt Quinconces.')
+        // Said to screen readers only: on screen, the map and the popup show it.
+        ->assertScript("document.querySelector('[data-station-status]').textContent", 'Carte centrée sur l’arrêt Quinconces.')
+        ->assertScript("document.querySelector('[data-station-status]').classList.contains('sr-only')", true)
         ->assertPresent('[data-map][data-station-count="2"]')
         ->assertSeeIn('.station-popup', 'Quinconces')
         // The focus stays in the field, so that the status is what a screen reader says.
@@ -33,4 +35,26 @@ it('says when no station matches', function (): void {
         ->assertSeeIn('[data-station-status]', 'Aucun arrêt ne correspond à « nulle part ».')
         ->assertMissing('.station-popup')
         ->assertNoJavaScriptErrors();
+});
+
+it('shows a suggestion as soon as it is chosen, without the button', function (): void {
+    $page = visit('/')
+        ->assertPresent('[data-map][data-state="loaded"]')
+        ->click('#arret')
+        ->assertPresent('#arrets option[value="Gare Saint-Jean"]');
+
+    // What a browser sends when a suggestion of the list replaces the text typed.
+    $page->script("const input = document.querySelector('#arret'); input.value = 'Gare Saint-Jean'; input.dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText', bubbles: true }));");
+
+    $page->assertSeeIn('.station-popup', 'Gare Saint-Jean')
+        ->assertNoJavaScriptErrors();
+});
+
+it('waits for the button when a full name is typed letter by letter', function (): void {
+    visit('/')
+        ->assertPresent('[data-map][data-state="loaded"]')
+        ->click('#arret')
+        ->assertPresent('#arrets option[value="Quinconces"]')
+        ->type('#arret', 'Quinconces')
+        ->assertMissing('.station-popup');
 });
