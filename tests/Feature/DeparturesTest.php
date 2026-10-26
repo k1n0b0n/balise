@@ -11,9 +11,11 @@ use App\Support\Departures;
 use App\Support\Replays;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Transit_realtime\FeedEntity;
 use Transit_realtime\FeedHeader;
@@ -24,6 +26,7 @@ use Transit_realtime\TripUpdate;
 use Transit_realtime\TripUpdate\StopTimeEvent;
 use Transit_realtime\TripUpdate\StopTimeUpdate;
 use Transit_realtime\TripUpdate\StopTimeUpdate\ScheduleRelationship as StopRelationship;
+use Transit_realtime\TripUpdate\TripProperties;
 use Transit_realtime\VehicleDescriptor;
 
 beforeEach(function (): void {
@@ -41,13 +44,16 @@ beforeEach(function (): void {
  * A trip updates payload. Each trip: its id, line, status, vehicle, and its stops as [stop id, departure in minutes
  * from now or null, skipped].
  *
- * @param  list<array{id: string, route?: string, status?: int, vehicle?: string, stops: list<array{0: string, 1: ?int, 2?: bool}>}>  $trips
+ * @param  list<array{id: string, route?: string, status?: int, vehicle?: string, copy?: string, stops: list<array{0: string, 1: ?int, 2?: bool}>}>  $trips
  */
 function tripUpdates(array $trips): string
 {
     $now = CarbonImmutable::now();
     $entities = array_map(function (array $trip) use ($now): FeedEntity {
         $update = (new TripUpdate)->setTrip((new TripDescriptor)->setTripId($trip['id'])->setRouteId($trip['route'] ?? '')->setScheduleRelationship($trip['status'] ?? TripRelationship::SCHEDULED));
+        if (isset($trip['copy'])) {
+            $update->setTripProperties((new TripProperties)->setTripId($trip['copy']));
+        }
         if (isset($trip['vehicle'])) {
             $update->setVehicle((new VehicleDescriptor)->setId($trip['vehicle']));
         }
@@ -81,9 +87,12 @@ it('reads trips, their status and their times at each stop, ids namespaced (E8.1
         ['id' => 'T1', 'route' => 'A', 'vehicle' => 'bus-1', 'stops' => [['QUIN_A', 3], ['GARE', null], ['QUIN_B', 9, true]]],
         ['id' => 'T2', 'status' => TripRelationship::CANCELED, 'stops' => []],
         ['id' => 'T3', 'status' => TripRelationship::ADDED, 'stops' => []],
+        // Riders should not see a deleted trip; a duplicated one runs under the id of its properties.
+        ['id' => 'T4', 'status' => TripRelationship::DELETED, 'stops' => []],
+        ['id' => 'T5', 'status' => TripRelationship::DUPLICATED, 'copy' => 'T5-bis', 'stops' => []],
     ]));
 
-    [$first, $cancelled, $added] = $snapshot->trips;
+    [$first, $cancelled, $added, $duplicated] = $snapshot->trips;
     expect($first->tripId)->toBe('tbm:T1')
         ->and($first->lineId)->toBe('tbm:A')
         ->and($first->vehicleId)->toBe('tbm:bus-1')
@@ -95,6 +104,8 @@ it('reads trips, their status and their times at each stop, ids namespaced (E8.1
         ])
         ->and($cancelled->status)->toBe(TripStatus::Cancelled)
         ->and($added->status)->toBe(TripStatus::Added)
+        ->and($snapshot->trips)->toHaveCount(4)
+        ->and([$duplicated->tripId, $duplicated->status])->toBe(['tbm:T5-bis', TripStatus::Added])
         ->and($snapshot->publishedAt?->getTimestamp())->toBe(CarbonImmutable::now()->getTimestamp());
 });
 
@@ -146,4 +157,13 @@ it('logs a failed read, answers no data and waits a minute before trying again',
 
     Http::assertSentCount(1);
     Log::shouldHaveReceived('warning')->withArgs(fn (string $message): bool => $message === 'Trip updates of tbm could not be read.');
+});
+
+it('answers no data rather than wait more than 20 s for another read', function (): void {
+    Sleep::fake(syncWithCarbon: true);
+    Http::fake();
+    Cache::lock('trip-updates:tbm:read', 30)->get();
+
+    expect(departuresAtQuinconces())->toBeNull();
+    Http::assertNothingSent();
 });

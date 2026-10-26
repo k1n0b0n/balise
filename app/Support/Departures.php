@@ -10,6 +10,7 @@ use App\Ingestion\TripUpdateFeedSnapshot;
 use App\Models\Station;
 use App\Models\Stop;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
@@ -43,7 +44,7 @@ final readonly class Departures
 
         foreach (Cache::many($keys) as $rows) {
             foreach (is_array($rows) ? $rows : [] as $row) {
-                $departure = $this->departure($row);
+                $departure = is_array($row) ? $this->departure($row) : null;
 
                 if ($departure !== null && $departure->time->getTimestamp() >= $now->getTimestamp()) {
                     $departures[] = $departure;
@@ -71,12 +72,16 @@ final readonly class Departures
         $version = Cache::get($current);
 
         if ($version === null) {
-            // One download at a time: the others wait for it, then read what it kept.
-            $version = Cache::lock("trip-updates:{$network}:read", 30)->block(20, function () use ($current, $network, $feed): string {
-                $kept = Cache::get($current);
+            // One download at a time: the others wait for it, then read what it kept; past 20 s, they answer no data.
+            try {
+                $version = Cache::lock("trip-updates:{$network}:read", 30)->block(20, function () use ($current, $network, $feed): string {
+                    $kept = Cache::get($current);
 
-                return is_string($kept) ? $kept : $this->read($network, $feed->fetch(...));
-            });
+                    return is_string($kept) ? $kept : $this->read($network, $feed->fetch(...));
+                });
+            } catch (LockTimeoutException) {
+                return null;
+            }
         }
 
         // An empty version is a failed read, not retried before it expires.
@@ -121,10 +126,12 @@ final readonly class Departures
 
     /**
      * A departure kept by `read()`, or null for anything else the cache may hold under that key.
+     *
+     * @param  array<mixed>  $row  [time (epoch seconds), stop id, trip id, trip status, skipped, line id, vehicle id]
      */
-    private function departure(mixed $row): ?Departure
+    private function departure(array $row): ?Departure
     {
-        if (! is_array($row) || count($row) !== 7) {
+        if (count($row) !== 7) {
             return null;
         }
 

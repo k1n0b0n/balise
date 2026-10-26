@@ -25,6 +25,11 @@ use UnexpectedValueException;
  */
 final readonly class GtfsRealtimeTripUpdateFeed implements TripUpdateFeed
 {
+    /**
+     * TBM's feed weighs 2.7 MB at midday: a body ten times larger is not a feed to decode in a web request.
+     */
+    public const int MAX_BYTES = 30_000_000;
+
     public function __construct(
         private string $network,
         private string $url,
@@ -37,8 +42,15 @@ final readonly class GtfsRealtimeTripUpdateFeed implements TripUpdateFeed
             throw new RuntimeException('Reading trip updates needs the protobuf extension (ADR-0023).');
         }
 
-        // The producer ignores If-None-Match on this feed (measured 2026-10-25): every read is a full answer.
-        $payload = $this->http->connectTimeout(5)->timeout(15)->get($this->url)->throw()->body();
+        // The producer ignores If-None-Match on this feed (measured 2026-10-25): every read is a full answer. The
+        // download stops past the limit, rather than buffer whatever comes.
+        $payload = $this->http->connectTimeout(5)->timeout(15)
+            ->withOptions(['progress' => function (int $expected, int $received): void {
+                if (max($expected, $received) > self::MAX_BYTES) {
+                    throw new UnexpectedValueException('The trip updates feed is larger than '.self::MAX_BYTES.' bytes.');
+                }
+            }])
+            ->get($this->url)->throw()->body();
 
         return $this->decode($payload);
     }
@@ -56,9 +68,19 @@ final readonly class GtfsRealtimeTripUpdateFeed implements TripUpdateFeed
 
         foreach ($feed->getEntity() as $entity) {
             $update = $entity->getTripUpdate();
-            $tripId = $update?->getTrip()?->getTripId();
 
-            if ($update !== null && $tripId !== null && $tripId !== '') {
+            if ($update === null) {
+                continue;
+            }
+
+            $relationship = $update->getTrip()?->getScheduleRelationship();
+            // A duplicated trip runs under the new id of its properties; the descriptor names the trip it copies.
+            $tripId = $relationship === TripRelationship::DUPLICATED
+                ? $update->getTripProperties()?->getTripId()
+                : $update->getTrip()?->getTripId();
+
+            // A deleted trip is one riders should not see at all, unlike a cancelled one.
+            if ($tripId !== null && $tripId !== '' && $relationship !== TripRelationship::DELETED) {
                 $trips[] = $this->trip($update, $tripId);
             }
         }
@@ -81,7 +103,7 @@ final readonly class GtfsRealtimeTripUpdateFeed implements TripUpdateFeed
         return new TripUpdate(
             tripId: $this->id($tripId),
             status: match ($update->getTrip()?->getScheduleRelationship()) {
-                TripRelationship::CANCELED, TripRelationship::DELETED => TripStatus::Cancelled,
+                TripRelationship::CANCELED => TripStatus::Cancelled,
                 TripRelationship::ADDED, TripRelationship::PBNEW, TripRelationship::UNSCHEDULED, TripRelationship::DUPLICATED => TripStatus::Added,
                 default => TripStatus::Scheduled,
             },
