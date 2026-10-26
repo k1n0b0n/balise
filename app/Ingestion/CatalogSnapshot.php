@@ -34,6 +34,13 @@ interface CatalogSnapshot
     public function stations(): iterable;
 
     /**
+     * The trips, for the destination their vehicles display (E8.2).
+     *
+     * @return iterable<CatalogTrip>
+     */
+    public function trips(): iterable;
+
+    /**
      * Empty when the source draws no shapes.
      *
      * @return iterable<CatalogShape>

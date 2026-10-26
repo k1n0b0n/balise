@@ -34,6 +34,8 @@ export interface MapOptions {
     stationsUrl: string;
     neutralColour: string;
     refreshSeconds: number;
+    // The network's, for the times of departures (E8.2).
+    timeZone: string;
 }
 
 const FRANCE: LngLatBoundsLike = [
@@ -235,7 +237,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
                 openStation = station;
                 lastOpened = station === null ? lastOpened : 'station';
                 recentre.refresh();
-            }),
+            }, options.timeZone),
         );
         redraw();
 

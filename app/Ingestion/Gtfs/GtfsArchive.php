@@ -10,6 +10,7 @@ use App\Ingestion\CatalogShape;
 use App\Ingestion\CatalogSnapshot;
 use App\Ingestion\CatalogStation;
 use App\Ingestion\CatalogStop;
+use App\Ingestion\CatalogTrip;
 use Generator;
 use RuntimeException;
 use ZipArchive;
@@ -105,6 +106,22 @@ final class GtfsArchive implements CatalogSnapshot
                 name: $stop['stop_name'],
                 latitude: (float) $stop['stop_lat'],
                 longitude: (float) $stop['stop_lon'],
+            );
+        }
+    }
+
+    /**
+     * @return Generator<CatalogTrip>
+     */
+    public function trips(): Generator
+    {
+        foreach ($this->rows('trips.txt') as $trip) {
+            $headsign = $trip['trip_headsign'] ?? '';
+
+            yield new CatalogTrip(
+                id: $this->id($trip['trip_id']),
+                lineId: $this->id($trip['route_id']),
+                headsign: $headsign === '' ? null : $headsign,
             );
         }
     }

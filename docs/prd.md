@@ -219,13 +219,13 @@ In M3; E8.1's criteria validated on 2026-10-26, its decoding decided by ADR-0023
   - [x] Read on demand only, kept a minute, one download at a time per network; a failed read is logged and answered as no data
   - [x] The departures of a station: its platforms' stop times from now on, in time order, with the line, the trip's status and whether the stop is skipped; tests from small payloads built with the generated classes
   - [x] Measured on the live TBM feed and noted in the story: download, decoding, memory, and the size of what is kept
-- E8.2 The next departures in the station's popup (criteria validated on 2026-10-26)
-  - [ ] The popup of a station, opened by a click or by the search (E7.1), lists its next departures, grouped by line then destination like the text view (E3.7): "dans 3 min", then the time beyond an hour; each station on its own, never merged with another of the same name (one per direction for most bus stops)
-  - [ ] Cancelled trips and skipped stops are not shown: TBM gives them no time (story 034)
-  - [ ] The destination is the trip's `trip_headsign`, imported with the catalogue (`trips.txt`: id, line, headsign); a trip absent from it (unplanned `nt_` trips) takes the name of its last stop in the trip update
-  - [ ] `/api/networks/{network}/stations/{station}/departures` answers JSON, cached like the positions; the popup reads it when it opens and every minute while it stays open
-  - [ ] "Pas de données temps réel" when there is no feed to read (night, failure, replay), "Aucun départ dans l'heure" when there is no departure
-  - [ ] Without JavaScript, the stations listed by the search show their departures too, rendered by the server: the text equivalent of the popup (RGAA); the RGAA self-audit is redone
+- E8.2 The next departures in the station's popup (criteria validated on 2026-10-26, [story 035](stories/035-departures.md))
+  - [x] The popup of a station, opened by a click or by the search (E7.1), lists its next departures, grouped by line then destination like the text view (E3.7): "dans 3 min", then the time beyond an hour; each station on its own, never merged with another of the same name (one per direction for most bus stops)
+  - [x] Cancelled trips and skipped stops are not shown: TBM gives them no time (story 034); nor are trips that end at the station
+  - [x] The destination is the trip's `trip_headsign`, imported with the catalogue (`trips.txt`: id, line, headsign); a trip absent from it (unplanned `nt_` trips) takes the name of its last stop in the trip update
+  - [x] `/api/networks/{network}/stations/{station}/departures` answers JSON, kept 30 s by the browser (the trip updates are kept a minute on the server); the popup reads it when it opens and every minute while it stays open
+  - [x] "Pas de données temps réel" when there is no feed to read (night, failure, replay), "Aucun départ dans les deux prochaines heures" when there is no departure (the departures of the next two hours are listed, so that "the time beyond an hour" shows)
+  - [x] Without JavaScript, the stations listed by the search show their departures too, rendered by the server: the text equivalent of the popup (RGAA); the RGAA self-audit is redone
 
 ## Later
 

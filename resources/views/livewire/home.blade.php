@@ -104,7 +104,25 @@
             @else
                 <ul class="list-disc pl-5">
                     @foreach ($stationResults as $station)
-                        <li>{{ $station->name }}</li>
+                        @php($board = $stationDepartures[$station->id])
+                        <li class="mt-1">
+                            {{ $station->name }}
+                            @if ($board === null)
+                                <p>Pas de données temps réel.</p>
+                            @elseif ($board === [])
+                                <p>Aucun départ dans les deux prochaines heures.</p>
+                            @else
+                                <ul class="pl-2">
+                                    @foreach ($board as $group)
+                                        <li>
+                                            <span class="font-semibold">{{ $group->line?->label() ?? 'Ligne inconnue' }}</span>
+                                            vers {{ $group->destination ?? 'destination inconnue' }} :
+                                            {{ collect($group->times)->map(fn ($time) => \App\Support\DepartureGroup::when($time, $now, $timezone))->join(', ') }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </li>
                     @endforeach
                 </ul>
             @endif
@@ -124,6 +142,7 @@
             data-stations-url="{{ route('stations', $network) }}"
             data-neutral-colour="{{ $neutralColour }}"
             data-refresh="{{ $refreshSeconds }}"
+            data-timezone="{{ $timezone }}"
             class="h-[70vh] w-full shrink-0 group-data-panel/page:h-auto group-data-panel/page:grow landscape:h-auto landscape:min-w-0 landscape:shrink landscape:grow"
         ></div>
 

@@ -34,15 +34,15 @@
             "title": "Chaque image porteuse d’information a-t-elle une alternative textuelle ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "The map is a canvas with role region and the label \"Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit\"; no img or svg element.",
+            "note": "The map is a canvas with role region and the label \"Carte des véhicules TBM en circulation, détaillée dans la liste des véhicules qui la suit\"; no img element, and the only svg is decorative (1.2).",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
         "1.2": {
             "title": "Chaque image de décoration est-elle correctement ignorée par les technologies d’assistance ?",
-            "carte": "NA",
-            "carte-ligne": "NA",
-            "note": "No decorative image: the zoom buttons draw their icons in CSS and carry their own names.",
+            "carte": "C",
+            "carte-ligne": "C",
+            "note": "One decorative image on the map pages: the recentre button's crosshair (E3.4), an inline svg with aria-hidden=\"true\" and focusable=\"false\", the button carrying its name; the zoom buttons draw their icons in CSS and carry their own names.",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -122,7 +122,7 @@
             "title": "Dans chaque page web, l’information ne doit pas être donnée uniquement par la couleur. Cette règle est-elle respectée ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Line colours come with the line's name beside each marker and the mode by its shape (E3.2); the selected line is drawn larger and over the others and listed first, not only recoloured (E3.4). The statements give no information by colour: links are underlined, the conformance status is in bold.",
+            "note": "Line colours come with the line's name beside each marker and the mode by its shape (E3.2); the selected line is drawn larger and over the others and listed first, not only recoloured (E3.4). In a station's popup, each group of departures names its line before its line-coloured border (E8.2). The statements give no information by colour: links are underlined, the conformance status is in bold.",
             "accessibilite": "C",
             "ecoconception": "C"
         },
@@ -346,7 +346,7 @@
             "title": "Chaque script est-il contrôlable par le clavier et par tout dispositif de pointage (hors cas particuliers) ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Everything done with the pointer is available with the keyboard: the text view opens each vehicle's popup, the station search centres the map on a station and opens its popup (E7.1), the selectors and buttons are native controls, the focused map moves with the arrow keys and zooms with + and -.",
+            "note": "Everything done with the pointer is available with the keyboard: the text view opens each vehicle's popup, the station search centres the map on a station and opens its popup with its departures (E7.1, E8.2), which the search also lists without JavaScript, the selectors and buttons are native controls, the focused map moves with the arrow keys and zooms with + and -.",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
@@ -466,7 +466,7 @@
             "title": "Dans chaque page web, chaque liste est-elle correctement structurée ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "The vehicles of a destination, the statements' results, criteria and links are ul lists; no list written as paragraphs.",
+            "note": "The vehicles of a destination, a station's departures (popup and search results, E8.2), the statements' results, criteria and links are ul lists; no list written as paragraphs.",
             "accessibilite": "C",
             "ecoconception": "C"
         },
@@ -754,7 +754,7 @@
             "title": "Dans chaque page web, l’ordre de tabulation est-il cohérent ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Tab order follows the reading order on every page: on the map page, skip link, mode, line, station, Chercher, Pause, map, zoom, credits, the vehicles, then the footer; no positive tabindex.",
+            "note": "Tab order follows the reading order on every page: on the map page, skip link, mode, line, station, Chercher, Pause, map, an open popup (a station's list of departures scrolls and takes the focus, E8.2), zoom, recentre, credits, the vehicles, then the footer; no positive tabindex.",
             "accessibilite": "C",
             "ecoconception": "C"
         },

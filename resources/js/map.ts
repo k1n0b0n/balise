@@ -22,6 +22,7 @@ if (container !== null) {
         stationsUrl: container.dataset.stationsUrl ?? '',
         neutralColour: container.dataset.neutralColour ?? '#4B5563',
         refreshSeconds: Number(container.dataset.refresh ?? 20),
+        timeZone: container.dataset.timezone ?? 'Europe/Paris',
     });
 }
 
