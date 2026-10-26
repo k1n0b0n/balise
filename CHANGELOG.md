@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/k1n0b0n/balise/compare/v0.7.0...v0.8.0) (2026-10-26)
+
+
+### Features
+
+* read trip updates on demand through a third port, decoded by the protobuf C extension (E8.1) ([#95](https://github.com/k1n0b0n/balise/issues/95)) ([8f20d03](https://github.com/k1n0b0n/balise/commit/8f20d03d942e6c7d65f442211d73ff15377b2018))
+* replay a recorded service day locally (E5.2) ([#90](https://github.com/k1n0b0n/balise/issues/90)) ([fdc20bd](https://github.com/k1n0b0n/balise/commit/fdc20bdb50f926088112a60709faab3a7d69f5cb))
+* show the stations on the map and find them by name (E7.1) ([#92](https://github.com/k1n0b0n/balise/issues/92)) ([2398368](https://github.com/k1n0b0n/balise/commit/23983689453ec6aedc0b31b756e9eb1c37e53736))
+
+
+### Bug Fixes
+
+* show a chosen station suggestion at once, say the centred map to screen readers only ([#96](https://github.com/k1n0b0n/balise/issues/96)) ([706c58b](https://github.com/k1n0b0n/balise/commit/706c58bcb1e46c154d450f59d5e9dd0214fbc4f2))
+
 ## [0.7.0](https://github.com/k1n0b0n/balise/compare/v0.6.0...v0.7.0) (2026-10-25)
 
 
