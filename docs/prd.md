@@ -206,7 +206,7 @@ In M3 ([ideas/network-on-map.md](ideas/network-on-map.md)).
   - [x] The map shows the stations from a street zoom level, under the vehicles and distinct from them; their name on hover, and in a popup on click or from the keyboard, as for vehicles (E3.3)
   - [x] The stations come from `/api/networks/{network}/stations` as GeoJSON, cached like the line catalogue (ETag, changed by an import only), and are loaded only once the map reaches that zoom
   - [x] A search field finds a station by its name (accents and case ignored) and centres the map on it; it works with the keyboard and a screen reader, and is the text equivalent of the stations on the map (RGAA)
-  - [ ] The map page stays under its JavaScript budget (600 KB); its RGAA self-audit is redone
+  - [x] The map page stays under its JavaScript budget (600 KB); its RGAA self-audit is redone
 - E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
 
 ### E8: Next departures at a stop
