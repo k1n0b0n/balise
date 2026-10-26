@@ -1,6 +1,6 @@
 # Idea: next departures at a stop, next stops of a vehicle
 
-- **Status:** Planned → E8 (2026-10-26): next departures only, from trip updates only, read on demand and kept a minute, decoded by the C extension; the destination of a departure not started is measured in E8.2
+- **Status:** Planned → E8 (2026-10-26): next departures only, from trip updates only, read on demand and kept a minute, decoded by the C extension; departures in the station's popup, each station on its own, the destination from `trip_headsign` (E8.2, decided 2026-10-26)
 - **Related:** ADR-0001 (trip updates port), ADR-0015 (protobuf), ADR-0018 (destination), [network-on-map.md](network-on-map.md) step 5, E4, E7.1, E7.2
 
 ## Why
@@ -84,7 +84,7 @@ Preferred: to measure first, on the recorded samples, whether the last stop of a
 ## Interface
 
 - **Vehicle:** "Prochains arrêts" in the popup (the next 3 to 5, times in minutes, a skipped stop said as such), and the same list in the text view behind a button, for RGAA.
-- **Stop:** a server-rendered page per station (`/arrets/{station}`, 2,189 stations rather than 5,233 platforms), departures grouped by line then destination like the text view (E3.7), cancelled ones shown, not hidden. It needs a way to reach a stop: stations on the map (E7.1) or the line page (E7.2). Stops on the map come from the static catalogue and do not depend on trip updates.
+- **Stop:** the departures in the popup of the station on the map (E7.1), grouped by line then destination like the text view (E3.7); each station on its own, never merged with its namesakes, which are mostly the stop across the street; cancelled trips and skipped stops not shown, TBM giving them no time. Decided on 2026-10-26 instead of a page per station.
 
 ## Open questions
 
