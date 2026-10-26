@@ -88,8 +88,6 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     let fitPending = selection.line !== null;
     let reopenPending = selection.vehicle;
     let selectedVehicle: Vehicle | null = null;
-    // The vehicle the map keeps centred on; moving the map by hand stops it, the popup stays open.
-    let followed: string | null = null;
     const lineSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="ligne"]') ?? null;
     const modeSelector = controls.lineFilter?.querySelector<HTMLSelectElement>('select[name="mode"]') ?? null;
     const lineClear = controls.lineFilter?.querySelector<HTMLElement>('[data-line-clear]') ?? null;
@@ -183,7 +181,6 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup ends both.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
-        follow(vehicle?.id ?? null);
         selection = { line: vehicle === null ? null : (lines.get(vehicle.lineId)?.shortName ?? null), vehicle: vehicle === null ? null : displayId(vehicle) };
         changed();
     }
@@ -213,20 +210,6 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             name.textContent = selection.line ?? '';
         }
     }
-
-    function follow(id: string | null): void {
-        followed = id;
-        // Lets browser tests know which vehicle the map follows.
-        container.dataset.followed = id ?? '';
-    }
-
-    // Dragging or panning with the arrow keys stops following; zooming keeps the vehicle in the centre.
-    map.on('dragstart', () => follow(null));
-    map.on('movestart', ({ originalEvent }) => {
-        if (originalEvent instanceof KeyboardEvent && originalEvent.key.startsWith('Arrow')) {
-            follow(null);
-        }
-    });
 
     // Lets pages and browser tests know the basemap actually rendered.
     map.once('load', () => {
@@ -260,17 +243,9 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
                 }
             });
         }
-        // Only on new positions, and for a vehicle followed before them: a vehicle opened by this redraw, from the URL,
-        // is being zoomed to, and recentring would cancel that, as it would cancel a fit.
-        const following = followed;
         lines.ensure(next.map((vehicle) => vehicle.lineId));
         redraw();
         textView?.updated(new Date());
-
-        const vehicle = following === null || following !== followed ? undefined : next.find((candidate) => candidate.id === following);
-        if (vehicle !== undefined) {
-            map.easeTo({ center: [vehicle.longitude, vehicle.latitude] });
-        }
     });
 
     // The form works without JavaScript by reloading the page with its button; here a choice applies at once.
@@ -290,7 +265,7 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
             cancelPendingOpenings();
             const value = new FormData(lineFilter).get('ligne');
             const line = typeof value === 'string' && value !== '' ? value : null;
-            // A vehicle of another line is no longer selected: closing its popup ends its selection and the following.
+            // A vehicle of another line is no longer selected: closing its popup ends its selection.
             if (selectedVehicle !== null && lines.get(selectedVehicle.lineId)?.shortName !== line) {
                 layer?.close();
             }

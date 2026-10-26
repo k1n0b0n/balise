@@ -137,9 +137,9 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Clicking a vehicle opens a popup with the line (short and long name, or "Ligne inconnue"), the vehicle id without the network prefix and the age of its last position ("il y a 25 s"), kept current
   - [x] Keyboard users open the same popup from the text view (delivered with E3.5; canvas vehicles cannot take focus, ADR-0011; RGAA test 7.3.1 accepts an element of the same page doing the same action)
   - [x] Escape, or the close button, closes the popup and returns focus to where it was; the popup follows its vehicle and closes if the vehicle disappears
-- E3.4 Select a line or a vehicle and let the map follow it
-  - [x] A labelled line selector highlights that line without hiding the others: its vehicles drawn larger and over the rest, its group first in the text view, the map fitted to them; choosing a vehicle (popup or text view) selects its line and makes the map follow it on each update
-  - [x] Moving the map by hand stops following; closing the popup, or a × link next to the selector, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
+- E3.4 Select a line or a vehicle
+  - [x] A labelled line selector highlights that line without hiding the others: its vehicles drawn larger and over the rest, its group first in the text view, the map fitted to them; choosing a vehicle (popup or text view) selects its line; the map does not move on updates, its popup goes with the vehicle (changed on 2026-10-26: the map followed the vehicle)
+  - [x] Closing the popup, or a × link next to the selector, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
   - [x] The selected line's shape, from the network file of E3.8, is drawn over the others at the same width, still under its vehicles, in a colour that reaches 3:1 against the basemap (WCAG 1.4.11), measured and recorded in the story file
   - [x] The selector lists only the lines that have a vehicle now, kept up to date while the page stays open but never while the selector has the focus (RGAA); the selected line stays listed without vehicles, so that a shared link keeps working; every line's shape stays on the map
   - [x] A mode selector before the line selector narrows its list to one mode (tram, bus…), among the modes that run now, without changing the selected line; without JavaScript the form filters by reloading

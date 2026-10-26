@@ -842,7 +842,7 @@
             "title": "Dans chaque page web, chaque contenu en mouvement ou clignotant est-il contrôlable par l’utilisateur ?",
             "carte": "C",
             "carte-ligne": "C",
-            "note": "Vehicles move on each update: the Pause button stops them, and the map never moves by itself except to follow a vehicle the user chose.",
+            "note": "Vehicles move on each update: the Pause button stops them, and the map never moves by itself: only the user's choice of a line or a vehicle brings it into view.",
             "accessibilite": "NA",
             "ecoconception": "NA"
         },
