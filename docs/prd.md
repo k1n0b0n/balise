@@ -139,6 +139,7 @@ Apply to every story ([ADR-0006](adr/0006-responsible-design.md)).
   - [x] Escape, or the close button, closes the popup and returns focus to where it was; the popup follows its vehicle and closes if the vehicle disappears
 - E3.4 Select a line or a vehicle
   - [x] A labelled line selector highlights that line without hiding the others: its vehicles drawn larger and over the rest, its group first in the text view, the map fitted to them; choosing a vehicle (popup or text view) selects its line; the map does not move on updates, its popup goes with the vehicle (changed on 2026-10-26: the map followed the vehicle)
+  - [x] A recentre button under the zoom, shown while a vehicle's or a station's popup is open, brings it back to the centre (added on 2026-10-26, with the map no longer following)
   - [x] Closing the popup, or a × link next to the selector, deselects the line; the selection is kept in the URL (`?ligne=`, `?vehicule=`) so it can be shared and survives a reload
   - [x] The selected line's shape, from the network file of E3.8, is drawn over the others at the same width, still under its vehicles, in a colour that reaches 3:1 against the basemap (WCAG 1.4.11), measured and recorded in the story file
   - [x] The selector lists only the lines that have a vehicle now, kept up to date while the page stays open but never while the selector has the focus (RGAA); the selected line stays listed without vehicles, so that a shared link keeps working; every line's shape stays on the map

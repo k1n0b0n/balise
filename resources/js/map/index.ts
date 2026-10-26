@@ -7,7 +7,8 @@ import { LineCatalogue } from './lines';
 import { readSelection, writeSelection } from './selection';
 import { fetchShapes, showShapes, type ShapeLayer, type Shapes } from './shapes';
 import { showStationSearch } from './station-search';
-import { showStations, StationCatalogue, type StationLayer } from './stations';
+import { RecentreControl } from './recentre';
+import { showStations, StationCatalogue, type Station, type StationLayer } from './stations';
 import { showTextView } from './text-view';
 import { showVehicles, type VehicleLayer } from './vehicles';
 
@@ -68,6 +69,17 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     });
 
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+    // The vehicle or station whose popup was opened last, while open: what the recentre button brings back.
+    let openStation: Station | null = null;
+    let lastOpened: 'vehicle' | 'station' | null = null;
+    const recentre = new RecentreControl(() => {
+        const vehicle = selectedVehicle === null ? undefined : vehicles.find((candidate) => candidate.id === selectedVehicle?.id);
+        const vehicleTarget = vehicle === undefined ? null : { label: `le véhicule ${displayId(vehicle)}`, coordinates: [vehicle.longitude, vehicle.latitude] as [number, number] };
+        const stationTarget = openStation === null ? null : { label: `l’arrêt ${openStation.name}`, coordinates: openStation.coordinates };
+
+        return lastOpened === 'station' ? (stationTarget ?? vehicleTarget) : (vehicleTarget ?? stationTarget);
+    });
+    map.addControl(recentre, 'top-right');
     // The style's credits are in English ("Data from OpenStreetMap"); MapLibre rewrites their text, not this element (RGAA 8.7).
     container.querySelector('.maplibregl-ctrl-attrib-inner')?.setAttribute('lang', 'en');
 
@@ -181,6 +193,8 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
     // Choosing a vehicle selects its line too, in the selector as in the URL; closing its popup ends both.
     function select(vehicle: Vehicle | null): void {
         selectedVehicle = vehicle;
+        lastOpened = vehicle === null ? lastOpened : 'vehicle';
+        recentre.refresh();
         selection = { line: vehicle === null ? null : (lines.get(vehicle.lineId)?.shortName ?? null), vehicle: vehicle === null ? null : displayId(vehicle) };
         changed();
     }
@@ -216,7 +230,13 @@ export function mountMap(container: HTMLElement, controls: MapControls, options:
         container.dataset.state = 'loaded';
         shapeLayer = showShapes(map, lines, options.neutralColour);
         layer = showVehicles(map, lines, options.neutralColour, select);
-        stationLayerReady(showStations(map, stations, 'vehicles'));
+        stationLayerReady(
+            showStations(map, stations, 'vehicles', (station) => {
+                openStation = station;
+                lastOpened = station === null ? lastOpened : 'station';
+                recentre.refresh();
+            }),
+        );
         redraw();
 
         if (shapes !== null) {

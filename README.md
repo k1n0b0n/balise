@@ -14,7 +14,7 @@
 
 - 🚋 **About 400 vehicles live at midday**, read from the feed every 20 seconds, coloured by line and shaped by mode.
 - 🗺️ **The whole network under them:** 202 lines drawn faintly on an open basemap, no API key.
-- 🎯 **Pick a line or a vehicle** and the map follows it; a popup tells its line and how old its position is.
+- 🎯 **Pick a line or a vehicle** and the map shows it, then stays still; a popup goes with the vehicle and tells its line and how old its position is.
 - ♿ **A text view equal to the map**, and a pause button: the map is not the only way in (RGAA AA).
 - 🌱 **A light page:** EcoIndex A (86/100), JavaScript budget checked in CI.
 
