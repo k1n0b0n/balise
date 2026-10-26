@@ -1,6 +1,6 @@
 # ADR-0023: The protobuf C extension in every PHP image
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-26
 
 ## Context

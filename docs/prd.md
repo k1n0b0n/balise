@@ -210,7 +210,7 @@ In M3 ([ideas/network-on-map.md](ideas/network-on-map.md)).
 - E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
 
 ### E8: Next departures at a stop
-In M3; E8.1's criteria to validate, its decoding proposed by ADR-0023 ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
+In M3; E8.1's criteria validated on 2026-10-26, its decoding decided by ADR-0023 ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
 - E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension ([ADR-0023](adr/0023-protobuf-c-extension.md))
   - [ ] The extension `protobuf` in every PHP image, its version equal to the Composer runtime's (a test fails otherwise); the trip updates driver says so when it is missing
   - [ ] A third port, `TripUpdateFeed` (ADR-0001), and its `gtfs-rt` driver: per trip, its id, line and vehicle when given, whether it is scheduled, added or cancelled, and its stop times (stop, time with the delay included, skipped); the architecture test covers it
