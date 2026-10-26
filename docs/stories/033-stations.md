@@ -17,7 +17,7 @@ See E7.1 in [prd.md](../prd.md); the data is described in [ideas/network-on-map.
 - [x] Tests: the import (station, lone platform, entrance left out), the download while there are no stations, the endpoint and its `304`, the search without JavaScript; in the browser, the search found and not found, with axe
 - [x] The map page's JavaScript: 515 KB, under its 600 KB budget
 - [x] The RGAA self-audit updated for the search: label, button, status message, search landmark, tab order (7.3, 7.5, 11.1, 11.2, 11.9, 11.10, 12.6, 12.8)
-- [ ] The search heard with VoiceOver in Firefox and Chrome, as for story 009: the maintainer's check, during the review
+- [x] The search heard with VoiceOver in Firefox and Chrome, as for story 009: the maintainer's check, during the review (2026-10-26)
 
 ## Notes
 

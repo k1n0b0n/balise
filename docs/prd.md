@@ -206,18 +206,18 @@ In M3 ([ideas/network-on-map.md](ideas/network-on-map.md)).
   - [x] The map shows the stations from a street zoom level, under the vehicles and distinct from them; their name on hover, and in a popup on click or from the keyboard, as for vehicles (E3.3)
   - [x] The stations come from `/api/networks/{network}/stations` as GeoJSON, cached like the line catalogue (ETag, changed by an import only), and are loaded only once the map reaches that zoom
   - [x] A search field finds a station by its name (accents and case ignored) and centres the map on it; it works with the keyboard and a screen reader, and is the text equivalent of the stations on the map (RGAA)
-  - [ ] The map page stays under its JavaScript budget (600 KB); its RGAA self-audit is redone
+  - [x] The map page stays under its JavaScript budget (600 KB); its RGAA self-audit is redone
 - E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
 
 ### E8: Next departures at a stop
 In M3; E8.1's criteria validated on 2026-10-26, its decoding decided by ADR-0023 ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
-- E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension ([ADR-0023](adr/0023-protobuf-c-extension.md))
-  - [ ] The extension `protobuf` in every PHP image, its version equal to the Composer runtime's (a test fails otherwise); the trip updates driver says so when it is missing
-  - [ ] A third port, `TripUpdateFeed` (ADR-0001), and its `gtfs-rt` driver: per trip, its id, line and vehicle when given, whether it is scheduled, added or cancelled, and its stop times (stop, time with the delay included, skipped); the architecture test covers it
-  - [ ] Optional per network (`trip_updates.url`): a network without it, or replaying a day (E5.2), has no departures, which is not an error
-  - [ ] Read on demand only, kept a minute, one download at a time per network; a failed read is logged and answered as no data
-  - [ ] The departures of a station: its platforms' stop times from now on, in time order, with the line, the trip's status and whether the stop is skipped; tests from a small recorded payload
-  - [ ] Measured on the live TBM feed and noted in the story: download, decoding, memory, and the size of what is kept
+- E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension ([ADR-0023](adr/0023-protobuf-c-extension.md), [story 034](stories/034-trip-updates.md))
+  - [x] The extension `protobuf` in every PHP image, its version equal to the Composer runtime's (a test fails otherwise); the trip updates driver says so when it is missing
+  - [x] A third port, `TripUpdateFeed` (ADR-0001), and its `gtfs-rt` driver: per trip, its id, line and vehicle when given, whether it is scheduled, added or cancelled, and its stop times (stop, time with the delay included, skipped); the architecture test covers it
+  - [x] Optional per network (`trip_updates.url`): a network without it, or replaying a day (E5.2), has no departures, which is not an error
+  - [x] Read on demand only, kept a minute, one download at a time per network; a failed read is logged and answered as no data
+  - [x] The departures of a station: its platforms' stop times from now on, in time order, with the line, the trip's status and whether the stop is skipped; tests from small payloads built with the generated classes
+  - [x] Measured on the live TBM feed and noted in the story: download, decoding, memory, and the size of what is kept
 - E8.2 A page per station with its next departures in real time, grouped by line and destination like the text view (E3.7); cancelled departures shown; "Pas de données temps réel" when the feed has none
 
 ## Later

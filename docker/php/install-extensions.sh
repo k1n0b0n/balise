@@ -3,10 +3,14 @@
 # Only the libraries the extensions load stay; headers, sources and, on Alpine, the compilers go.
 set -eux
 
-EXTENSIONS="bcmath intl pdo_pgsql pgsql redis sockets zip"
+EXTENSIONS="bcmath intl pdo_pgsql pgsql protobuf redis sockets zip"
 # From its GitHub release, checked by SHA-256: PECL's downloads time out too often for a build.
 PHPREDIS_VERSION=6.3.0
 PHPREDIS_SHA256=cb8f81df1a275599e4f8ddcfec7e1f65ed1953e6f5673649149fd680ebff4cad
+# Google's C runtime, at the version of `google/protobuf` in composer.lock (ADR-0023; ProtobufExtensionTest checks it).
+# Only PECL publishes its PHP archive.
+PROTOBUF_VERSION=5.36.2
+PROTOBUF_SHA256=f0a17c67de29df0fb0e5215a381df9b155125e1ace6252dd617bf16b4194dd5b
 
 if command -v apk > /dev/null; then
     apk add --no-cache icu-libs libpq libzip
@@ -18,12 +22,16 @@ fi
 
 curl -fsSL -o /tmp/phpredis.tar.gz "https://github.com/phpredis/phpredis/archive/refs/tags/${PHPREDIS_VERSION}.tar.gz"
 echo "${PHPREDIS_SHA256}  /tmp/phpredis.tar.gz" | sha256sum -c -
+curl -fsSL --retry 3 -o /tmp/protobuf.tgz "https://pecl.php.net/get/protobuf-${PROTOBUF_VERSION}.tgz"
+echo "${PROTOBUF_SHA256}  /tmp/protobuf.tgz" | sha256sum -c -
 docker-php-source extract
 mkdir /usr/src/php/ext/redis
 tar -xzf /tmp/phpredis.tar.gz -C /usr/src/php/ext/redis --strip-components=1
+mkdir /usr/src/php/ext/protobuf
+tar -xzf /tmp/protobuf.tgz -C /usr/src/php/ext/protobuf --strip-components=1 "protobuf-${PROTOBUF_VERSION}"
 docker-php-ext-install -j"$(nproc)" $EXTENSIONS
 docker-php-source delete
-rm /tmp/phpredis.tar.gz
+rm /tmp/phpredis.tar.gz /tmp/protobuf.tgz
 
 if command -v apk > /dev/null; then
     apk del .build-deps
