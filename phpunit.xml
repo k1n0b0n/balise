@@ -33,6 +33,8 @@
         <!-- compose sets LOG_CHANNEL=stderr for the app; tests keep their output clean -->
         <env name="LOG_CHANNEL" value="null" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <!-- No trip updates read from TBM during the tests (E8.2); the tests that need them name a fake feed. -->
+        <env name="TBM_TRIP_UPDATES_URL" value=""/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

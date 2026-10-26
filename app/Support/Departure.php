@@ -20,5 +20,7 @@ final readonly class Departure
         public bool $skipped,
         public ?string $lineId = null,
         public ?string $vehicleId = null,
+        // Where the trip ends in the trip update: the destination of a trip the static catalogue does not know (E8.2).
+        public ?string $lastStopId = null,
     ) {}
 }

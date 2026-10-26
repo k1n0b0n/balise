@@ -1,5 +1,6 @@
 import { Popup, type Map as MapLibreMap } from 'maplibre-gl';
 import type { FeatureCollection, Point } from 'geojson';
+import { departuresUrl, fetchDepartures, renderDepartures } from './departures';
 
 // E7.1: stations from a street zoom level, under the vehicles, as small white rings that no vehicle marker looks like.
 
@@ -32,7 +33,7 @@ export function normalise(name: string): string {
 export class StationCatalogue {
     private request: Promise<Station[]> | null = null;
 
-    constructor(private readonly url: string) {}
+    constructor(readonly url: string) {}
 
     load(): Promise<Station[]> {
         this.request ??= fetch(this.url, { headers: { Accept: 'application/json' } })
@@ -64,17 +65,30 @@ export interface StationLayer {
 }
 
 /**
- * Draws the stations under `beforeLayer` once the map reaches a street zoom; their name on hover, in a popup on click.
- * `onToggle` hears which station's popup is open, or that none is.
+ * Draws the stations under `beforeLayer` once the map reaches a street zoom; their name on hover, in a popup on click
+ * with their next departures (E8.2), read again every minute while it stays open. `onToggle` hears which station's
+ * popup is open, or that none is.
  */
-export function showStations(map: MapLibreMap, catalogue: StationCatalogue, beforeLayer: string, onToggle: (station: Station | null) => void): StationLayer {
+export function showStations(
+    map: MapLibreMap,
+    catalogue: StationCatalogue,
+    beforeLayer: string,
+    onToggle: (station: Station | null) => void,
+    timeZone: string,
+): StationLayer {
     let drawn = false;
     const hover = new Popup({ closeButton: false, closeOnClick: false, className: 'station-hover', offset: 8 });
     // The focus stays where it was: in the search field when the search opened it, so that a screen reader hears the
     // status rather than a close button. It is closed here rather than by MapLibre's closeOnClick, which closed it again
     // right after a click had opened it on another station.
     const popup = new Popup({ className: 'station-popup', offset: 8, maxWidth: '16rem', focusAfterOpen: false, closeOnClick: false });
-    popup.on('close', () => onToggle(null));
+    let shown: string | null = null;
+    let refreshing: number | undefined;
+    popup.on('close', () => {
+        shown = null;
+        window.clearInterval(refreshing);
+        onToggle(null);
+    });
 
     function draw(stations: Station[]): void {
         if (drawn) {
@@ -90,9 +104,9 @@ export function showStations(map: MapLibreMap, catalogue: StationCatalogue, befo
                 type: 'FeatureCollection',
                 features: stations.map((station) => ({
                     type: 'Feature',
-                    id: station.id,
                     geometry: { type: 'Point', coordinates: station.coordinates },
-                    properties: { name: station.name },
+                    // MapLibre drops ids that are not numbers: the station's id goes in its properties.
+                    properties: { id: station.id, name: station.name },
                 })),
             },
         });
@@ -131,17 +145,40 @@ export function showStations(map: MapLibreMap, catalogue: StationCatalogue, befo
                 return;
             }
 
-            show({ id: String(feature.id), name: String(feature.properties.name), coordinates: feature.geometry.coordinates as [number, number] });
+            show({ id: String(feature.properties.id), name: String(feature.properties.name), coordinates: feature.geometry.coordinates as [number, number] });
         });
     }
 
     function show(station: Station): void {
         hover.remove();
-        const content = document.createElement('p');
-        content.className = 'font-semibold';
-        content.textContent = station.name;
-        popup.setLngLat(station.coordinates).setDOMContent(content).addTo(map);
+        const name = Object.assign(document.createElement('p'), { className: 'font-semibold', textContent: station.name });
+        // A pole lists many departures: the list scrolls, and takes the focus so that the keyboard scrolls it too.
+        const departures = Object.assign(document.createElement('div'), { className: 'max-h-[40vh] overflow-y-auto', tabIndex: 0 });
+        departures.setAttribute('aria-label', `Prochains passages à ${station.name}`);
+        departures.dataset.departures = '';
+        departures.append(Object.assign(document.createElement('p'), { className: 'text-sm', textContent: 'Chargement des prochains passages…' }));
+        popup.setLngLat(station.coordinates).setDOMContent(wrap(name, departures)).addTo(map);
+        shown = station.id;
         onToggle(station);
+
+        const load = (): void => {
+            void fetchDepartures(departuresUrl(catalogue.url, station.id)).then((board) => {
+                // The popup may have moved to another station meanwhile.
+                if (shown === station.id) {
+                    renderDepartures(departures, board, new Date(), timeZone);
+                }
+            });
+        };
+        window.clearInterval(refreshing);
+        load();
+        refreshing = window.setInterval(load, 60_000);
+    }
+
+    function wrap(...children: HTMLElement[]): HTMLElement {
+        const content = document.createElement('div');
+        content.append(...children);
+
+        return content;
     }
 
     map.on('click', ({ point }) => {

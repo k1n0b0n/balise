@@ -9,6 +9,7 @@ use App\Models\Line;
 use App\Models\Station;
 use App\Models\Stop;
 use App\Models\VehiclePosition;
+use App\Support\Departures;
 use App\Support\Replays;
 use Carbon\CarbonImmutable;
 use Collator;
@@ -38,7 +39,10 @@ final class Home extends Component
             'network' => $network,
             // E7.1: the station search without JavaScript.
             'stationQuery' => $stationQuery,
-            'stationResults' => $stationQuery === '' ? collect() : $this->stations($network, $stationQuery),
+            'stationResults' => $stationResults = $this->stations($network, $stationQuery),
+            // E8.2: their departures, the text equivalent of the station popups.
+            'stationDepartures' => $stationResults->mapWithKeys(fn (Station $station): array => [$station->id => app(Departures::class)->board($station, CarbonImmutable::now())]),
+            'now' => CarbonImmutable::now(),
             'networkName' => $networkName,
             'timezone' => Config::string("networks.{$network}.timezone"),
             'refreshSeconds' => Config::integer('map.refresh_every_seconds'),
@@ -145,19 +149,23 @@ final class Home extends Component
     }
 
     /**
-     * The stations whose name contains what was asked, accents and case ignored, the exact names first; at most 20.
+     * The stations whose name contains what was asked, accents and case ignored, the exact names first; at most 20, none for an empty search. Each
+     * station on its own, namesakes included: most are the stop across the street, with other departures (E8.2).
      *
      * @return Collection<int, Station>
      */
     private function stations(string $network, string $asked): Collection
     {
+        if ($asked === '') {
+            return new Collection;
+        }
+
         $normalise = fn (string $name): string => Str::lower(Str::ascii($name));
         $asked = $normalise($asked);
 
-        return Station::query()->where('network', $network)->orderBy('name')->get(['id', 'name'])
+        return Station::query()->where('network', $network)->orderBy('name')->orderBy('id')->get(['id', 'network', 'name'])
             ->filter(fn (Station $station): bool => str_contains($normalise($station->name), $asked))
             ->sortBy(fn (Station $station): int => $normalise($station->name) === $asked ? 0 : 1)
-            ->unique('name')
             ->take(20)
             ->values();
     }

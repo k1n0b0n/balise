@@ -6,6 +6,7 @@ use App\Enums\TransportMode;
 use App\Models\CatalogImport;
 use App\Models\Line;
 use App\Models\Stop;
+use App\Models\Trip;
 use App\Support\NetworkShapes;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\ConnectionException;
@@ -50,6 +51,21 @@ it('imports lines and stops with ids namespaced by network', function (): void {
         ->and(Stop::query()->findOrFail('tbm:QUIN_A')->latitude)->toBe(44.844712);
 
     expect(CatalogImport::query()->findOrFail('tbm')->etag)->toBe('"v1"');
+});
+
+it('imports the trips with the destination their vehicles display, and downloads again while there are none (E8.2)', function (): void {
+    Http::fake(['gtfs.test/*' => fn () => Http::response(gtfsArchive(), 200, ['ETag' => '"v1"'])]);
+
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+
+    expect(Trip::query()->orderBy('id')->pluck('headsign', 'id')->all())->toMatchArray(['tbm:A1' => 'La Gardette', 'tbm:A3' => 'Le Haillan', 'tbm:L2' => null])
+        ->and(Trip::query()->findOrFail('tbm:A3')->line_id)->toBe('tbm:A');
+
+    // The state of a server imported before E8.2: the unchanged catalogue is downloaded again, once.
+    Trip::query()->delete();
+    $this->artisan('network:import', ['network' => 'tbm'])->assertSuccessful();
+    expect(Trip::query()->count())->toBe(6);
+    Http::assertSent(fn (Request $request): bool => $request->header('If-None-Match') === []);
 });
 
 it('gives the same result when run twice and removes what left the feed', function (): void {

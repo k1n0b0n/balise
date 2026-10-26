@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Enums\TransportMode;
 use App\Ingestion\GtfsRealtime\GtfsRealtimeTripUpdateFeed;
 use App\Ingestion\TripStatus;
+use App\Models\Line;
 use App\Models\Station;
 use App\Models\Stop;
+use App\Models\Trip;
 use App\Support\Departure;
+use App\Support\DepartureGroup;
 use App\Support\Departures;
 use App\Support\Replays;
 use Carbon\CarbonImmutable;
@@ -166,4 +170,72 @@ it('answers no data rather than wait more than 20 s for another read', function 
 
     expect(departuresAtQuinconces())->toBeNull();
     Http::assertNothingSent();
+});
+
+/**
+ * Tram A at Quinconces: trips the catalogue knows, by their headsign, and one it does not, by its last stop.
+ */
+function tramAtQuinconces(): void
+{
+    Line::query()->create(['id' => 'tbm:A', 'network' => 'tbm', 'short_name' => 'A', 'mode' => TransportMode::Tram, 'color' => '81057F', 'sync_id' => Str::uuid()]);
+    foreach (['T1' => 'La Gardette', 'T2' => 'LA GARDETTE', 'T4' => 'La Gardette', 'T7' => 'La Gardette', 'T8' => 'Quinconces'] as $trip => $headsign) {
+        Trip::query()->create(['id' => "tbm:{$trip}", 'network' => 'tbm', 'line_id' => 'tbm:A', 'headsign' => $headsign, 'sync_id' => Str::uuid()]);
+    }
+    Http::fake(['rt.test/*' => Http::response(tripUpdates([
+        ['id' => 'T1', 'route' => 'A', 'stops' => [['QUIN_A', 2], ['GARE', 9]]],
+        // Another spelling of the same destination.
+        ['id' => 'T2', 'route' => 'A', 'stops' => [['QUIN_A', 5], ['GARE', 12]]],
+        // Unplanned: not in the catalogue, it goes where its trip update ends.
+        ['id' => 'nt_T3', 'route' => 'A', 'stops' => [['QUIN_B', 4], ['GARE', 11]]],
+        ['id' => 'T4', 'route' => 'A', 'stops' => [['QUIN_A', 8], ['GARE', 15]]],
+        // Beyond the two hours, cancelled, or ending here: not shown.
+        ['id' => 'T5', 'route' => 'A', 'stops' => [['QUIN_A', 130], ['GARE', 140]]],
+        ['id' => 'T6', 'route' => 'A', 'status' => TripRelationship::CANCELED, 'stops' => [['QUIN_A', 3]]],
+        ['id' => 'T8', 'route' => 'A', 'stops' => [['GARE', 1], ['QUIN_A', 6]]],
+        // A fourth departure to La Gardette: three per group.
+        ['id' => 'T7', 'route' => 'A', 'stops' => [['QUIN_A', 70], ['GARE', 77]]],
+    ]))]);
+}
+
+it('groups a station\'s departures by line then destination, the soonest first, three at most each (E8.2)', function (): void {
+    tramAtQuinconces();
+
+    $board = app(Departures::class)->board(Station::query()->findOrFail('tbm:QUIN'), CarbonImmutable::now());
+
+    expect(array_map(fn (DepartureGroup $group): array => [
+        $group->line?->label(),
+        $group->destination,
+        array_map(fn (CarbonImmutable $time): string => DepartureGroup::when($time, CarbonImmutable::now(), 'Europe/Paris'), $group->times),
+    ], $board ?? []))->toBe([
+        ['Tram A', 'La Gardette', ['dans 2 min', 'dans 5 min', 'dans 8 min']],
+        ['Tram A', 'tbm:GARE', ['dans 4 min']],
+    ]);
+});
+
+it('answers a station\'s departures as JSON, with absolute times', function (): void {
+    tramAtQuinconces();
+
+    $this->getJson('/api/networks/tbm/stations/'.rawurlencode('tbm:QUIN').'/departures')
+        ->assertOk()
+        ->assertHeader('Cache-Control', 'max-age=30, public')
+        ->assertJsonPath('available', true)
+        ->assertJsonPath('groups.0.line', ['label' => 'Tram A', 'colour' => '#81057F'])
+        ->assertJsonPath('groups.0.destination', 'La Gardette')
+        ->assertJsonPath('groups.0.times.0', CarbonImmutable::now()->addMinutes(2)->getTimestamp());
+
+    $this->getJson('/api/networks/tbm/stations/tbm:NOPE/departures')->assertNotFound();
+});
+
+it('says there is no real-time data rather than no departure', function (): void {
+    config(['networks.tbm.trip_updates.url' => null]);
+
+    $this->getJson('/api/networks/tbm/stations/tbm:QUIN/departures')->assertOk()->assertExactJson(['available' => false, 'groups' => []]);
+});
+
+it('lists the departures of the stations found by the search without JavaScript', function (): void {
+    tramAtQuinconces();
+
+    $this->get('/?arret=quinconces')
+        ->assertOk()
+        ->assertSeeTextInOrder(['Quinconces', 'Tram A', 'vers La Gardette : dans 2 min, dans 5 min, dans 8 min']);
 });

@@ -81,3 +81,15 @@ it('opens the popup of a station clicked while another one is open', function ()
         ->assertSeeIn('.station-popup', 'Quinconces')
         ->assertNoJavaScriptErrors();
 });
+
+it('shows in the popup that there is no real-time data, without accessibility issues (E8.2)', function (): void {
+    // The tests read no trip updates (phpunit.xml).
+    visit('/')
+        ->assertPresent('[data-map][data-state="loaded"]')
+        ->type('#arret', 'gare')
+        ->keys('#arret', 'Enter')
+        ->assertSeeIn('.station-popup [data-departures]', 'Pas de données temps réel.')
+        ->assertAttribute('.station-popup [data-departures]', 'aria-label', 'Prochains passages à Gare Saint-Jean')
+        ->assertNoJavaScriptErrors()
+        ->assertNoAccessibilityIssues(level: 3);
+});
