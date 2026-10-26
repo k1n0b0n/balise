@@ -210,8 +210,14 @@ In M3 ([ideas/network-on-map.md](ideas/network-on-map.md)).
 - E7.2 One server-rendered page per line (`/lignes/{line}`) listing its stops in order for each direction, from one representative trip per direction
 
 ### E8: Next departures at a stop
-In M3; criteria to write once E7.1 is done, the trip updates port and its decoding decided by an ADR first ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
-- E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension (a new ADR superseding point 1 of ADR-0015)
+In M3; E8.1's criteria to validate, its decoding proposed by ADR-0023 ([ideas/next-departures.md](ideas/next-departures.md)). Decided on 2026-10-26: trip updates only (no static stop times), read on demand and kept a minute, decoded by the C extension `protobuf`.
+- E8.1 The trip updates port (ADR-0001) with its GTFS-RT driver, decoded by the C extension ([ADR-0023](adr/0023-protobuf-c-extension.md))
+  - [ ] The extension `protobuf` in every PHP image, its version equal to the Composer runtime's (a test fails otherwise); the trip updates driver says so when it is missing
+  - [ ] A third port, `TripUpdateFeed` (ADR-0001), and its `gtfs-rt` driver: per trip, its id, line and vehicle when given, whether it is scheduled, added or cancelled, and its stop times (stop, time with the delay included, skipped); the architecture test covers it
+  - [ ] Optional per network (`trip_updates.url`): a network without it, or replaying a day (E5.2), has no departures, which is not an error
+  - [ ] Read on demand only, kept a minute, one download at a time per network; a failed read is logged and answered as no data
+  - [ ] The departures of a station: its platforms' stop times from now on, in time order, with the line, the trip's status and whether the stop is skipped; tests from a small recorded payload
+  - [ ] Measured on the live TBM feed and noted in the story: download, decoding, memory, and the size of what is kept
 - E8.2 A page per station with its next departures in real time, grouped by line and destination like the text view (E3.7); cancelled departures shown; "Pas de données temps réel" when the feed has none
 
 ## Later
