@@ -40,18 +40,22 @@ export function showStationSearch(form: HTMLFormElement, catalogue: StationCatal
             return;
         }
 
-        // A search sent before the map is ready waits for it.
-        Promise.all([load(), layer]).then(
-            ([loaded, shown]) => {
+        load().then(
+            (loaded) => {
                 // The exact name first, then the first name that contains what was typed.
                 const found = loaded.find((station) => normalise(station.name) === asked) ?? loaded.find((station) => normalise(station.name).includes(asked));
 
                 if (found === undefined) {
                     status.textContent = `Aucun arrêt ne correspond à « ${input.value.trim()} ».`;
-                } else {
+
+                    return;
+                }
+
+                // A station found before the map is ready waits for it.
+                void layer.then((shown) => {
                     shown.open(found);
                     status.textContent = `Carte centrée sur l’arrêt ${found.name}.`;
-                }
+                });
             },
             () => (status.textContent = 'La liste des arrêts n’a pas pu être chargée : réessayez plus tard.'),
         );

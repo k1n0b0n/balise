@@ -27,12 +27,12 @@ final class Home extends Component
         $networkName = Config::string("networks.{$network}.name");
         $lines = $this->lines($network);
         // E3.4: the line chosen in the selector, by its short name, which people read and share in the URL.
-        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === request()->string('ligne')->toString());
+        $selectedLine = $lines->first(fn (Line $line): bool => $line->short_name === $this->queryText('ligne'));
         $positions = VehiclePosition::query()->with('line')->where('network', $network)->get();
-        $mode = TransportMode::tryFrom(request()->string('mode')->toString());
+        $mode = TransportMode::tryFrom($this->queryText('mode'));
         $running = $this->lineOptions($lines, $positions, $selectedLine);
 
-        $stationQuery = request()->string('arret')->squish()->toString();
+        $stationQuery = Str::squish($this->queryText('arret'));
 
         return view('livewire.home', [
             'network' => $network,
@@ -132,6 +132,16 @@ final class Home extends Component
             ->get()
             ->sort(fn (Line $a, Line $b): int => $modes[$a->mode->value] <=> $modes[$b->mode->value] ?: strnatcasecmp($a->short_name, $b->short_name))
             ->values();
+    }
+
+    /**
+     * A text parameter of the address, empty when absent or sent as an array (`?ligne[]=A`).
+     */
+    private function queryText(string $key): string
+    {
+        $value = request()->query($key);
+
+        return is_string($value) ? $value : '';
     }
 
     /**
