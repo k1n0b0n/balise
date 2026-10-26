@@ -104,7 +104,8 @@ final readonly class Replays
 
         try {
             $this->http->timeout(600)->sink($tar)->get($source.$archive['file'])->throw();
-            Process::run(['tar', '-xf', $tar, '-C', $directory])->throw();
+            // A day is about 90 MB, beyond the default 60 s on a slow disk.
+            Process::timeout(300)->run(['tar', '-xf', $tar, '-C', $directory])->throw();
         } finally {
             File::delete($tar);
         }

@@ -7,6 +7,7 @@ use App\Models\Line;
 use App\Models\VehiclePosition as StoredPosition;
 use App\Support\Replays;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
@@ -135,6 +136,14 @@ it('goes back to the live feed and its catalogue', function (): void {
 
     expect(app(Replays::class)->current('tbm'))->toBeNull();
     Http::assertSent(fn ($request): bool => $request->url() === 'https://gtfs.test/tbm.zip');
+});
+
+it('keeps replaying when the live catalogue cannot be imported', function (): void {
+    replayingFromNoon(CarbonImmutable::now());
+    Http::fake(['gtfs.test/*' => Http::response('', 500)]);
+
+    expect(fn () => $this->artisan('network:replay', ['network' => 'tbm', '--stop' => true])->run())->toThrow(RequestException::class)
+        ->and(app(Replays::class)->current('tbm'))->not->toBeNull();
 });
 
 it('never replays in production', function (): void {

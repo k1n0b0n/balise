@@ -40,8 +40,9 @@ final class ReplayNetwork extends Command
         }
 
         if ($this->option('stop')) {
-            $replays->stop($network);
+            // The live catalogue first: when its import fails, the replay goes on and --stop can be run again.
             $import->handle($network);
+            $replays->stop($network);
             $this->components->info("{$network}: back to the live feed and its catalogue.");
 
             return self::SUCCESS;
