@@ -3,7 +3,7 @@
 #   dev         runtime + Composer and the tools of the setup scripts
 #   test        PHP on Debian + Composer, Node and Chromium, for the browser tests: Playwright's browsers need glibc
 #   production  runtime + the code of a release, without dev packages, with built assets and generated classes
-ARG NODE_VERSION=24
+ARG NODE_VERSION=26
 
 FROM node:${NODE_VERSION}-trixie-slim AS node-debian
 

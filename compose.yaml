@@ -93,7 +93,7 @@ services:
         restart: true
 
   vite:
-    image: node:24-alpine
+    image: node:26-alpine
     user: node
     working_dir: /var/www/balise
     volumes:
