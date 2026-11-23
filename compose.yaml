@@ -103,7 +103,7 @@ services:
     command: ["sh", "-c", "npm install && npm run dev"]
 
   postgres:
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     environment:
       POSTGRES_DB: balise
       POSTGRES_USER: balise
