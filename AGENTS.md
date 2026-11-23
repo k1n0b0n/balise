@@ -4,7 +4,7 @@
 
 Live map of public transport vehicles fed by open GTFS-Realtime data. First network: TBM (Bordeaux). Audience: technical reviewers reading the repo in about ten minutes, so readability beats cleverness.
 
-Stack: Laravel 13, Livewire 4, PHP 8.5, PostgreSQL 18. Tests: Pest (feature tests in `tests/Feature`, architecture tests in `tests/Unit/ArchitectureTest.php`), run against the `testing` PostgreSQL database.
+Stack: Laravel 13, Livewire 4, PHP 8.5, PostgreSQL 19. Tests: Pest (feature tests in `tests/Feature`, architecture tests in `tests/Unit/ArchitectureTest.php`), run against the `testing` PostgreSQL database.
 
 ## Commands
 
@@ -32,7 +32,7 @@ Everything runs in Docker (ADR-0007); no PHP is needed on the host.
 | Prepare the local machines / a real host from its ignored inventory, through your SSH agent, as Docker Desktop and similar tools expose it (`--check --diff` to see drift) | `docker compose run --rm ansible ansible-playbook host.yml` / `docker compose run --rm -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock ansible ansible-playbook -i local/inventory.yml host.yml` |
 | See which of PHP, PostgreSQL, Redis and Node has a newer version / rewrite the places that name one (the weekly `versions` workflow opens the pull requests) | `php scripts/raise-versions.php` / `php scripts/raise-versions.php apply postgresql 19` (on the host, or through `docker compose exec php`) |
 | Release a version | Merge the pull request `chore: release x.y.z` that release-please keeps open on `main`: it tags `vx.y.z` and publishes the GitHub release |
-| Build the production images locally (`app`, then `web` from it) | `docker build -f docker/php/Dockerfile --target production --build-arg POSTGRESQL_VERSION=18 --build-arg REDIS_VERSION=8 -t balise-php:production .` / `docker build -f docker/nginx/Dockerfile --target production -t balise-nginx:production .` |
+| Build the production images locally (`app`, then `web` from it) | `docker build -f docker/php/Dockerfile --target production --build-arg POSTGRESQL_VERSION=19 --build-arg REDIS_VERSION=8 -t balise-php:production .` / `docker build -f docker/nginx/Dockerfile --target production -t balise-nginx:production .` |
 | Deploy a release on a prepared host / go back to the previous one | `ssh balise-deploy@<host> v1.2.3` / `ssh balise-deploy@<host> rollback` |
 
 Agents: always forward `-e CLAUDECODE -e AI_AGENT` to `docker compose exec` or `docker compose run` when running Pint, Larastan or Pest. The variables are copied only when set in the calling shell, so humans keep the normal output; never put them in `compose.yaml`, where they would be frozen at container creation.
