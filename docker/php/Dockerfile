@@ -10,7 +10,7 @@ FROM node:${NODE_VERSION}-trixie-slim AS node-debian
 FROM node:${NODE_VERSION}-alpine AS node-alpine
 
 
-FROM php:8.5-fpm-alpine AS runtime
+FROM php:8.6-fpm-alpine AS runtime
 
 COPY docker/php/install-extensions.sh /tmp/install-extensions.sh
 RUN sh /tmp/install-extensions.sh \
@@ -37,7 +37,7 @@ USER balise
 
 
 # Built in one stage, then flattened: the compilers the Debian image keeps would stay in its layers otherwise.
-FROM php:8.5-cli-trixie AS test-build
+FROM php:8.6-cli-trixie AS test-build
 
 COPY docker/php/install-extensions.sh /tmp/install-extensions.sh
 RUN sh /tmp/install-extensions.sh \
