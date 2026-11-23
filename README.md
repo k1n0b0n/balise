@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/k1n0b0n/balise/actions/workflows/ci.yml/badge.svg)](https://github.com/k1n0b0n/balise/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)
+![PHP 8.6](https://img.shields.io/badge/PHP-8.6-777BB4?logo=php&logoColor=white)
 ![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![Livewire 4](https://img.shields.io/badge/Livewire-4-FB70A9?logo=livewire&logoColor=white)
 ![MapLibre](https://img.shields.io/badge/MapLibre_GL_JS-396CB2?logo=maplibre&logoColor=white)
